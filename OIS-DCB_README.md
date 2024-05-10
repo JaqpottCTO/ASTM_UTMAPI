@@ -1,5 +1,7 @@
 Branch Name: OIS-DCB
 
+Operational Intent Services - Discovery Synchronization Service (OIS-DSS)
+
 Team Members:
 David
 Hugo
