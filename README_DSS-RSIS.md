@@ -1,5 +1,7 @@
 Branch Name: DSS-RSIS
 
+Discovery Synchronization Service - Resource Status Information Service
+
 Team Members:
 Steven
 Jose
