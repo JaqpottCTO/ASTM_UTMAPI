@@ -1,6 +1,6 @@
 Branch Name: OIS-DCB
 
-Operational Intent Services - Discovery Synchronization Service (OIS-DSS)
+Operational Intent Services - Demand Capacity Balancing (OIS-DCB)
 
 Team Members:
 David
