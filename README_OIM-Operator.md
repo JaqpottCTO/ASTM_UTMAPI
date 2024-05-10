@@ -1,6 +1,6 @@
 Branch Name: OIM-Operator
 
-Operator Intent Management - Operator
+Operator Intent Manager - Operator
 
 Team Members:
 Aryaman (still to verify)
