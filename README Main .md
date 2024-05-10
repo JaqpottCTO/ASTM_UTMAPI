@@ -1,6 +1,7 @@
 Main Branch of ASTM UTM APIs
+
 Overview
-Welcome to the central repository for the development of standalone APIs that form the backbone of NASA's Unmanned Traffic Management (UTM) system. These APIs are designed to operate independently and integrate seamlessly within the broader UTM architecture, adhering to the modular X5 approach. The main branch contains the most stable and up-to-date version of the code that is ready for deployment.
+Welcome to the central repository for the development of standalone APIs that form the backbone of ASTM NASA Unmanned Traffic Management (UTM) system. These APIs are designed to operate independently and integrate seamlessly within the broader UTM architecture, reflecting states of the modular X5 approach. 
 
 Purpose
 This repository serves multiple key purposes:
