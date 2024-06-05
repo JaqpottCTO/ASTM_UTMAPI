@@ -1,24 +1,122 @@
 @startuml
 participant "Resource operator" as RO
-==Set up resources==
-RO -> RCIS: POST /RCIS/v1/resource-reference/
-RO -> RCIS: PUT /RCIS/v1/resource-reference/{resource-id}/capacities/
-RO -> RSIS: POST /RSIS/v1/resource-reference/
-RO -> RSIS: PUT /RSIS/v1/resource-reference/{resource-id}/statuses/
-==Make resources discoverable==
-RO -> DSS: POST /DSS/v1/resource-reference/
-note over RO
-includes RO, RSIS and RCIS URLs
+participant "Resource\nInformation\nService (RIS)" as RIS
+participant "Discovery &\nSynchronization\nService (DSS)" as DSS
+participant "DCB" as DCB
+participant "DCB2" as DCB2
+participant "OIM" as OIM
+participant "OIM2" as OIM2
+
+
+==DCB subscribe to resources==
+DCB -> DSS: PUT /DSS/v1/subscriptions/resource-subscription/
+DCB <-- DSS: resource references (empty)
+
+DCB -> DSS: PUT /DSS/v1/subscriptions/operation-subscription/
+DCB <-- DSS: operation references (empty)
+
+note over DCB
+No resources exist. 
+Nothing to do yet. 
 end note
-==DCB discover resources==
-DCB -> DSS: POST /DSS/v1/subscriptions/resource-subscription/
-DCB <-- DSS: resource operators
-DCB -> RO: GET /ResourceOperator/v1/resource-details/{resource-id}
-DCB <-- RO: resource details
-==DCB get statuses==
-DCB -> RSIS: GET /RSIS/v1/resource-reference/{resource-id}/statuses/
-DCB <-- RSIS: resource statuses
-==DCB get capacities==
-DCB -> RCIS: GET /RCIS/v1/resource-reference/{resource-id}/capacities/
-DCB <-- RCIS: resource capacities
+
+==Make resources discoverable==
+note over RO
+Resource is originally
+defined here.
+end note 
+RO -> RIS: Submit initial resource definition, capacity, and status
+RIS -> DSS: POST /DSS/v1/resource-reference/
+note over DSS
+Resource reference creation
+creates an implicit self-subscription
+for any changes needed to the resource
+due to OIM flight intents.
+end note
+DSS --> RIS: subscribers, resource-reference including subscription id
+loop For each resource subscriber
+    DCB <-- RIS: PUT /v1/resource-details/{resource-id}  (everything, includes OVN)
+end
+note over DCB
+Assumption: ResourceDetails contains definition,
+status, and capacity. 
+end note
+
+== Resource capacity is adjusted ==
+RO -> RIS: Update resource capacity
+RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
+RIS <-- DSS: subscribers
+loop For each resource subscriber
+    RIS -> DCB: PUT /v1/resource-details/{resource-id}/capacity (includes OVN)
+    note over DCB #pink
+    Separate updates for capacity,
+    status, and definition?
+    end note
+end
+
+== Resource status is adjusted ==
+RO -> RIS: Update resource status
+RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
+RIS <-- DSS: subscribers
+loop For each resource subscriber
+    RIS -> DCB: PUT /v1/resource-details/{resource-id}/status (includes OVN)
+end
+
+== Resource definition is adjusted ==
+RO -> RIS: Update resource definition
+RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
+RIS <-- DSS: subscribers
+loop For each resource subscriber
+    RIS -> DCB: PUT /v1/resource-details/{resource-id}/definition (includes OVN)
+end
+
+== A new subscriber joins == 
+
+DCB2 -> DSS: PUT /DSS/v1/subscriptions/operation-subscription/
+DCB2 <-- DSS: operation references (empty)
+
+DCB2 -> DSS: PUT /DSS/v1/subscriptions/resource-subscription/
+DCB2 <-- DSS: resource references
+
+loop For each resource reference received
+    note over DCB2
+    Get all resource details.
+    end note
+    DCB2 -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
+    DCB2 <-- RIS: resource details (everything)
+end
+
+
+== OIM2 submits an operation to the DSS == 
+OIM2 -> DSS: PUT /dss/v1/operational_intent_references/{entityId}  (Proposed state)
+note over DSS
+Does not check any OVNs here.
+All operation intents accepted.
+end note
+OIM2 <-- DSS: subscribers to notify
+loop For all subscribers
+    ' OIM2 -> RIS: /psu/v1/operational_intents (includes OVN)
+    OIM2 -> DCB: /psu/v1/operational_intents (includes OVN)
+    DCB -> DCB: Adjust demand/capacity values
+    OIM2 -> DCB2:  /psu/v1/operational_intents (includes OVN)
+    DCB2 -> DCB2: Adjust demand/capacity values
+end
+
+== OIM wants to transition operation to Accepted state (OVNs required) ==
+' OIM -> DCB: Get available resources
+' OIM <-- DCB: Return all resources, OVNs, avaialble time ranges
+
+
+OIM -> DCB: Submit proposed intent
+OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
+
+OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Accepted)
+DSS -> DSS: Confirms OVNs are correct
+OIM <-- DSS: operation intent reference with subscribers
+loop For all subscribers
+    OIM -> DCB2: PUT /psu/v1/operational_intents
+    OIM -> DCB: PUT /psu/v1/operational_intents
+end
+
+
 @enduml
