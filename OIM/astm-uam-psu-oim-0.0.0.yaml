@@ -13,12 +13,20 @@ security:
 tags:
 - name: Operational intent details
   description: Endpoints exposed by PSU OIMs for interaction with details of operational intents.
+- name: Telemetry
+- name: Constraint details
+  description: Endpoints exposed by PSUs for interaction with details of constraints.
+- name: Reports
+  description: Endpoints exposed by the PSUs for reporting peer PSU issues.
+- name: p2p_uam
+  description: Endpoints exposed by PSUs for peer-peer communication.
 paths:
   /oim/v1/operational_intents/{entityid}:
     summary: Query detailed information of an operational intent from a PSU.
     get:
       tags:
       - Operational intent details
+      - p2p_uam
       summary: Retrieve the specified operational intent details from a PSU.
       description: |-
         The PSU hosting this endpoint returns the details (and reference) of an
@@ -77,11 +85,70 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
+  /oim/v1/operational_intents:
+    summary: A PSU's representation of detailed information about operational intents.
+    post:
+      tags:
+      - Operational intent details
+      - p2p_uam
+      summary: Notify a peer PSU of changed operational intent details.
+      description: Notify a peer PSU directly of changed operational intent details (usually as a requirement of previous interactions with the DSS).
+      operationId: notifyOperationalIntentDetailsChanged
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
   /oim/v1/operational_intents/{entityid}/telemetry:
     summary: Detailed information on the position of an operational intent.
     get:
       tags:
-      - Operational intent details
+      - Telemetry
+      - p2p_uam
       summary: Query detailed information on the position of an operational intent from a PSU.
       operationId: getOperationalIntentTelemetry
       parameters:
@@ -145,50 +212,46 @@ paths:
       security:
       - Authority:
         - utm.conformance_monitoring_sa
-  /oim/v1/operational_intents:
-    summary: A PSU's representation of detailed information about operational intents.
+  /psu/v1/reports:
+    summary: Error reports of issues communicating with a peer PSU.
     post:
       tags:
-      - Operational intent details
-      summary: Notify a peer PSU of changed operational intent details.
-      description: Notify a peer PSU directly of changed operational intent details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyOperationalIntentDetailsChanged
+      - Reports
+      - p2p_uam
+      summary: Notify PSU of an error encountered that might otherwise go unnoticed.
+      description: "Endpoint to provide feedback (errors, etc.) that might otherwise go unnoticed by this PSU.  This endpoint is used for all feedback related to operational intents and constraints."
+      operationId: makePsuReport
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
+              $ref: '#/components/schemas/ErrorReport'
         required: true
       responses:
-        "204":
-          description: New or updated full operational intent information received successfully.
+        "201":
+          description: Report received and successfully archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
+            * The report could not be parsed, or contains unrecognized data.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          description: |-
+            Bearer access token was not provided in Authorization header,
+            token could not be decoded, or token was invalid.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
+          description: '* The access token was decoded successfully but did not include a scope appropriate to this endpoint.'
           content:
             application/json:
               schema:
@@ -202,6 +265,14 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
+      - Authority:
+        - utm.constraint_processing
+      - Authority:
+        - utm.constraint_management
+      - Authority:
+        - utm.conformance_monitoring_sa
+      - Authority:
+        - utm.availability_arbitration
 components:
   schemas:
     UUIDv4Format:
@@ -458,12 +529,15 @@ components:
       example: https://uam_psu.com/uam
     OperationalIntentState:
       type: string
-      description: "State of an operational intent.\n'Accepted': Operational intent is created and shared, but not yet in use; see standard text for more details.\nThe create or update request for this operational intent reference must include a Key containing all OVNs for\nall relevant Entities.\n'Activated': Operational intent is in active use; see standard text for more details.\nThe create or update request for this operational intent reference must include a Key containing all OVNs for\nall relevant Entities.\n'Nonconforming': This operation is not conforming to its operational intent per the Community Based Rules (CBR). \nThe create or update request for this operational intent may omit a Key \nin this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.\n'Contingent': UA is considered unrecoverably unable to conform with its coordinate operational intent; see\nstandard text for more details. \nThis state must transition to Ended.\nThe create or update request for\nthis operational intent may omit a Key in this case because the operational intent is being adjusted as flown \nand cannot necessarily deconflict."
+      description: "State of an operational intent.\n'Proposed': Operational intent is created and shared, but not yet in use; see standard text for more details.\n'Accepted': The operational intent has been strategically coordinated at its Acceptance Horizon. The latest \nairspace information has been received and evaluated and a DCB check has been completed.\n'Activated': Operational intent is in active use; see standard text for more details.\nThe create or update request for this operational intent reference must include a Key containing all OVNs for\nall relevant Entities.\n'DCB-Noncompliant': This state indicates that the aircraft is not currently in conformance or is predicted not \nto be in conformance with the DCB compliant operational intent that is being or has been shared with the PSU \nnetwork, as per the conformance bounds specified for each resource\n'Contingent': the operation has entered a circumstance in which the PSU CM role no longer has situational \nawareness of the aircraft position and/or operational intent. Specifically, this state is used to indicate \nsituations in which positional information is no longer being received by the PSU CM role to a degree that \nis necessary to meet identified conformance monitoring conformance requirements.\n'Cancalled': The operation has never been in Activated State and will not use the operational intent.\n'Completed': The operation is no longer using the operational intent because it has landed.\nThe create or update request for this operational intent may omit a Key in this case because the operational \nintent is being adjusted as flown and cannot necessarily deconflict."
       enum:
+      - Proposed
       - Accepted
       - Activated
-      - Nonconforming
+      - DCBNoncompliant
       - Contingent
+      - Cancelled
+      - Completed
     OperationalIntentReference:
       required:
       - id
@@ -821,7 +895,9 @@ components:
           anyOf:
           - $ref: '#/components/schemas/Altitude'
         time:
-          $ref: '#/components/schemas/Time'
+          description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
+          anyOf:
+          - $ref: '#/components/schemas/Time'
         speed:
           description: |-
             Speed of the vehicle at this TrajectoryPoint.
