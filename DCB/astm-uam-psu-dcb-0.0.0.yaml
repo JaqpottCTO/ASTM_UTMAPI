@@ -471,7 +471,7 @@ components:
         planned_operation:
           $ref: '#/components/schemas/OperationalIntent'
           description: >- 
-            Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. The 'ovn' attribute in the operational intert reference is not required/processed since it is assumed that this DCB endpoint is checked first before communicating with DSS. 
+            Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. The 'ovn' attribute in the operational intent reference is not required/processed since it is assumed that this DCB endpoint is checked first before communicating with DSS. 
 
     AreaBasedImbalanceRequest:
       type: object
@@ -879,7 +879,14 @@ components:
       type: string
       example: https://uam_psu.com/uam
  
-    OperationalIntentState:
+    OperationalIntentState:  
+    # Needs to incorporate other states as described in v2.1 of the spec.
+    # Incorporate the following modifications to the states:
+    # - Proposed (new)
+    # - Canceled (new)
+    # - Completed (new)
+    # - Nonconforming -> DCB-noncompliant (change name)
+
       description: |-
         State of an operational intent.
         'Accepted': Operational intent is created and shared, but not yet in use; see standard text for more details.
@@ -899,10 +906,13 @@ components:
         and cannot necessarily deconflict.
       type: string
       enum:
+        - Proposed
         - Accepted
         - Activated
-        - Nonconforming
+        - DCB-noncompliant
         - Contingent
+        - Canceled
+        - Completed 
  
     OperationalIntentReference:
       description: |-
@@ -1188,6 +1198,8 @@ components:
         Normal state.
 
     ResourceDefinition:
+    # May need to modify it to enable the definition itself to contain information regarding resource type and its availability 
+    # "Each baseline resource definition should include information about its location (geospatial coordinates), altitude range(s), time range(s) when the definition is valid, and possibly other criteria providing information on accessibility, use restrictions, and performance requirements. "
       description: |-
         A definition of a resource that only includes resource reference specification.
       required:
