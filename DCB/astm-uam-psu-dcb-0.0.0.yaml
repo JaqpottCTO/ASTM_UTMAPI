@@ -509,6 +509,7 @@ components:
             is not required/processed since it is assumed that this DCB endpoint is checked first 
             before communicating with DSS. 
 
+
     AreaBasedImbalanceRequest:
       type: object
       required:
@@ -911,15 +912,22 @@ components:
             Provides a debug message describing the error in more detail for support
           type: string
           
-    UssBaseURL:
-      description: |-
-        The base URL of a PSU implementation of part or all of the PSU API. Per the PSU API, the full URL
-        of a particular resource can be constructed by appending, e.g., `/psu/v1/{resource}/{id}` to this base URL.
-        Accordingly, this URL may not have a trailing '/' character.
-      type: string
-      example: https://uam_psu.com/uam
+    # UssBaseURL:
+    #   description: |-
+    #     The base URL of a PSU implementation of part or all of the PSU API. Per the PSU API, the full URL
+    #     of a particular resource can be constructed by appending, e.g., `/psu/v1/{resource}/{id}` to this base URL.
+    #     Accordingly, this URL may not have a trailing '/' character.
+    #   type: string
+    #   example: https://uam_psu.com/uam
  
-    OperationalIntentState:
+    OperationalIntentState:  
+    # Needs to incorporate other states as described in v2.1 of the spec.
+    # Incorporate the following modifications to the states:
+    # - Proposed (new)
+    # - Canceled (new)
+    # - Completed (new)
+    # - Nonconforming -> DCB-noncompliant (change name)
+
       description: |-
         State of an operational intent.
         'Accepted': Operational intent is created and shared, but not yet in use; see standard text for more details.
@@ -939,10 +947,13 @@ components:
         and cannot necessarily deconflict.
       type: string
       enum:
+        - Proposed
         - Accepted
         - Activated
-        - Nonconforming
+        - DCB-noncompliant
         - Contingent
+        - Canceled
+        - Completed 
  
     OperationalIntentReference:
       description: |-
@@ -1014,13 +1025,13 @@ components:
           anyOf:
             - $ref: '#/components/schemas/SubscriptionID'
  
-    OperationalIntentUssBaseURL:
-      description: |-
-        The base URL of a PSU implementation that implements the parts of the PSU API necessary for
-        providing the details of this operational intent, and telemetry during non-conformance or contingency,
-        if applicable.
-      anyOf:
-        - $ref: '#/components/schemas/UssBaseURL'
+    # OperationalIntentUssBaseURL:
+    #   description: |-
+    #     The base URL of a PSU implementation that implements the parts of the PSU API necessary for
+    #     providing the details of this operational intent, and telemetry during non-conformance or contingency,
+    #     if applicable.
+    #   anyOf:
+    #     - $ref: '#/components/schemas/UssBaseURL'
 
 
     OperationalIntentDetails:
@@ -1211,24 +1222,26 @@ components:
           default: GROUND
  
  
-    UssAvailabilityState:
-      type: string
-      enum:
-      - Unknown
-      - Normal
-      - Down
-      description: |-
-        A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with
-        availability arbitration scope.  Upon determination via availability arbitration, a PSU is
-        Down when it does not respond appropriately, and a Down PSU may not perform the following
-        operations in the DSS:
-          * Create an operational intent in the Accepted or Activated states
-          * Modify an operational intent whose new or unchanged state is Accepted or Activated
-          * Delete an operational intent
-        A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the
-        Normal state.
+    # UssAvailabilityState:
+    #   type: string
+    #   enum:
+    #   - Unknown
+    #   - Normal
+    #   - Down
+    #   description: |-
+    #     A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with
+    #     availability arbitration scope.  Upon determination via availability arbitration, a PSU is
+    #     Down when it does not respond appropriately, and a Down PSU may not perform the following
+    #     operations in the DSS:
+    #       * Create an operational intent in the Accepted or Activated states
+    #       * Modify an operational intent whose new or unchanged state is Accepted or Activated
+    #       * Delete an operational intent
+    #     A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the
+    #     Normal state.
 
     ResourceDefinition:
+    # May need to modify it to enable the definition itself to contain information regarding resource type and its availability 
+    # "Each baseline resource definition should include information about its location (geospatial coordinates), altitude range(s), time range(s) when the definition is valid, and possibly other criteria providing information on accessibility, use restrictions, and performance requirements. "
       description: |-
         A definition of a resource that only includes resource reference specification.
       required:
