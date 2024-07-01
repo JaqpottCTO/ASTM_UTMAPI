@@ -1,4 +1,3 @@
----
 openapi: 3.0.3
 info:
   title: ASTM UAM PSU OIM API
@@ -653,9 +652,9 @@ components:
       - Proposed
       - Accepted
       - Activated
-      - DCBNoncompliant
+      - DCB-noncompliant
       - Contingent
-      - Cancelled
+      - Canceled
       - Completed
     OperationalIntentReference:
       required:
