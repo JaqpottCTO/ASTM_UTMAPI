@@ -1,4 +1,3 @@
----
 openapi: 3.0.3
 info:
   title: ASTM UAM PSU OIM API
@@ -212,6 +211,125 @@ paths:
       security:
       - Authority:
         - utm.conformance_monitoring_sa
+  /oim/v1/constraints/{entityid}:
+    summary: Query detailed information of a constraint from a DCB.
+    get:
+      tags:
+      - Constraint details
+      - p2p_uam
+      summary: Retrieve the specified constraint details from a PSU.
+      description: |-
+        The PSU hosting this endpoint returns the details (and reference) of a
+        constraint it manages.  While the PSU has a pending request to change the
+        constraint in the DSS, the PSU should report the most recent version the
+        PSU knows was accepted by the DSS.  So, before a PSU receives a response
+        to create a constraint reference in the DSS, it should return 404 if
+        queried for that constraint at this endpoint.
+      operationId: getConstraintDetails
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the constraint.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/EntityID'
+      responses:
+        "200":
+          description: Constraint details were retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConstraintDetailsResponse'
+        "400":
+          description: One or more input parameters were missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: The requested Entity could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.constraint_processing
+  /oim/v1/constraints:
+    summary: A PSU OIM's representation of detailed information about constraints.
+    post:
+      tags:
+      - Constraint details
+      - p2p_uam
+      summary: Notify a peer PSU of changed constraint details.
+      description: Notify a peer PSU directly of changed constraint details (usually as a requirement of previous interactions with the DSS).
+      operationId: notifyConstraintDetailsChanged
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutConstraintDetailsParameters'
+        required: true
+      responses:
+        "204":
+          description: New or updated full constraint information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: "The Entity version specified in this message is lower than a previously-received notification, or identical to a previously-received notification and the Entity is different."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.constraint_management
   /psu/v1/reports:
     summary: Error reports of issues communicating with a peer PSU.
     post:
@@ -534,9 +652,9 @@ components:
       - Proposed
       - Accepted
       - Activated
-      - DCBNoncompliant
+      - DCB-noncompliant
       - Contingent
-      - Cancelled
+      - Canceled
       - Completed
     OperationalIntentReference:
       required:
