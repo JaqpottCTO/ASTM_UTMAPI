@@ -1,13 +1,19 @@
 openapi: 3.0.0
 info:
-  description: Interface definitions for the Demand Capacity Balancing function within the Providers of Services to UAM (PSU)
-    interoperability network. Functionality includes sharing demand capacity balancing information and receiving operation intent details from other PSU OIM functions.
+  description: >-
+    Interface definitions for the Demand Capacity Balancing function within the Providers of Services to UAM (PSU)
+    interoperability network. Functionality includes sharing demand capacity balancing information and receiving 
+    operation intent details from other PSU OIM functions.
   version: 0.0.0
   title: ASTM UAM PSU DCB API
   contact: 
     name: Rafal Kicinger
     email: rafal.kicinger@metronaviation.com
     url: https://www.metronaviation.com
+
+servers:
+#TODO: change this list of servers
+  - url: "/" 
 
 security:
   - fimsAzAuth: []
@@ -149,6 +155,13 @@ paths:
   
   /dcb/v1/imbalance/intent:
     post:
+      #Copied summary to description
+      description: >-
+        Demand-capacity imbalance detection endpoint that requires users to submit 
+        a planned operational intent to detect whether the resources included in this 
+        operational intent are below, at, or above available capacity. The returned 
+        demand-capacity imbalance responses do NOT include contributions from the planned 
+        operational intent but only consider operational intents known to DSS.
       tags:
         - DCB query
       summary: >-
@@ -223,11 +236,40 @@ paths:
             
   /dcb/v1/imbalance/area:
     post:
+      #Copied summary to description
+      description: >-
+        Demand-capacity imbalance detection endpoint that requires users to submit a 
+        specification of area of interest defined as Volume4D to detect whether the 
+        resources included in this areas are under, at, or over available capacity.
       tags:
         - DCB query
       summary: >-
         Demand-capacity imbalance detection endpoint that requires users to submit a specification of area of interest defined as Volume4D to detect whether the resources included in this areas are under, at, or over available capacity. 
       operationId: postImbalanceArea
+      parameters:
+        - name: timePeriod
+          in: query
+          required: true
+          description: Parameter defining the time period for which demand capacity imbalances are requested. Default end-time is 24 hours from the start-time.
+          schema:
+            type: object
+            $ref: '#/components/schemas/TimePeriod'
+            # properties:
+            #   time_start:
+            #     type: string
+            #     format: "iso8601"
+            #     minLength: 20
+            #     maxLength: 24
+            #     pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
+            #     example: "2021-12-08T14:00:00Z"
+            #   time_end:
+            #     type: string
+            #     format: "iso8601"
+            #     minLength: 20
+            #     maxLength: 24
+            #     pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
+            #     example: "2021-12-08T16:00:00Z"
+
       requestBody:
         content:
           application/json:
@@ -287,6 +329,17 @@ paths:
   
   /dcb/v1/imbalance/standalone:
     post:
+      #Copied summary to description
+      description: >-
+        Demand-capacity imbalance detection endpoint that requires users to submit a 
+        planned operational intent to detect whether the resources included in this 
+        operational intent are below, at, or above available capacity. Contrary to the 
+        /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the 
+        operational intents known to DSS but uses operational intents provided as background 
+        demand to compute resource imbalances. This endpoint is mostly suitable for testing 
+        since the client controls all the inputs required for demand-capacity calculations 
+        (i.e., the calculations are not dependent on the dynamically changing status of DSS 
+        operational intents and capacities are assumed to be static).
       tags:
         - DCB query
       summary: >-
@@ -355,6 +408,10 @@ paths:
   
   /dcb/v1/availability/{resname}:
     get:
+      #Copied summary to description
+      description: >-
+        Resource availability endpoint that provides information on avaiable time intervals 
+        for a given resource, i.e., time intervals during which demand is below available capacity.
       tags:
         - DCB query
       summary: >-
@@ -470,8 +527,12 @@ components:
       properties:
         planned_operation:
           $ref: '#/components/schemas/OperationalIntent'
-          description: >- 
-            Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. The 'ovn' attribute in the operational intent reference is not required/processed since it is assumed that this DCB endpoint is checked first before communicating with DSS. 
+      description: >- 
+            Operational intent that is being planned and for which resource demand capacity 
+            imbalances need to be checked. The 'ovn' attribute in the operational intert reference 
+            is not required/processed since it is assumed that this DCB endpoint is checked first 
+            before communicating with DSS. 
+
 
     AreaBasedImbalanceRequest:
       type: object
@@ -488,14 +549,17 @@ components:
             
     StandaloneImbalanceRequest:
       type: object
+      #Moved description out of properties
+      description: |- 
+        Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. 
+        The 'ovn' attribute in the oeprational intert reference is not required/processed since it is assumed that this 
+        DCB endpoint is checked first before communicating with DSS. 
       required:
         - planned_operation
         - background_demand
       properties:
         planned_operation:
           $ref: '#/components/schemas/OperationalIntent'
-          description: >- 
-            Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. The 'ovn' attribute in the oeprational intert reference is not required/processed since it is assumed that this DCB endpoint is checked first before communicating with DSS. 
         background_demand:
           type: array
           items:
@@ -598,8 +662,8 @@ components:
       minLength: 36
       type: string
       format: uuid
-      pattern: >-
-        '^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[89abAB][0-9a-fA-F]{3}\\-[0-9a-fA-F]{12}$'
+      #Fixed pattern so it matches
+      pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[89abAB][0-9a-fA-F]{3}\\-[0-9a-fA-F]{12}$"
       example: d290f1ee-6c54-4b01-90e6-d701748f0851
  
     EntityID:
@@ -832,7 +896,7 @@ components:
       properties:
         type:
           description: |-
-            Provides definition of the high-levle type of error.
+            Provides definition of the high-level type of error.
           type: string
           example: AUTHORIZATION_ERROR
         title:
@@ -850,10 +914,11 @@ components:
             Provides the time instance of when the error happened
           type: "string"
           format: "iso8601"
-          minLength: 20
-          maxLength: 20
+          #In this case it looks like milliseconds are required on the pattern, so 24 chars and added to the example.
+          minLength: 24
+          maxLength: 24
           pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{3})Z$"
-          example: "2021-12-08T14:00:00Z"
+          example: "2021-12-08T14:00:00.000Z"
         detail:
           description: |-
             Provides a human-readable explanation specific to this occurrence of the problem
@@ -871,13 +936,13 @@ components:
             Provides a debug message describing the error in more detail for support
           type: string
           
-    UssBaseURL:
-      description: |-
-        The base URL of a PSU implementation of part or all of the PSU API. Per the PSU API, the full URL
-        of a particular resource can be constructed by appending, e.g., `/psu/v1/{resource}/{id}` to this base URL.
-        Accordingly, this URL may not have a trailing '/' character.
-      type: string
-      example: https://uam_psu.com/uam
+    # UssBaseURL:
+    #   description: |-
+    #     The base URL of a PSU implementation of part or all of the PSU API. Per the PSU API, the full URL
+    #     of a particular resource can be constructed by appending, e.g., `/psu/v1/{resource}/{id}` to this base URL.
+    #     Accordingly, this URL may not have a trailing '/' character.
+    #   type: string
+    #   example: https://uam_psu.com/uam
  
     OperationalIntentState:  
     # Needs to incorporate other states as described in v2.1 of the spec.
@@ -984,13 +1049,13 @@ components:
           anyOf:
             - $ref: '#/components/schemas/SubscriptionID'
  
-    OperationalIntentUssBaseURL:
-      description: |-
-        The base URL of a PSU implementation that implements the parts of the PSU API necessary for
-        providing the details of this operational intent, and telemetry during non-conformance or contingency,
-        if applicable.
-      anyOf:
-        - $ref: '#/components/schemas/UssBaseURL'
+    # OperationalIntentUssBaseURL:
+    #   description: |-
+    #     The base URL of a PSU implementation that implements the parts of the PSU API necessary for
+    #     providing the details of this operational intent, and telemetry during non-conformance or contingency,
+    #     if applicable.
+    #   anyOf:
+    #     - $ref: '#/components/schemas/UssBaseURL'
 
 
     OperationalIntentDetails:
@@ -1081,8 +1146,9 @@ components:
             - $ref: '#/components/schemas/Altitude'  
         time:
           description: |-
-            Estimated time when the vehicle will be at the location of the TrajectoryPoint
-          $ref: '#/components/schemas/Time'
+              Estimated time when the vehicle will be at the location of the TrajectoryPoint
+          anyOf:
+            - $ref: '#/components/schemas/Time'
         speed:
           description: |-
             Speed of the vehicle at this TrajectoryPoint.
@@ -1180,22 +1246,22 @@ components:
           default: GROUND
  
  
-    UssAvailabilityState:
-      type: string
-      enum:
-      - Unknown
-      - Normal
-      - Down
-      description: |-
-        A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with
-        availability arbitration scope.  Upon determination via availability arbitration, a PSU is
-        Down when it does not respond appropriately, and a Down PSU may not perform the following
-        operations in the DSS:
-          * Create an operational intent in the Accepted or Activated states
-          * Modify an operational intent whose new or unchanged state is Accepted or Activated
-          * Delete an operational intent
-        A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the
-        Normal state.
+    # UssAvailabilityState:
+    #   type: string
+    #   enum:
+    #   - Unknown
+    #   - Normal
+    #   - Down
+    #   description: |-
+    #     A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with
+    #     availability arbitration scope.  Upon determination via availability arbitration, a PSU is
+    #     Down when it does not respond appropriately, and a Down PSU may not perform the following
+    #     operations in the DSS:
+    #       * Create an operational intent in the Accepted or Activated states
+    #       * Modify an operational intent whose new or unchanged state is Accepted or Activated
+    #       * Delete an operational intent
+    #     A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the
+    #     Normal state.
 
     ResourceDefinition:
     # May need to modify it to enable the definition itself to contain information regarding resource type and its availability 
@@ -1267,6 +1333,20 @@ components:
             coordinates:
               type: array
               items:
-                type: number
+                type: number #GeoJSON would require float?
               minItems: 2
-              maxItems: 3
+              maxItems: 3 #GeoJSON looks to be only Lat, Lon. Should it be 2?
+
+
+    TimePeriod:
+      type: object
+      description: Time period
+      required:
+        - start
+        - end
+      properties:
+        start:
+          $ref: '#/components/schemas/Time'
+        end:
+          $ref: '#/components/schemas/Time'
+
