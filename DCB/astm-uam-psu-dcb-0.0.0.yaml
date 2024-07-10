@@ -246,6 +246,30 @@ paths:
       summary: >-
         Demand-capacity imbalance detection endpoint that requires users to submit a specification of area of interest defined as Volume4D to detect whether the resources included in this areas are under, at, or over available capacity. 
       operationId: postImbalanceArea
+      parameters:
+        - name: timePeriod
+          in: query
+          required: true
+          description: Parameter defining the time period for which demand capacity imbalances are requested. Default end-time is 24 hours from the start-time.
+          schema:
+            type: object
+            $ref: '#/components/schemas/TimePeriod'
+            # properties:
+            #   time_start:
+            #     type: string
+            #     format: "iso8601"
+            #     minLength: 20
+            #     maxLength: 24
+            #     pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
+            #     example: "2021-12-08T14:00:00Z"
+            #   time_end:
+            #     type: string
+            #     format: "iso8601"
+            #     minLength: 20
+            #     maxLength: 24
+            #     pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
+            #     example: "2021-12-08T16:00:00Z"
+
       requestBody:
         content:
           application/json:
@@ -1311,4 +1335,21 @@ components:
               items:
                 type: number #GeoJSON would require float?
               minItems: 2
+
               maxItems: 3 #GeoJSON looks to be only Lat, Lon. Should it be 2?
+
+
+    TimePeriod:
+      type: object
+      description: Time period
+      required:
+        - start
+        - end
+      properties:
+        start:
+          $ref: '#/components/schemas/Time'
+        end:
+          $ref: '#/components/schemas/Time'
+
+             
+
