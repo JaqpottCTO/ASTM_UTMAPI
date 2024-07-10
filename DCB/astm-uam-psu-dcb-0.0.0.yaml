@@ -1335,6 +1335,7 @@ components:
               items:
                 type: number #GeoJSON would require float?
               minItems: 2
+
               maxItems: 3 #GeoJSON looks to be only Lat, Lon. Should it be 2?
 
 
@@ -1349,4 +1350,6 @@ components:
           $ref: '#/components/schemas/Time'
         end:
           $ref: '#/components/schemas/Time'
+
+             
 
