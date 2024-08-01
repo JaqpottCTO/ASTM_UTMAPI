@@ -1,33 +1,35 @@
 @startuml
 
-class ResourceReference {
-    id: EntityID
-    manager: string
-    version: integer
-    ovn: EntityOVN
-    subscription_id: SubscriptionID
-    definition_url: string
-    capacity_url: string
-    status_url: string
-}
-note "RIS definition, capacity, and status URLs separate if data may come from different services. \nOtherwise, could provide a base URL and use paths for details. " as n_ussbaseurl
-n_ussbaseurl -- ResourceReference
+' class ResourceReference {
+'     id: EntityID
+'     manager: string
+'     version: integer
+'     ovn: EntityOVN
+'     subscription_id: SubscriptionID
+'     definition_url: string
+'     capacity_url: string
+'     status_url: string
+' }
+' note "RIS definition, capacity, and status URLs separate if data may come from different services. \nOtherwise, could provide a base URL and use paths for details. " as n_ussbaseurl
+' n_ussbaseurl -- ResourceReference
 
-class ResourceDetails {
-    * reference: ResourceReference
-    * definition: ResourceDefinition
-    * capacity: ResourceCapacity
-    * status: ResourceStatus
-}
+' class ResourceDetails {
+'     * reference: ResourceReference
+'     * definition: ResourceDefinition
+'     * capacity: ResourceCapacity
+'     * status: ResourceStatus
+' }
 enum CapacityLimitType {
-    RATE_BASED
+    FLOW_RATE_CONSTANT
+    FLOW_RATE_FIXED_BIN
+    ' FLOW_RATE_ROLLING_BIN
     INSTANTANEOUS
 }
-enum DurationUnits {
-    SECONDS
-    MINUTES
-    HOURS
-}
+' enum DurationUnits {
+'     SECONDS
+'     ' MINUTES
+'     ' HOURS
+' }
 enum ResourceType {
     Rate-based types:
     ENTRY_POINT
@@ -59,27 +61,57 @@ class ResourceCapacity {
     future: List[TemporaryResourceCapacity]
 }
 
+' class DefaultResourceCapacity {
+'     * type: CapacityLimitType
+'     * limit: integer
+'     per_duration: int
+'     duration_unit: DurationUnits
+' }
+' note "We can define the API with value & unit\nbut keeping separate here\nto help show the concept." as N1
+' N1 -- DefaultResourceCapacity
+' N1 -- ActiveResourceCapacity
+' N1 -- TemporaryResourceCapacity
 class DefaultResourceCapacity {
     * type: CapacityLimitType
-    * limit: integer
-    per_duration: int
-    duration_unit: DurationUnits
+    limit: integer
+    rate: integer
+    duration: integer
 }
+
+namespace OpenAPI {
+    class PropertyLimit {
+        * value: string
+        * unit: string
+    }
+    ' enum PropertyUnits {
+    '     NUMERIC
+    '     SECONDS
+    ' }
+    enum PropertyUnits {
+        DURATION
+        LIMIT
+        RATE
+    }
+    PropertyLimit -- PropertyUnits
+    note "- If FLOW_RATE_CONSTANT, RATE must be provided. \n- If FLOW_RATE_FIXED_BIN, DURATION must be provided\nand LIMIT must be provided as a second property. \n- If INSTANTANEOUS, LIMIT must be provided.\n\nDURATION and RATE always in SECONDS." as PROP_NOTE
+    PropertyLimit -- PROP_NOTE
+}
+DefaultResourceCapacity -- OpenAPI.PROP_NOTE
 
 class ActiveResourceCapacity {
     * type: CapacityLimitType
-    * limit: integer
-    per_duration: int
-    duration_unit: DurationUnits
+    limit: integer
+    rate: integer
+    duration: integer
     end: Time
 }
 
 class TemporaryResourceCapacity {
     * type: CapacityLimitType
-    * limit: integer
-    per_duration: int
-    duration_unit: DurationUnits
-    start: Time
+    limit: integer
+    rate: integer
+    duration: integer
+    * start: Time
     end: Time
 }
 
@@ -111,13 +143,66 @@ class Radius {
     units: string (only M meters acceptable for UAM)
 }
 
+class ResourceReference {
+    id: EntityID
+    ' manager: string
+    version: integer
+    ovn: EntityOVN
+    subscription_id: SubscriptionID
+    definition_url: string
+    capacity_url: string
+    status_url: string
+
+}
+
+
+
+note "RIS definition, capacity, and status URLs separate if data may come from different services. \nOtherwise, could provide a base URL and use paths for details. " as n_ussbaseurl
+n_ussbaseurl -- ResourceReference
+
+class ResourceDetails {
+    * reference: ResourceReference
+    * definition: ResourceDefinition
+    * capacity: ResourceCapacity
+    * status: ResourceStatus
+}
+
 class ResourceDefinition {
     * name: string
     * shape: ResourceShape
     point: LatLngPoint
     bounding_circle: Circle
     coordinates: List[LatLngPoint]
+    altitude_upper: string
+    altitude_lower: string
 }
+
+class ResourceAdaptation {
+    manager: string
+    configuration: Configuration
+    uam_airspaces: List[AirspaceClass]
+}
+enum Configuration {
+    North
+    NorthEast
+    East
+    SouthEast
+    South
+    SouthWest
+    West
+    NorthWest
+}
+enum AirspaceClass {
+    A
+    B
+    C
+    D
+    E
+    G
+}
+ResourceAdaptation -- Configuration
+ResourceAdaptation -- "0..*" AirspaceClass
+
 note "One of point, bounding_circle\nor coordinates is required." as N_SHAPE
 N_SHAPE -- ResourceDefinition
 
@@ -135,12 +220,12 @@ ResourceDetails -- ResourceDefinition
 ResourceDetails -- ResourceReference
 
 ActiveResourceCapacity -- CapacityLimitType
-ActiveResourceCapacity -- DurationUnits
+' ActiveResourceCapacity -- DurationUnits
 ActiveResourceCapacity -- Time
 DefaultResourceCapacity -- CapacityLimitType
-DefaultResourceCapacity -- DurationUnits
+' DefaultResourceCapacity -- DurationUnits
 TemporaryResourceCapacity -- CapacityLimitType
-TemporaryResourceCapacity -- DurationUnits
+' TemporaryResourceCapacity -- DurationUnits
 ResourceCapacity -- DefaultResourceCapacity
 ResourceCapacity -- "0..*" TemporaryResourceCapacity
 TemporaryResourceCapacity -- Time
