@@ -46,8 +46,7 @@ enum ResourceType {
     Both:
     VERTIPORT
     ==
-    Missing:
-    WAYPOINT (none of the above?)
+    WAYPOINT
 }
 
 class Time {
@@ -85,9 +84,8 @@ class TemporaryResourceCapacity {
 }
 
 enum ResourceStatusType {
-    ON
-    OFF
-    DEGRADED
+    ACTIVE
+    INACTIVE
 }
 class ResourceStatus {
     * status: ResourceStatusType
