@@ -100,7 +100,7 @@ DCB2 -> DSS: PUT /dss/v1/subscriptions/operation-subscription/
 DCB2 <-- DSS: operation references
 loop For each operation reference received
     note over DCB2
-    Get all resource details.
+    Get all operation details.
     end note
     DCB2 -> OIM: GET /v1/operation_intents/{operation-id} (includes OVN)
     DCB2 <-- OIM: operation details (everything)
@@ -124,23 +124,48 @@ else If no imbalance detected
 end
 
 ==Conformance Monitoring==
-OIM -> CM: POST /cm/v1/operational_intents ????
-' CM -> DSS: PUT /dss/v1/subscriptions/operation-subscription/
-' CM <-- DSS: operation references
-' loop For each operation reference received
-'     note over CM
-'     Get all resource details.
-'     end note
-'     CM -> OIM: GET /v1/operation_intents/{operation-id} (includes OVN)
-'     CM <-- OIM: operation details (everything)
-' end
-op -> CM: Telemetry
+OIM -> CM: POST /cm/v1/operational_intents
+'CM -> DSS: PUT /dss/v1/subscriptions/operation-subscription/
+'CM <-- DSS: operation references
+loop For each operation reference received
+'    note over CM
+'    Get all operation details.
+'    end note
+'    CM -> OIM: GET /v1/operation_intents/{operation-id} (includes OVN)
+'    CM <-- OIM: operation details (everything)
+    note over CM
+    Get all resource details for the operation.
+    end note
+    CM -> DSS: PUT /dss/v1/subscriptions/resource-subscription/
+    CM <-- DSS: resource references
+    loop For each resource reference received
+        note over CM
+        Get all resource details.
+        end note
+        CM -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
+        CM <-- RIS: resource details (everything)
+    end
+end
+op -> CM: Position reports
+alt If position reports for operations in Accepted state
+    loop For all operations in Accepted state with position reports
+        CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+        OIM <-- DSS: operation intent reference with subscribers
+        loop For all subscribers
+            OIM -> DCB2: POST /dcb/v1/operational_intents
+            OIM -> DCB: POST /dcb/v1/operational_intents
+        end
+    end
+else If no position reports for operations in Accepted state
+    note over CM: Do nothing
+end
 loop
     CM -> CM: Conformance monitoring
     alt If operation in conformance
         note over CM: Do nothing
     else If operation not in conformance
-        CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant) ?????
+        CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
         OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
@@ -150,7 +175,7 @@ loop
     end
 end
 
-==Telemetry Sharing==
+==Position Sharing==
 alt If operation in Activated, DCB-Noncompliant or Contingent States
     loop 
         CM -> CM2: GET /cm/v1/operational_intents/{entityid}/telemetry        
@@ -159,5 +184,4 @@ else If operation ended or cancelled
     note over CM: Stop retrieving telemetry
 end 
 CM2 -> CM: GET /cm/v1/operational_intents/{entityid}/telemetry
-
 @enduml
