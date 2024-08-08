@@ -124,28 +124,14 @@ else If no imbalance detected
 end
 
 ==Conformance Monitoring==
+CM -> DSS: PUT /dss/v1/subscriptions/resource-subscription/
+CM <-- DSS: resource references
+CM -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
+CM <-- RIS: resource details (everything)
 OIM -> CM: POST /cm/v1/operational_intents
 'CM -> DSS: PUT /dss/v1/subscriptions/operation-subscription/
 'CM <-- DSS: operation references
-loop For each operation reference received
-'    note over CM
-'    Get all operation details.
-'    end note
-'    CM -> OIM: GET /v1/operation_intents/{operation-id} (includes OVN)
-'    CM <-- OIM: operation details (everything)
-    note over CM
-    Get all resource details for the operation.
-    end note
-    CM -> DSS: PUT /dss/v1/subscriptions/resource-subscription/
-    CM <-- DSS: resource references
-    loop For each resource reference received
-        note over CM
-        Get all resource details.
-        end note
-        CM -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
-        CM <-- RIS: resource details (everything)
-    end
-end
+
 op -> CM: Position reports
 alt If position reports for operations in Accepted state
     loop For all operations in Accepted state with position reports
