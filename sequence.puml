@@ -133,20 +133,15 @@ OIM -> CM: POST /cm/v1/operational_intents
 'CM <-- DSS: operation references
 
 op -> CM: Position reports
-alt If position reports for operations in Accepted state
-    loop For all operations in Accepted state with position reports
-        CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
-        OIM <-- DSS: operation intent reference with subscribers
-        loop For all subscribers
-            OIM -> DCB2: POST /dcb/v1/operational_intents
-            OIM -> DCB: POST /dcb/v1/operational_intents
-        end
+alt If position reports for operation in Accepted state
+    CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+    OIM <-- DSS: operation intent reference with subscribers
+    loop For all subscribers
+        OIM -> DCB2: POST /dcb/v1/operational_intents
+        OIM -> DCB: POST /dcb/v1/operational_intents
     end
-else If no position reports for operations in Accepted state
-    note over CM: Do nothing
-end
-loop
+else If position reports for operation in Activated state
     CM -> CM: Conformance monitoring
     alt If operation in conformance
         note over CM: Do nothing
