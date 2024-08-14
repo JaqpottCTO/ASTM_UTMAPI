@@ -177,36 +177,10 @@ class ResourceDefinition {
     altitude_lower: string
 }
 
-class ResourceAdaptation {
-    manager: string
-    configuration: Configuration
-    uam_airspaces: List[AirspaceClass]
-}
-enum Configuration {
-    North
-    NorthEast
-    East
-    SouthEast
-    South
-    SouthWest
-    West
-    NorthWest
-}
-enum AirspaceClass {
-    A
-    B
-    C
-    D
-    E
-    G
-}
-ResourceAdaptation -- Configuration
-ResourceAdaptation -- "0..*" AirspaceClass
-
 note "One of point, bounding_circle\nor coordinates is required." as N_SHAPE
 N_SHAPE -- ResourceDefinition
 
-note "Limit defines numerical limit.\nIf capacity is RATE_BASED,\nper_duration and duration_unit\nmust be defined."  as N_CAP_TYPE
+note "Limit defines numerical limit.\nIf capacity is RATE_BASED,\nper_duration.\n\nDuration unit is always Seconds."  as N_CAP_TYPE
 N_CAP_TYPE -- DefaultResourceCapacity
 N_CAP_TYPE -- TemporaryResourceCapacity
 N_CAP_TYPE -- ActiveResourceCapacity
