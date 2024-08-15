@@ -9,7 +9,6 @@ participant "Operational\nIntent\nManagement\n(OIM)" as OIM
 participant "Conformance\nMonitoring\n(CM)" as CM
 participant "CM2" as CM2
 
-
 ==DCB subscribe to resources==
 DCB -> DSS: PUT /DSS/v1/subscriptions/resource-subscription/{subscriptionid}
 DCB <-- DSS: resource references (empty)
@@ -44,19 +43,14 @@ Assumption: ResourceDetails contains definition,
 status, and capacity. 
 end note
 
-== Resource capacity is adjusted ==
+== Resource capacity, status or definition is adjusted ==
 RO -> RIS: Update resource capacity
 RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
 RIS <-- DSS: subscribers
 loop For each resource subscriber
     RIS -> DCB: POST /v1/resource-details/{resource-id}/capacity (includes OVN)
-    note over DCB #pink
-    Separate updates for capacity,
-    status, and definition?
-    end note
 end
 
-== Resource status is adjusted ==
 RO -> RIS: Update resource status
 RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
 RIS <-- DSS: subscribers
@@ -64,7 +58,6 @@ loop For each resource subscriber
     RIS -> DCB: POST /v1/resource-details/{resource-id}/status (includes OVN)
 end
 
-== Resource definition is adjusted ==
 RO -> RIS: Update resource definition
 RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
 RIS <-- DSS: subscribers
@@ -72,8 +65,7 @@ loop For each resource subscriber
     RIS -> DCB: POST /v1/resource-details/{resource-id}/definition (includes OVN)
 end
 
-
-== OIM received request from operator and submits an operation to the DSS in proposed state == 
+== OIM receives request from operator and submits an operation to the DSS in proposed state == 
 op -> OIM: Op Request
 OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}  (Proposed state)
 note over DSS
@@ -106,7 +98,6 @@ loop For each operation reference received
     DCB2 <-- OIM: operation details (everything)
 end
 
-
 == OIM does DCB check and transitions operation to Accepted state (OVNs required) ==
 OIM -> DCB: POST /dcb/v1/imbalance/intent
 OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
@@ -132,16 +123,25 @@ OIM -> CM: POST /cm/v1/operational_intents
 'CM -> DSS: PUT /dss/v1/subscriptions/operation-subscription/
 'CM <-- DSS: operation references
 
-op -> CM: Position reports
-alt If position reports for operation in Accepted state
+op -> CM: Vehicle position
+alt If vehicle position for operation in Accepted state
     CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
-    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
-    OIM <-- DSS: operation intent reference with subscribers
-    loop For all subscribers
-        OIM -> DCB2: POST /dcb/v1/operational_intents
-        OIM -> DCB: POST /dcb/v1/operational_intents
-    end
-else If position reports for operation in Activated state
+    note over OIM: OIM does a DCB check
+    OIM -> DCB: POST /dcb/v1/imbalance/intent
+    OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
+
+    alt If imbalance detected
+        note over OIM: Do not update the operation
+    else If no imbalance detected
+        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+        DSS -> DSS: Confirms OVNs are correct
+        OIM <-- DSS: operation intent reference with subscribers
+        loop For all subscribers
+            OIM -> DCB2: POST /dcb/v1/operational_intents
+            OIM -> DCB: POST /dcb/v1/operational_intents
+        end
+    end 
+else If vehicle position for operation in Activated state
     CM -> CM: Conformance monitoring
     alt If operation in conformance
         note over CM: Do nothing
@@ -156,13 +156,35 @@ else If position reports for operation in Activated state
     end
 end
 
-==Position Sharing==
-alt If operation in Activated, DCB-Noncompliant or Contingent States
-    loop 
-        CM -> CM2: GET /cm/v1/operational_intents/{entityid}/telemetry        
+==Conformance monitoring when resource capacity changes==
+RO -> RIS: Update resource capacity
+RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
+RIS <-- DSS: subscribers
+loop For each resource subscriber
+    RIS -> DCB: POST /v1/resource-details/{resource-id}/capacity
+    DCB -> DCB: Adjust demand/capacity values
+    RIS -> DCB2: POST /v1/resource-details/{resource-id}/capacity
+    RIS -> CM: POST /v1/resource-details/{resource-id}/capacity
+end
+note over CM: DCB check
+CM -> DCB: POST /dcb/v1/imbalance/intent
+CM <-- DCB: Yes/no, OVNs for all resources, available time ranges
+
+alt If imbalance detected
+    CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
+    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
+    OIM <-- DSS: operation intent reference with subscribers
+    loop For all subscribers
+        OIM -> DCB2: POST /dcb/v1/operational_intents
+        OIM -> DCB: POST /dcb/v1/operational_intents
     end
-else If operation ended or cancelled
-    note over CM: Stop retrieving telemetry
+else If no imbalance detected
+    note over CM: do nothing
 end 
-CM2 -> CM: GET /cm/v1/operational_intents/{entityid}/telemetry
+
+==Position Sharing==
+loop 
+    CM2 -> CM: GET /cm/v1/operational_intents/{entityid}/telemetry
+    CM2 <-- CM: telemetry
+end
 @enduml
