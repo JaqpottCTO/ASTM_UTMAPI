@@ -1,0 +1,570 @@
+---
+openapi: 3.0.2
+info:
+  title: ASTM UAM PSU RIS API
+  description: |-
+    Interface definitions for communication between a UAS Service Supplier (USS) and a 
+    Resource Information Service (RIS). This includes APIs for resource definition, resource 
+    capacity, and resource status. 
+  version: 0.0.0
+servers: 
+- url: /
+security:
+- Authority:
+  - utm.strategic_coordination
+tags:
+- name: Resource references
+  description: Endpoints exposed by the RIS for details regarding resource references. 
+- name: Resource capacities
+  description: Endpoints exposed by the RIS for details regarding resource capacities.
+- name: Resource definition
+  description: Endpoints exposed by the RIS for details regarding the definition and properties of a resource. 
+- name: Resource status
+  description: Endpoints exposed by the RIS for details regarding the current status and capacity of a resource. 
+- name: p2p_utm
+  description: Endpoints exposed by PSUs for peer-peer communication.
+
+paths:
+  /ris/v1/resource_details:
+    summary: RIS shares detailed information about a resource. 
+    post:
+      tags:
+      - Resource references
+      - Resource capacities
+      - Resource definition
+      - Resource status
+      - p2p_uam
+      summary: Notify a peer PSU of changed resource details.
+      description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
+      operationId: notifyResourceDetailsChanged
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutResourceDetailsParameters'
+        required: true
+      responses:
+        "204":
+          description: New or updated full resource information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+  /ris/v1/resource_details/{entityid}:
+    summary: Query detailed information of a resource from RIS. 
+    get:
+      tags:
+      - Resource references
+      - Resource capacities
+      - Resource definition
+      - Resource status
+      summary: Retrieve the specified operational intent details from a PSU.
+      description: |-
+        The RIS hosting this endpoint returns the details (and reference) of an
+        resource it manages.
+      operationId: getResourceDetailsChanged
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for this resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+      responses:
+        "200":
+          description: Operational intent details were retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/GetResourceDetailsResponse'
+        "400":
+          description: One or more input parameters were missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "404":
+          description: The requested Entity could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+
+  # Renamed capacity to future_capacities? Thoughts?
+  /ris/v1/resource_details/{entityid}/capacities:
+    summary: Get future capacity details for the resource. 
+    get:
+      tags:
+      - Resource capacities
+      summary: Retrieve the specified resource capacity information from the RIS.
+      operationId: getFutureResourceCapacities
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+      - name: begin_query_time
+        in: query
+        description: |-
+          The time to begin the capacity query. If not provided, endpoint should assume NOW. 
+        required: false
+        style: simple
+        explode: false
+        $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+      - name: end_query_time
+        in: query
+        # TODO: What should the limit be?
+        description: |-
+          The time to end the capacity query. If not provided, endpoint should limit
+          the responses to ????duration after the begin_query_time. 
+        required: false
+        style: simple
+        explode: false
+        $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+      responses:
+        "200":
+          description: List of future capacity details was retrieved successfully. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryFutureCapacityResponse'
+        "400":
+          description: One or more input parameters were missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "404":
+          description: The requested Entity could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+    put:
+      tags:
+      - Resource capacities
+      - p2p_uam 
+      summary: Submit a new or changed temporary resource capacity to a peer. 
+      operationId: updateFutureResourceCapacities
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the operational intent.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutFutureCapacitiesRequest'
+        required: true
+      responses:
+        "201":
+          description: Future temporary capacities were successfully received.
+          content:
+            application/json:
+              schema:
+                # TODO: Should we be returning something else here?  ErrorReport for 201 has many copy/paste errors in specs. 
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorReport'
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the operational intent in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * The provided key did not prove knowledge of all current and relevant airspace Entities
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/AirspaceConflictResponse'
+        "412":
+          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "413":
+          description: The area of the operational intent is too large.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+
+
+  # /ris/v1/resource_details/{entityid}/status:
+  # /ris/v1/resource_details/{entityid}/definition:
+
+components:
+  schemas:
+    ResourceShape:
+      description: The physical shape of the resource.  This is not the same as the resource extent saved in the DSS. 
+      anyOf:
+        - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Circle'
+        - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/LatLngPoint'
+        - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Polygon'
+    ResourceDefinition:
+      required:
+        - name
+        - shape
+        - type
+      properties:
+        name:
+            description: Name of the resource
+            example: CHIPR
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/TextShortType'
+        shape:
+          $ref: '#/components/schemas/ResourceShape'
+        altitude_lower:
+          description: Lower altitude limit of the resource, if any. 
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
+        altitude_upper:
+          description: Upper altitude limit of the resource, if any. 
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
+        type:
+          $ref: '#/components/schemas/ResourceType'
+    ResourceStatus:
+      required: 
+        - status
+      properties:
+        status: 
+          type: string
+          description: The current status of the resource. 
+          enum: 
+          - ACTIVE
+          - INACTIVE
+    ResourceType:
+      required: 
+        - resource_type
+      properties:
+        resource_type: 
+          type: string
+          description: The type of resource.  
+          enum: 
+          - WAYPOINT
+          - VOLUME
+          # TODO: Do we want to keep this generic or more specific and include intersection, merge, etc. ?
+    CapacityLimitType:
+      required:
+        - capacity_type
+      type: object
+      properties:
+        capacity_type:
+          type: string
+          description: |
+            The type of capacity limitation which is to be met for the resource. 
+          externalDocs:
+            url: TBD
+          enum: 
+          - FLOW_RATE_CONSTANT
+          - FLOW_RATE_FIXED_BIN
+          - INSTANTANEOUS
+    CapacityPropertyType:
+      required:
+        - capacity_property
+        - capacity_value
+      type: object
+      properties:
+        capacity_property:
+          type: string
+          description: |
+            Property of the capacity check which must be met.
+            - RATE describes the number of seconds between crossings enforced. (seconds)
+            - DURATION describes the length of a capacity bin. (seconds)
+            - LIMIT describes the max aircraft allowed in either a bin or instantaneously. 
+          externalDocs:
+            url: TBD
+          enum: 
+          - DURATION
+          - LIMIT
+          - RATE
+        capacity_value:
+          type: number
+          description: |-
+            The number of flights allowed without exceeding the capacity limit.  This
+            number represents the maximum capacity for the limit type. 
+          minimum: 0
+    ResourceCapacity:
+      required:
+      - capacity_limit_type
+      - capacity_property_array
+      properties:
+        capacity_limit_type:
+          $ref: "#/components/schemas/CapacityLimitType"
+        capacity_property_array:
+          minItems: 1
+          maxItems: 2
+          type: array
+          description: |-
+            Describes the properties of the capacity requirements defined for the resource.
+    TemporaryResourceCapacity:
+      required: 
+        - id
+        - resource_capacity
+        - capacity_start_time
+        # TODO: How do we delete a resource capacity that is no longer wanted?  
+        # We could make the capacity and start time optional and if not provided, the temp 
+        # capacity is deleted? 
+      description: |-
+        A temporary resource capacity which overrides the default Resource Capacity. 
+      properties:
+        id:
+          description: |- 
+            A unique identifier for this temporary change to the default resource capacity.  Included
+            to allow for future updates (ex. adding an end time) to an existing temporary capacity change. 
+          $ref: '#../../PSU/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+        resource_capacity:
+          $ref: "#/components/schemas/ResourceCapacity"
+        capacity_start_time:
+          description: The time at which the updated resource capacity begins. 
+          anyOf:
+          - $ref: '#../../PSU/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+        capacity_end_time:
+          description: The time at which the updated resource capacity ends, if known. 
+            If not provided, the temporary capacity continues indefinitely. 
+          anyOf:
+          - $ref: '#../../PSU/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+    ActiveResourceCapacity:
+      required: 
+        - resource_capacity
+      description: |-
+        The current resource capacity requirement in place. This may be a default or a 
+        temporary capacity requirement. 
+      properties:
+        resource_capacity:
+          $ref: "#/components/schemas/ResourceCapacity"
+        capacity_end_time:
+          description: The time at which the updated resource capacity ends, if known. 
+            If not provided, the current capacity continues indefinitely. 
+          anyOf:
+          - $ref: '#../../PSU/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+    # TODO: Do we want to include some subset of future capacities within the resource details?
+    FutureCapacities:
+      required:
+        - future_capacities
+      description: |-
+        List of upcoming capacity changes for the resource.  Should be ordered by time and progress
+        from earliest to latest. 
+      type: array
+      items:
+        $ref: "#/components/schemas/TemporaryResourceCapacity"
+    CurrentResourceStatus:
+      required:
+        - status
+        - active_capacity
+      description: |-
+        Returns the current resource status and active capacity rule in place. 
+      properties:
+        status: 
+          $ref: '#/components/schemas/ResourceStatus'
+        active_capacity:
+          $ref: '#/components/schemas/ActiveResourceCapacity'
+    ResourceDetails:
+      required:
+        - resource_reference
+        - definition
+        - default_capacity
+        - current_resource_status
+      properties:
+        definition:
+          $ref: '#/components/schemas/ResourceDefinition'
+        default_capacity:
+          $ref: '#/components/schemas/ResourceCapacity'
+        current_resource_status:
+          $ref: '#/components/schemas/CurrentResourceStatus'
+        resource_reference:
+          description: |-
+            Full information about the resource reference that has changed.  If this field is omitted,
+            the resource was deleted.  The `ovn` field in the nested `reference` must be
+            populated.
+          anyOf:
+          - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceReference'
+    PutResourceDetailsParameters:
+      required:
+        - resource_id
+        - resource_reference
+        - subscriptions
+        - definition
+        - default_capacity
+        - current_resource_status
+      type: object
+      properties:
+        resource_id:
+          description: ID of resource.
+          anyOf:
+          - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+        resource_reference:
+          description: |-
+            Full information about the resource reference that has changed.  If this field is omitted,
+            the resource was deleted.  The `ovn` field in the nested `reference` must be
+            populated.
+          anyOf:
+          - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceReference'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionState'
+        definition:
+          $ref: '#/components/schemas/ResourceDefinition'
+        default_capacity:
+          $ref: '#/components/schemas/ResourceCapacity'
+        current_resource_status:
+          $ref: '#/components/schemas/CurrentResourceStatus'
+    GetResourceDetailsResponse:
+      required:
+      - resource_details
+      type: object
+      properties:
+        resource_details:
+          $ref: '#/components/schemas/ResourceDetails'
+      description: Response to peer request for the details of resource with the given ID.
+    # QueryFutureCapacityParameters:
+    #   type: object
+    #   properties:
+    #     begin_query_time:
+    #       description: |-
+    #         The time to begin the capacity query. If not provided, endpoint should assume NOW. 
+    #       $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+    #     end_query_time:
+    #       # TODO: What should the limit be?
+    #       description: |-
+    #         The time to end the capacity query. If not provided, endpoint should limit
+    #         the responses to ????duration after the begin_query_time. 
+    #       $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+    #   description: Parameters for a request to find OperationalIntentReferences matching the provided criteria.
+    QueryFutureCapacityResponse:
+      description: Return a list temporary capacities for the future. 
+      type: object
+      required: 
+        - future_capacities
+      properties:
+        future_capacities:
+          type: array
+          items: 
+            $ref: '#/components/schemas/FutureCapacities'
+          default: []
+    PutFutureCapacitiesRequest:
+      type: object
+      description: Submit a list of new or updated temporary capacities for the future. 
+      required: 
+        - future_capacities
+      properties:
+        future_capacities:
+          type: array
+          items: 
+            $ref: '#/components/schemas/FutureCapacities'
+          default: []

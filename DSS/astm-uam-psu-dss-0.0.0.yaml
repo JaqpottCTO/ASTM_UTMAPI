@@ -36,6 +36,7 @@ tags:
   description: Endpoints exposed by the DSS server.
 - name: p2p_utm
   description: Endpoints exposed by UTM USSs for peer-peer communication.
+
 paths:
   /dss/v1/operational_intent_references/query:
     summary: "Query all operational intents in the DSS that intersect with a specified geographic area, altitude-range, and time-range."
@@ -626,7 +627,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutResourceReferenceParameters'
+              anyOf:
+                - $ref: '#/components/schemas/PutResourceReferenceParameters'
+                - $ref: '#/components/schemas/TriggerResourceNotification'
         required: true
       responses:
         "200":
@@ -1092,6 +1095,7 @@ paths:
       security:
       - Authority:
         - utm.constraint_management
+
   /dss/v1/subscriptions/query:
     summary: Subscriptions for airspace updates to a volume of interest.
     post:
@@ -1856,6 +1860,10 @@ components:
           type: boolean
           description: "If true, trigger notifications when constraints are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
           default: false
+        notify_for_resources:
+          type: boolean
+          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
+          default: false
         implicit_subscription:
           type: boolean
           description: "True if this subscription was implicitly created by the DSS via the creation of an operational intent, and should therefore be deleted by the DSS when that operational intent is deleted."
@@ -1923,6 +1931,10 @@ components:
           type: boolean
           description: "If true, trigger notifications when constraints are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
           default: false
+        notify_for_resources:
+          type: boolean
+          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
+          default: false
       description: Parameters for a request to create/update a subscription in the DSS.  At least one form of notifications must be requested.
     SubscriptionUssBaseURL:
       description: The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications requested by this subscription.
@@ -1946,6 +1958,12 @@ components:
           description: "Constraints in or near the subscription area at the time of creation/update, if `notify_for_constraints` is true."
           items:
             $ref: '#/components/schemas/ConstraintReference'
+          default: []
+        resource_references:
+          type: array
+          description: "Resources in or near the subscription area at the time of creation/update, if `notify_for_resources` is true."
+          items:
+            $ref: '#/components/schemas/ResourceReference'
           default: []
       description: Response for a request to create or update a subscription.
     DeleteSubscriptionResponse:
@@ -2036,13 +2054,7 @@ components:
       type: object
       properties:
         extents:
-          minItems: 1
-          type: array
-          description: |-
-            Spacetime extents that bound this operational intent.
-            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past. All volumes, both nominal and off-nominal, must be encompassed in these extents. However, these extents do not need to match the precise volumes of the operational intent; a single bounding extent may be provided instead, for instance.
-          items:
-            $ref: '#/components/schemas/Volume4D'
+          $ref: "#/components/schemas/OperationalExtents"
         key:
           description: "Proof that the USS creating or mutating this operational intent was aware of the current state of the airspace, with the expectation that this operational intent is therefore deconflicted from all relevant features in the airspace.  This field is not required when declaring an operational intent Nonconforming or Contingent, or when there are no relevant Entities in the airspace, but is otherwise required. OVNs for constraints are required if and only if the USS managing this operational intent is performing the constraint processing role, which is indicated by whether the subscription associated with this operational intent triggers notifications for constraints.  The key does not need to contain the OVN for the operational intent being updated."
           anyOf:
@@ -2059,7 +2071,7 @@ components:
           description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
           anyOf:
           - $ref: '#/components/schemas/ImplicitSubscriptionParameters'
-      description: "Parameters for a request to create an OperationalIntentReference in the DSS. A subscription to changes overlapping this volume may be implicitly created, but this can be overridden by providing the (optional) 'subscription_id' to use. Note: The implicit subscription is managed by the DSS, not the USS."
+      description: "Parameters for a request to create an OperationalIntentReference in the DSS. A subscription to changes overlapping this volume may be implicitly created, but this can be overridden by providing the (optional) 'subscription_id' to use. Note: The implicit subscription is managed by the DSS, not the USS.
     ImplicitSubscriptionParameters:
       required:
       - uss_base_url
@@ -2119,10 +2131,9 @@ components:
       required:
       - id
       - manager
-      - time_end
       - time_start
-      - uss_availability
-      - uss_base_url
+      # - uss_availability
+      - ris_base_url
       - version
       type: object
       properties:
@@ -2132,8 +2143,9 @@ components:
           type: string
           description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USS to reject resource update notifications originating from a USS that does not manage the resource.
           example: uss1
-        uss_availability:
-          $ref: '#/components/schemas/UssAvailabilityState'
+        # TODO: needed?
+        # uss_availability:
+        #   $ref: '#/components/schemas/UssAvailabilityState'
         version:
           type: integer
           description: "Numeric version of this constraint which increments upon each change in the resource, regardless of whether any field of the resource reference changes.  A USS with the details of this resource when it was at a particular version does not need to retrieve the details again until the version changes."
@@ -2141,14 +2153,24 @@ components:
           example: 1
         ovn:
           description: "Opaque version number of this resource.  Populated only when the ResourceReference is managed by the USS retrieving or providing it.  Not populated when the ResourceReference is not managed by the USS retrieving or providing it (instead, the USS must obtain the OVN from the details retrieved from the managing USS)."
-          anyOf:
+          anyOf:  
           - $ref: '#/components/schemas/EntityOVN'
+        # Start/end time for resource
         time_start:
+          description: "Date/time when the resource should begin being considered for DCB."
           $ref: '#/components/schemas/Time'
         time_end:
+          description: "Ending time of the Resource, if applicable. Indefinite if not set."
           $ref: '#/components/schemas/Time'
-        uss_base_url:
+        # TODO: Separate or 1 URL?
+        ris_base_url:
           $ref: '#/components/schemas/ResourceUssBaseURL'
+        # definition_url:
+        #   $ref: '#/components/schemas/ResourceUssBaseURL'
+        # capacity_url:
+        #   $ref: '#/components/schemas/ResourceUssBaseURL'
+        # status_url:
+        #   $ref: '#/components/schemas/ResourceUssBaseURL'
       description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
     ResourceUssBaseURL:
       description: The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this constraint.
@@ -2157,7 +2179,8 @@ components:
     PutResourceReferenceParameters:
       required:
       - extents
-      - uss_base_url
+      - ris_base_url
+      - time_start
       type: object
       properties:
         extents:
@@ -2169,9 +2192,34 @@ components:
             All volumes of the resource must be encompassed in these extents. However, these extents do not need to match the precise volumes of the resource; a single bounding extent may be provided instead, for instance.
           items:
             $ref: '#/components/schemas/Volume4D'
-        uss_base_url:
+        ris_base_url:
           $ref: '#/components/schemas/ResourceUssBaseURL'
+        subscription_id:
+          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
+          anyOf:
+          - $ref: '#/components/schemas/EntityID'
+        new_subscription:
+          description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
+          anyOf:
+          - $ref: '#/components/schemas/ImplicitSubscriptionParameters'
+        time_start:
+          description: "Date/time when the resource should begin being considered for DCB."
+          $ref: '#/components/schemas/Time'
+        time_end:
+          description: "Ending time of the Resource, if applicable. Indefinite if not set."
+          $ref: '#/components/schemas/Time'
       description: Parameters for a request to create/update a ResourceReference in the DSS.
+    TriggerResourceNotification:
+      required: 
+      - update_type
+      properties:
+        update_type:
+          type: string
+          description: The change that warrants notification of peers for the resource. 
+          enum:
+          - CAPACITY
+          - STATUS
+          - DEFINITION    
     GetResourceReferenceResponse:
       required:
       - resource_reference
@@ -2192,7 +2240,7 @@ components:
           items:
             $ref: '#/components/schemas/SubscriberToNotify'
           default: []
-        constraint_reference:
+        resource_reference:
           $ref: '#/components/schemas/ResourceReference'
       description: "Response to a request to create, update, or delete a ResourceReference. in the DSS."
     QueryResourceReferenceParameters:
@@ -2371,6 +2419,77 @@ components:
         details:
           $ref: '#/components/schemas/OperationalIntentDetails'
       description: Full description of a UTM operational intent.
+    VolumeExtents:
+      required:
+        - extents
+      type: object
+      properties: 
+        extents:
+          minItems: 1
+          type: array
+          description: |-
+            Spacetime extents that bound this operational intent.
+            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past. All volumes, both nominal and off-nominal, must be encompassed in these extents. However, these extents do not need to match the precise volumes of the operational intent; a single bounding extent may be provided instead, for instance.
+          items:
+            $ref: '#/components/schemas/Volume4D'
+    ResourceCrossing:
+      required:
+       - crossing_time
+      type: object
+      properties:
+        crossing_time:
+          $ref: "#/components/schemas/Time"
+    ResourceOccupation:
+      required:
+       - entry_time
+       - exit_time
+      type: object
+      properties:
+        entry_time:
+          $ref: "#/components/schemas/Time"
+        exit_time:
+          $ref: "#/components/schemas/Time"
+    ResourceExtent:
+      required:
+        - resource_id
+        - resource_usage
+      type: object
+      properties:
+        resource_usage:
+          description: |-
+            Duration of time for a volume based resource, or crossing Time
+            for a waypoint based resource. 
+          anyOf:
+            - $ref: "#/components/schemas/ResourceCrossing"
+            - $ref: "#/components/schemas/ResourceOccupation"  
+        resource_id:
+          description: |-
+            The ID of a resources being occupied or crossed by the operational intent. 
+            Details of the crossing times and durations are also shared peer-to-peer when the
+            operational intent trajectory is shared. 
+          $ref: '#/components/schemas/EntityID'
+    ResourceExtents:
+      required:
+        - extents
+      type: object
+      properties: 
+        extents:
+          minItems: 1
+          type: array
+          description: |-
+            List of resources and crossing OR entry/exit times when the resource
+            will be occupied by the Flight Intent. 
+          items:
+            $ref: '#/components/schemas/ResourceExtent'
+    OperationalExtents:
+      type: object
+      required:
+        - extents
+      properties:
+        extents:
+          anyOf:
+          - $ref: "#/components/schemas/ResourceExtents"
+          - $ref: "#/components/schemas/VolumeExtents"
     PutOperationalIntentDetailsParameters:
       required:
       - operational_intent_id

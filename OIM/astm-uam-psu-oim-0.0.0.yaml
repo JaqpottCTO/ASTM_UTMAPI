@@ -1035,14 +1035,22 @@ components:
             A named airspace structure point from ASDS must include at a minimum: WAYPOINT
             If the airspace structure point has a SchedulingType, it must be included as follows:
               SchedulingType enum   |   Property enum
-              Entry                 |   ENTRY_CORRIDOR
-              Exit                  |   EXIT_CORRIDOR
-              Crossing              |   CROSSING_TRACK
-              Merge                 |   MERGE_TRACK
+              Entry                 |   RESOURCE_ENTRY
+              Exit                  |   RESOURCE_EXIT
+              Crossing              |   RESOURCE_CROSSING
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
             $ref: '#/components/schemas/TrajectoryProperty'
+        resource_id:
+          description: |-
+            The ID of the resource being referenced by the trajectory property array.
+            Required when crossing a waypoint-based resource or entering/exiting a 
+            volume-based resource. 
+          $ref: '#/components/schemas/EntityID'
+        # TODO: Including the resource usage info spread across the 4D trajectory
+        #  is different than how we shared the Resource crossings with the DSS in one list.
+        # Do we want to do something closer to that? (subset of ResourceExtents)
       description: |
         A point for use within a planned trajectory.
         Tolerance around the point is standardized, and will be applicable
@@ -1075,12 +1083,18 @@ components:
           - TCP_LATERAL
           - WHEELS_OFF
           - WHEELS_ON
-          - AIRPORT_REFERENCE_LOCATION
-          - WAYPOINT
-          - ENTRY_CORRIDOR
-          - EXIT_CORRIDOR
-          - CROSSING_TRACK
-          - MERGE_TRACK
+          # Should we keep airport reference separate?
+          # - AIRPORT_REFERENCE_LOCATION
+          # Too specific - switch to more generic resources?
+          # - WAYPOINT
+          # - ENTRY_CORRIDOR
+          # - EXIT_CORRIDOR
+          # - CROSSING_TRACK
+          # - MERGE_TRACK
+          # Switch to more generic options
+          - RESOURCE_CROSSING
+          - RESOURCE_ENTRY
+          - RESOURCE_EXIT
       description: Describes any applicable properties of the trajectory point.
     Position:
       required:
