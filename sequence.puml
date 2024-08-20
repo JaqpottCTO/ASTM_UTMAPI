@@ -1,12 +1,12 @@
 @startuml
 participant "Resource operator" as RO
 participant "Vehicle operator" as op
-participant "Resource\nInformation\nService (RIS)" as RIS
-participant "Discovery &\nSynchronization\nService (DSS)" as DSS
-participant "Demand\nCapacity\nBalancing\n(DCB)" as DCB
+participant "Resource Information Service (RIS)" as RIS
+participant "Discovery & Synchronization Service (DSS)" as DSS
+participant "Demand Capacity Balancing (DCB)" as DCB
 participant "DCB2" as DCB2
-participant "Operational\nIntent\nManagement\n(OIM)" as OIM
-participant "Conformance\nMonitoring\n(CM)" as CM
+participant "Operational Intent Management (OIM)" as OIM
+participant "Conformance Monitoring (CM)" as CM
 participant "CM2" as CM2
 
 ==DCB subscribe to resources==
@@ -17,30 +17,25 @@ DCB -> DSS: PUT /DSS/v1/subscriptions/operation-subscription/{subscriptionid}
 DCB <-- DSS: operation references (empty)
 
 note over DCB
-No resources exist. 
-Nothing to do yet. 
+No resources exist. Nothing to do yet. 
 end note
 
 ==Make resources discoverable==
 note over RO
-Resource is originally
-defined here.
+Resource is originally defined here.
 end note 
 RO -> RIS: Submit initial resource definition, capacity, and status
 RIS -> DSS: PUT /DSS/v1/resource-reference/
 note over DSS
-Resource reference creation
-creates an implicit self-subscription
-for any changes needed to the resource
-due to OIM flight intents.
+Resource reference creation creates an implicit self-subscription
+for any changes needed to the resource due to OIM flight intents.
 end note
 DSS --> RIS: subscribers, resource-reference including subscription id
 loop For each resource subscriber
     DCB <-- RIS: POST /v1/resource-details/{resource-id}  (everything, includes OVN)
 end
 note over DCB
-Assumption: ResourceDetails contains definition,
-status, and capacity. 
+Assumption: ResourceDetails contains definition, status and capacity. 
 end note
 
 == Resource capacity, status or definition is adjusted ==
@@ -69,8 +64,7 @@ end
 op -> OIM: Op Request
 OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}  (Proposed state)
 note over DSS
-Does not check any OVNs here.
-All operation intents accepted.
+Does not check any OVNs here. All operation intents accepted.
 end note
 OIM <-- DSS: subscribers to notify
 loop For all subscribers
@@ -120,8 +114,6 @@ CM <-- DSS: resource references
 CM -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
 CM <-- RIS: resource details (everything)
 OIM -> CM: POST /cm/v1/operational_intents
-'CM -> DSS: PUT /dss/v1/subscriptions/operation-subscription/
-'CM <-- DSS: operation references
 
 op -> CM: Vehicle position
 alt If vehicle position for operation in Accepted state
