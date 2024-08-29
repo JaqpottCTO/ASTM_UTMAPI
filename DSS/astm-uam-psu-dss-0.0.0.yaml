@@ -1586,11 +1586,12 @@ paths:
         required: true
       responses:
         "200":
-          description: Availability status of specified USS was successfully updated.
+          description: Availability status of specified USS was successfully updated. Returns 
+            list of subscribers who must be notified. 
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UssAvailabilityStatusResponse'
+                $ref: '#/components/schemas/ChangeUssAvailabilityStatusResponse'
         "400":
           description: '* One or more parameters were missing or invalid.'
           content:
@@ -1793,6 +1794,46 @@ components:
           anyOf:
           - $ref: '#/components/schemas/Time'
       description: Contiguous block of geographic spacetime.
+    ResourceReferenceProof:
+      required:
+        - resource_id
+        - resource_ovn
+      type: object
+      properties:
+        resource_id:
+          description: |-
+            The ID of a resources being occupied or crossed by the operational intent. 
+            Details of the crossing times and durations are also shared peer-to-peer when the
+            operational intent trajectory is shared. 
+          $ref: '#/components/schemas/EntityID'
+        resource_ovn:
+          description: |-
+            The OVN of the resource being occupied or crossed by the operational intent. 
+            This proves the operation considers the latest status and capacity of the resource. 
+          $ref: '#/components/schemas/EntityOVN'  
+    Volume4DExtent:
+      required:
+      - volume4D
+      - occupied_resources
+      - non_occupied_resources
+      type: object
+      properties:
+        volume4d:
+          $ref: '#/components/schemas/Volume4D'
+        occupied_resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceReferenceProof'
+          description: List of resources which will be fully occupied during the duration of the volume. 
+        non_occupied_resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceReferenceProof'
+          description: List of resources whose extents physically overlap with the volume extent, but
+            the actual operation volume does not overlap. 
+      description: |-
+        A 4D volume which includes a list of resources which will be fully occupied 
+        during the duration of the volume. 
     ErrorResponse:
       type: object
       properties:
@@ -2071,7 +2112,11 @@ components:
           description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
           anyOf:
           - $ref: '#/components/schemas/ImplicitSubscriptionParameters'
-      description: "Parameters for a request to create an OperationalIntentReference in the DSS. A subscription to changes overlapping this volume may be implicitly created, but this can be overridden by providing the (optional) 'subscription_id' to use. Note: The implicit subscription is managed by the DSS, not the USS.
+      description: |-
+        Parameters for a request to create an OperationalIntentReference in the DSS. 
+        A subscription to changes overlapping this volume may be implicitly created, 
+        but this can be overridden by providing the (optional) 'subscription_id' to use. 
+        Note: The implicit subscription is managed by the DSS, not the USS.
     ImplicitSubscriptionParameters:
       required:
       - uss_base_url
@@ -2132,7 +2177,7 @@ components:
       - id
       - manager
       - time_start
-      # - uss_availability
+      - uss_availability
       - ris_base_url
       - version
       type: object
@@ -2143,9 +2188,8 @@ components:
           type: string
           description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USS to reject resource update notifications originating from a USS that does not manage the resource.
           example: uss1
-        # TODO: needed?
-        # uss_availability:
-        #   $ref: '#/components/schemas/UssAvailabilityState'
+        uss_availability:
+          $ref: '#/components/schemas/UssAvailabilityState'
         version:
           type: integer
           description: "Numeric version of this constraint which increments upon each change in the resource, regardless of whether any field of the resource reference changes.  A USS with the details of this resource when it was at a particular version does not need to retrieve the details again until the version changes."
@@ -2428,10 +2472,24 @@ components:
           minItems: 1
           type: array
           description: |-
-            Spacetime extents that bound this operational intent.
-            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past. All volumes, both nominal and off-nominal, must be encompassed in these extents. However, these extents do not need to match the precise volumes of the operational intent; a single bounding extent may be provided instead, for instance.
+            Spacetime extents that bound this operational intent. 
+            Start and end times, as well as lower and upper altitudes, are required for each volume.
+            The end time may not be in the past.
+            Each VolumeExtent includes a list of resources which will be fully occupied for the time duration
+            of the volume. Each VolumeExtent also includes a list of resources which will not be occupied 
+            by the operation.  This list is included because the extents of the operations and resources
+            will not perfectly match the actual geography exactly and overlaps of extents without actual
+            resource usage could occur. 
+          # TODO: This is the old description. Does what I said above make sense? 
+          # description: |-
+          #   Spacetime extents that bound this operational intent.
+          #   Start and end times, as well as lower and upper altitudes, are required for each volume. 
+          #   The end time may not be in the past. 
+          #   All volumes, both nominal and off-nominal, must be encompassed in these extents. 
+          #   However, these extents do not need to match the precise volumes of the operational intent;
+          #   a single bounding extent may be provided instead, for instance.
           items:
-            $ref: '#/components/schemas/Volume4D'
+            $ref: '#/components/schemas/Volume4DExtent'
     ResourceCrossing:
       required:
        - crossing_time
@@ -2453,6 +2511,7 @@ components:
       required:
         - resource_id
         - resource_usage
+        - resource_ovn
       type: object
       properties:
         resource_usage:
@@ -2468,9 +2527,15 @@ components:
             Details of the crossing times and durations are also shared peer-to-peer when the
             operational intent trajectory is shared. 
           $ref: '#/components/schemas/EntityID'
+        resource_ovn:
+          description: |-
+            The OVN of the resource being occupied or crossed by the operational intent. 
+            This proves the operation considers the latest status and capacity of the resource. 
+          $ref: '#/components/schemas/EntityOVN'
     ResourceExtents:
       required:
         - extents
+        - non_occupied_resources
       type: object
       properties: 
         extents:
@@ -2481,6 +2546,13 @@ components:
             will be occupied by the Flight Intent. 
           items:
             $ref: '#/components/schemas/ResourceExtent'
+        non_occupied_resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceReferenceProof'
+          description: List of resources whose extents physically overlap with a straight line path
+            created by linking the individual ResourceExtents for this operation. The operation is
+            confirming that the DSS may see these as potential overlaps, but it will not occupy the resource. 
     OperationalExtents:
       type: object
       required:
@@ -2709,6 +2781,7 @@ components:
       properties:
         old_version:
           type: string
+          # TODO: I don't understand what the old/new version means in USS availability context.  (Alexis)
           description: "Version of USS's availability to change, for consistent read-modify-write operations and consistent retry behavior."
           default: ""
         availability:
@@ -2724,6 +2797,27 @@ components:
           description: Current version of USS's availability.  Used to change USS's availability.
         status:
           $ref: '#/components/schemas/UssAvailabilityStatus'
+    ChangeUssAvailabilityStatusResponse:
+      required:
+      - status
+      - version
+      - subscribers
+      type: object
+      properties:
+        version:
+          type: string
+          description: Current version of USS's availability.  Used to change USS's availability.
+        status:
+          $ref: '#/components/schemas/UssAvailabilityStatus'
+        subscribers:
+          type: array
+          description: |-
+            DSS subscribers that this client now has the obligation to notify of the USS status changes just made.  
+            This client must call POST for each provided URL according to the USS-USS `/uss/v1/operational_intents` path API.  
+            The client's own subscriptions will also be included in this list.
+          items:
+            $ref: '#/components/schemas/SubscriberToNotify'
+          default: []
     USSLogSet:
       type: object
       properties:
