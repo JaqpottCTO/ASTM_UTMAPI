@@ -546,7 +546,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutResourceReferenceParameters'
+              $ref: '#/components/schemas/PostResourceReferenceParameters'
         required: true
       responses:
         "201":
@@ -627,9 +627,7 @@ paths:
         content:
           application/json:
             schema:
-              anyOf:
-                - $ref: '#/components/schemas/PutResourceReferenceParameters'
-                - $ref: '#/components/schemas/TriggerResourceNotification'
+              $ref: '#/components/schemas/PutResourceReferenceParameters'
         required: true
       responses:
         "200":
@@ -2206,21 +2204,14 @@ components:
         time_end:
           description: "Ending time of the Resource, if applicable. Indefinite if not set."
           $ref: '#/components/schemas/Time'
-        # TODO: Separate or 1 URL?
         ris_base_url:
           $ref: '#/components/schemas/ResourceUssBaseURL'
-        # definition_url:
-        #   $ref: '#/components/schemas/ResourceUssBaseURL'
-        # capacity_url:
-        #   $ref: '#/components/schemas/ResourceUssBaseURL'
-        # status_url:
-        #   $ref: '#/components/schemas/ResourceUssBaseURL'
       description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
     ResourceUssBaseURL:
       description: The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this constraint.
       anyOf:
       - $ref: '#/components/schemas/UssBaseURL'
-    PutResourceReferenceParameters:
+    PostResourceReferenceParameters:
       required:
       - extents
       - ris_base_url
@@ -2252,18 +2243,43 @@ components:
         time_end:
           description: "Ending time of the Resource, if applicable. Indefinite if not set."
           $ref: '#/components/schemas/Time'
-      description: Parameters for a request to create/update a ResourceReference in the DSS.
-    TriggerResourceNotification:
-      required: 
-      - update_type
+      description: Parameters for a request to create a ResourceReference in the DSS.
+    PutResourceReferenceParameters:
+      type: object
       properties:
+        extents:
+          minItems: 1
+          type: array
+          description: |-
+            Spacetime extents that bound this resource.
+            The end time may not be in the past.
+            All volumes of the resource must be encompassed in these extents. However, these extents do not need to match the precise volumes of the resource; a single bounding extent may be provided instead, for instance.
+          items:
+            $ref: '#/components/schemas/Volume4D'
+        ris_base_url:
+          $ref: '#/components/schemas/ResourceUssBaseURL'
+        subscription_id:
+          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
+          anyOf:
+          - $ref: '#/components/schemas/EntityID'
+        new_subscription:
+          description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
+          anyOf:
+          - $ref: '#/components/schemas/ImplicitSubscriptionParameters'
+        time_start:
+          description: "Date/time when the resource should begin being considered for DCB."
+          $ref: '#/components/schemas/Time'
+        time_end:
+          description: "Ending time of the Resource, if applicable. Indefinite if not set."
+          $ref: '#/components/schemas/Time'
         update_type:
           type: string
           description: The change that warrants notification of peers for the resource. 
           enum:
           - CAPACITY
           - STATUS
-          - DEFINITION    
+          - DEFINITION 
+      description: Parameters for a request to update an existing ResourceReference in the DSS.
     GetResourceReferenceResponse:
       required:
       - resource_reference
@@ -2813,7 +2829,7 @@ components:
           type: array
           description: |-
             DSS subscribers that this client now has the obligation to notify of the USS status changes just made.  
-            This client must call POST for each provided URL according to the USS-USS `/uss/v1/operational_intents` path API.  
+            This client must call POST for each provided URL according to the USS-USS `/oim/v1/uss_availability` path API.  
             The client's own subscriptions will also be included in this list.
           items:
             $ref: '#/components/schemas/SubscriberToNotify'
