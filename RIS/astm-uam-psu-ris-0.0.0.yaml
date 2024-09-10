@@ -381,9 +381,11 @@ components:
           type: string
           description: |
             Property of the capacity check which must be met.
-            - RATE describes the number of seconds between crossings enforced. (seconds)
-            - DURATION describes the length of a capacity bin. (seconds)
-            - LIMIT describes the max aircraft allowed in either a bin or instantaneously. 
+            - RATE describes the number of crossings (or events) allowed per time interval DURATION (seconds).
+              Resources using RATE property must also specify a DURATION property. 
+            - DURATION describes the length of a capacity bin or the interval duration (seconds). 
+            - LIMIT describes the max aircraft allowed in either a time bin or instantaneously. If
+              describing a time bin, the LIMIT and DURATION properties must both be provided.  
           externalDocs:
             url: TBD
           enum: 
