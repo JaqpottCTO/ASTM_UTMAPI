@@ -94,7 +94,7 @@ paths:
       - Resource capacities
       - Resource definition
       - Resource status
-      summary: Retrieve the specified operational intent details from a PSU.
+      summary: Retrieve the specified resource details from an RIS.
       description: |-
         The RIS hosting this endpoint returns the details (and reference) of an
         resource it manages.
@@ -251,7 +251,6 @@ paths:
           content:
             application/json:
               schema:
-                # TODO: Should we be returning something else here?  ErrorReport for 201 has many copy/paste errors in specs. 
                 $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorReport'
         "400":
           description: |-
@@ -304,8 +303,273 @@ paths:
         - utm.strategic_coordination
 
 
-  # /ris/v1/resource_details/{entityid}/status:
-  # /ris/v1/resource_details/{entityid}/definition:
+  /ris/v1/resource_details/{entityid}/status:
+    summary: Get the current resource status 
+    get:
+      tags:
+      - Resource status
+      summary: Retrieve the current resource status from the RIS.
+      operationId: getCurrentResourceStatus
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+      responses:
+        "200":
+          description: The current status of the resource. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResourceStatusResponse'
+        "400":
+          description: One or more input parameters were missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "404":
+          description: The requested Entity could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+    put:
+      tags:
+      - Resource status
+      - p2p_uam 
+      summary: Submit a new or changed resource status to a peer. 
+      operationId: updateCurrentResourceStatus
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutCurrentResourceStatus'
+        required: true
+      responses:
+        "201":
+          description: Current resource status was successfully received.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorReport'
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the operational intent in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * The provided key did not prove knowledge of all current and relevant airspace Entities
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/AirspaceConflictResponse'
+        "412":
+          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "413":
+          description: The area of the operational intent is too large.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+  
+  /ris/v1/resource_details/{entityid}/definition:
+    summary: Get the resource definition 
+    get:
+      tags:
+      - Resource definition
+      summary: Retrieve the resource definition from the RIS.
+      operationId: getResourceDefinition
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+      responses:
+        "200":
+          description: The definition of the resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResourceDefinitionResponse'
+        "400":
+          description: One or more input parameters were missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "404":
+          description: The requested Entity could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+    put:
+      tags:
+      - Resource definition
+      - p2p_uam 
+      summary: Submit a resource definition change to a peer. 
+      operationId: updateResourceDefinition
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceDefinition'
+        required: true
+      responses:
+        "201":
+          description: Updated resource definition was successfully received.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorReport'
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the operational intent in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * The provided key did not prove knowledge of all current and relevant airspace Entities
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/AirspaceConflictResponse'
+        "412":
+          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "413":
+          description: The area of the operational intent is too large.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
 
 components:
   schemas:
@@ -315,7 +579,7 @@ components:
         - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Circle'
         - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/LatLngPoint'
         - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Polygon'
-    ResourceDefinition:
+    ResourcePhysicalDefinition:
       required:
         - name
         - shape
@@ -335,6 +599,7 @@ components:
           $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
         type:
           $ref: '#/components/schemas/ResourceType'
+          
     ResourceStatus:
       required: 
         - status
@@ -477,13 +742,10 @@ components:
       required:
         - resource_reference
         - definition
-        - default_capacity
         - current_resource_status
       properties:
         definition:
           $ref: '#/components/schemas/ResourceDefinition'
-        default_capacity:
-          $ref: '#/components/schemas/ResourceCapacity'
         current_resource_status:
           $ref: '#/components/schemas/CurrentResourceStatus'
         resource_reference:
@@ -499,7 +761,6 @@ components:
         - resource_reference
         - subscriptions
         - definition
-        - default_capacity
         - current_resource_status
       type: object
       properties:
@@ -522,8 +783,6 @@ components:
             $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionState'
         definition:
           $ref: '#/components/schemas/ResourceDefinition'
-        default_capacity:
-          $ref: '#/components/schemas/ResourceCapacity'
         current_resource_status:
           $ref: '#/components/schemas/CurrentResourceStatus'
     GetResourceDetailsResponse:
@@ -534,6 +793,26 @@ components:
         resource_details:
           $ref: '#/components/schemas/ResourceDetails'
       description: Response to peer request for the details of resource with the given ID.
+    QueryResourceDefinitionResponse:
+      required:
+      - definition
+      type: object
+      properties:
+        definition:
+          $ref: '#/components/schemas/ResourceDefinition'
+      description: Response to peer request for the resource definition of the resource with the given ID.
+    ResourceDefinition:
+      required:
+      - physical_definition
+      - default_capacity
+      type: object
+      properties:
+        physical_definition:
+          $ref: '#/components/schemas/ResourcePhysicalDefinition'
+        default_capacity:
+          $ref: '#/components/schemas/ResourceCapacity'
+      description: Response to peer request for the resource definition of the resource with the given ID.
+
     # QueryFutureCapacityParameters:
     #   type: object
     #   properties:
@@ -548,6 +827,22 @@ components:
     #         the responses to ????duration after the begin_query_time. 
     #       $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
     #   description: Parameters for a request to find OperationalIntentReferences matching the provided criteria.
+    QueryResourceStatusResponse:
+      description: Returns the current status of the resource. 
+      type: object
+      required:
+        - current_resource_status
+      properties:
+        current_resource_status:
+          $ref: "#/components/schemas/CurrentResourceStatus"
+    PutCurrentResourceStatus:
+      description: Submits the current status of the resource. 
+      type: object
+      required:
+        - current_resource_status
+      properties:
+        current_resource_status:
+          $ref: "#/components/schemas/CurrentResourceStatus"
     QueryFutureCapacityResponse:
       description: Return a list temporary capacities for the future. 
       type: object
