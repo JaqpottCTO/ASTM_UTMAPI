@@ -46,24 +46,24 @@ Assumption: ResourceDetails contains definition,
 status, and capacity. 
 end note
 
-== Resource capacity is adjusted ==
-RO -> RIS: Update resource capacity
+== Resource capacity is updated ==
+RO -> RIS: Update a future resource capacity
 RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=CAPACITY)
 RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
     RIS -> DCB: PUT /ris/v1/resource_details/{entityid}/capacities\n(includes reference-reference and future capacities)
 end
 
-== Resource status is adjusted ==
-RO -> RIS: Update resource status
+== Resource status is updated ==
+RO -> RIS: Update resource status or current capacity
 RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=STATUS)
 RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
     RIS -> DCB: PUT /ris/v1/resource_details/{entityid}/status\n(includes reference-reference and current resource status)
 end
 
-== Resource definition is adjusted ==
-RO -> RIS: Update resource definition
+== Resource definition is updated ==
+RO -> RIS: Update resource definition or default capacity
 RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=DEFINITION)
 RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
@@ -79,7 +79,7 @@ loop For each resource reference received
     Get all resource details.
     end note
     DCB2 -> RIS: GET /ris/v1/resource_details/{entityid}\n(includes resource reference, physical definition & default capacity, and current status)
-    DCB2 <-- RIS: resource details (everything)
+    DCB2 <-- RIS: resource details (includes resource reference, physical definition & default capacity, and current status)
 end
 
 

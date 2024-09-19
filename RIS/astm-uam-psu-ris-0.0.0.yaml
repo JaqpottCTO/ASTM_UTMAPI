@@ -148,8 +148,6 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
-
-  # Renamed capacity to future_capacities? Thoughts?
   /ris/v1/resource_details/{entityid}/capacities:
     summary: Get future capacity details for the resource. 
     get:
@@ -176,10 +174,9 @@ paths:
         $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
       - name: end_query_time
         in: query
-        # TODO: What should the limit be?
         description: |-
-          The time to end the capacity query. If not provided, endpoint should limit
-          the responses to ????duration after the begin_query_time. 
+          The time to end the capacity query. If not provided, all future
+          capacities should be returned. 
         required: false
         style: simple
         explode: false
@@ -301,8 +298,6 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
-
-
   /ris/v1/resource_details/{entityid}/status:
     summary: Get the current resource status 
     get:
@@ -436,7 +431,6 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
-  
   /ris/v1/resource_details/{entityid}/definition:
     summary: Get the resource definition 
     get:
@@ -598,8 +592,7 @@ components:
           description: Upper altitude limit of the resource, if any. 
           $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
         type:
-          $ref: '#/components/schemas/ResourceType'
-          
+          $ref: '#/components/schemas/ResourceType' 
     ResourceStatus:
       required: 
         - status
@@ -620,7 +613,6 @@ components:
           enum: 
           - WAYPOINT
           - VOLUME
-          # TODO: Do we want to keep this generic or more specific and include intersection, merge, etc. ?
     CapacityLimitType:
       required:
         - capacity_type
@@ -676,14 +668,12 @@ components:
           type: array
           description: |-
             Describes the properties of the capacity requirements defined for the resource.
+          $ref: "#/components/schemas/CapacityPropertyType"
     TemporaryResourceCapacity:
       required: 
         - id
         - resource_capacity
         - capacity_start_time
-        # TODO: How do we delete a resource capacity that is no longer wanted?  
-        # We could make the capacity and start time optional and if not provided, the temp 
-        # capacity is deleted? 
       description: |-
         A temporary resource capacity which overrides the default Resource Capacity. 
       properties:
@@ -717,7 +707,6 @@ components:
             If not provided, the current capacity continues indefinitely. 
           anyOf:
           - $ref: '#../../PSU/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
-    # TODO: Do we want to include some subset of future capacities within the resource details?
     FutureCapacities:
       required:
         - future_capacities
@@ -743,11 +732,8 @@ components:
         - resource_reference
         - definition
         - current_resource_status
+        - future_capacities
       properties:
-        definition:
-          $ref: '#/components/schemas/ResourceDefinition'
-        current_resource_status:
-          $ref: '#/components/schemas/CurrentResourceStatus'
         resource_reference:
           description: |-
             Full information about the resource reference that has changed.  If this field is omitted,
@@ -755,36 +741,34 @@ components:
             populated.
           anyOf:
           - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceReference'
+        definition:
+          $ref: '#/components/schemas/ResourceDefinition'
+        current_resource_status:
+          $ref: '#/components/schemas/CurrentResourceStatus'
+        future_capacities:
+          type: array
+          items: 
+            $ref: '#/components/schemas/FutureCapacities'
+          default: []
     PutResourceDetails:
       required:
         - resource_id
-        - resource_reference
         - subscriptions
-        - definition
-        - current_resource_status
+        - resource_details
       type: object
       properties:
         resource_id:
           description: ID of resource.
           anyOf:
           - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
-        resource_reference:
-          description: |-
-            Full information about the resource reference that has changed.  If this field is omitted,
-            the resource was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
-          anyOf:
-          - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceReference'
         subscriptions:
           minItems: 1
           type: array
           description: Subscription(s) prompting this notification.
           items:
             $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionState'
-        definition:
-          $ref: '#/components/schemas/ResourceDefinition'
-        current_resource_status:
-          $ref: '#/components/schemas/CurrentResourceStatus'
+        resource_details:
+          $ref: '#/components/schemas/ResourceDetails'
     QueryResourceDetailsResponse:
       required:
       - resource_details
@@ -826,21 +810,6 @@ components:
         default_capacity:
           $ref: '#/components/schemas/ResourceCapacity'
       description: Response to peer request for the resource definition of the resource with the given ID.
-
-    # QueryFutureCapacityParameters:
-    #   type: object
-    #   properties:
-    #     begin_query_time:
-    #       description: |-
-    #         The time to begin the capacity query. If not provided, endpoint should assume NOW. 
-    #       $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
-    #     end_query_time:
-    #       # TODO: What should the limit be?
-    #       description: |-
-    #         The time to end the capacity query. If not provided, endpoint should limit
-    #         the responses to ????duration after the begin_query_time. 
-    #       $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
-    #   description: Parameters for a request to find OperationalIntentReferences matching the provided criteria.
     QueryCurrentResourceStatusResponse:
       description: Returns the current status of the resource. 
       type: object
