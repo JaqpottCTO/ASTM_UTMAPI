@@ -16,9 +16,9 @@ tags:
 - name: Resource references
   description: Endpoints exposed by the RIS for details regarding resource references. 
 - name: Resource capacities
-  description: Endpoints exposed by the RIS for details regarding resource capacities.
+  description: Endpoints exposed by the RIS for details regarding future resource capacities.
 - name: Resource definition
-  description: Endpoints exposed by the RIS for details regarding the definition and properties of a resource. 
+  description: Endpoints exposed by the RIS for details regarding the physical definition and default capacity of a resource. 
 - name: Resource status
   description: Endpoints exposed by the RIS for details regarding the current status and capacity of a resource. 
 - name: p2p_utm
@@ -41,7 +41,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutResourceDetailsParameters'
+              $ref: '#/components/schemas/PutResourceDetails'
         required: true
       responses:
         "204":
@@ -114,7 +114,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/GetResourceDetailsResponse'
+                $ref: '#/components/schemas/QueryResourceDetailsResponse'
         "400":
           description: One or more input parameters were missing or invalid.
           content:
@@ -190,7 +190,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QueryFutureCapacityResponse'
+                $ref: '#/components/schemas/QueryFutureCapacitiesResponse'
         "400":
           description: One or more input parameters were missing or invalid.
           content:
@@ -243,7 +243,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutFutureCapacitiesRequest'
+              $ref: '#/components/schemas/PutFutureCapacities'
         required: true
       responses:
         "201":
@@ -325,7 +325,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/QueryResourceStatusResponse'
+                $ref: '#/components/schemas/QueryCurrentResourceStatusResponse'
         "400":
           description: One or more input parameters were missing or invalid.
           content:
@@ -512,7 +512,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ResourceDefinition'
+              $ref: '#/components/schemas/PutResourceDefinition'
         required: true
       responses:
         "201":
@@ -755,7 +755,7 @@ components:
             populated.
           anyOf:
           - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceReference'
-    PutResourceDetailsParameters:
+    PutResourceDetails:
       required:
         - resource_id
         - resource_reference
@@ -785,7 +785,7 @@ components:
           $ref: '#/components/schemas/ResourceDefinition'
         current_resource_status:
           $ref: '#/components/schemas/CurrentResourceStatus'
-    GetResourceDetailsResponse:
+    QueryResourceDetailsResponse:
       required:
       - resource_details
       type: object
@@ -793,6 +793,20 @@ components:
         resource_details:
           $ref: '#/components/schemas/ResourceDetails'
       description: Response to peer request for the details of resource with the given ID.
+    PutResourceDefinition:
+      required:
+        - definition
+        - resource_reference
+      type: object
+      properties:
+        definition:
+          $ref: '#/components/schemas/ResourceDefinition'
+        resource_reference:
+          description: |-
+            The resource reference that was changed by this definition update. 
+          anyOf:
+          - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceReference'
+      description: Response to peer request for the resource definition of the resource with the given ID.
     QueryResourceDefinitionResponse:
       required:
       - definition
@@ -827,7 +841,7 @@ components:
     #         the responses to ????duration after the begin_query_time. 
     #       $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
     #   description: Parameters for a request to find OperationalIntentReferences matching the provided criteria.
-    QueryResourceStatusResponse:
+    QueryCurrentResourceStatusResponse:
       description: Returns the current status of the resource. 
       type: object
       required:
@@ -840,10 +854,16 @@ components:
       type: object
       required:
         - current_resource_status
+        - resource_reference
       properties:
         current_resource_status:
           $ref: "#/components/schemas/CurrentResourceStatus"
-    QueryFutureCapacityResponse:
+        resource_reference:
+          description: |-
+            The resource reference that was changed by this status update. 
+          anyOf:
+          - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceReference'
+    QueryFutureCapacitiesResponse:
       description: Return a list temporary capacities for the future. 
       type: object
       required: 
@@ -854,14 +874,22 @@ components:
           items: 
             $ref: '#/components/schemas/FutureCapacities'
           default: []
-    PutFutureCapacitiesRequest:
+    PutFutureCapacities:
       type: object
       description: Submit a list of new or updated temporary capacities for the future. 
       required: 
         - future_capacities
+        - resource_reference
       properties:
         future_capacities:
           type: array
           items: 
             $ref: '#/components/schemas/FutureCapacities'
           default: []
+        resource_reference:
+          description: |-
+            The resource reference that was changed by this capacity update. 
+          anyOf:
+          - $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceReference'
+
+

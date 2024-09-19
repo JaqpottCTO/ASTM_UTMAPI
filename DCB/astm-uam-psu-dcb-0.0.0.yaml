@@ -46,7 +46,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
+              $ref: '#../components/schemas/PutOperationalIntentDetailsParameters'
         required: true
       responses:
         '204':
@@ -93,7 +93,6 @@ paths:
   
   /dcb/v1/resource_details:
     summary: A PSU's representation of detailed information about resources.
- 
     post:
       tags:
         - Resource details
@@ -108,7 +107,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutResourceDetailsParameters'
+              $ref: '#../components/schemas/PutResourceDetailsParameters'
         required: true
       responses:
         '204':
@@ -1007,7 +1006,7 @@ components:
             to reject operational intent update notifications originating from a PSU that does not manage
             the operational intent.
         uss_availability:
-          $ref: '#/components/schemas/UssAvailabilityState'
+          $ref: '#../components/schemas/UssAvailabilityState'
         version:
           type: integer
           format: int32
@@ -1041,7 +1040,7 @@ components:
           anyOf:
             - $ref: '#/components/schemas/Time'
         uss_base_url:
-          $ref: '#/components/schemas/OperationalIntentUssBaseURL'
+          $ref: '#../components/schemas/OperationalIntentUssBaseURL'
         subscription_id:
           description: |-
             The ID of the subscription that is ensuring the operational intent manager receives relevant
