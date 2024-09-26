@@ -1822,10 +1822,10 @@ components:
           items:
             $ref: '#/components/schemas/ResourceReferenceProof'
           description: List of resources which will be fully occupied during the duration of the volume. 
-        non_occupied_resources:
+        non_occupied_resource_ids:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceReferenceProof'
+            $ref: '#/components/schemas/EntityID'
           description: List of resources whose extents physically overlap with the volume extent, but
             the actual operation volume does not overlap. 
       description: |-
@@ -2554,10 +2554,10 @@ components:
             will be occupied by the Flight Intent. 
           items:
             $ref: '#/components/schemas/ResourceExtent'
-        non_occupied_resources:
+        non_occupied_resource_ids:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceReferenceProof'
+            $ref: '#/components/schemas/EntityID'
           description: List of resources whose extents physically overlap with a straight line path
             created by linking the individual ResourceExtents for this operation. The operation is
             confirming that the DSS may see these as potential overlaps, but it will not occupy the resource. 
