@@ -10,11 +10,8 @@ participant "Conformance Monitoring (CM)" as CM
 participant "CM2" as CM2
 
 ==DCB subscribe to resources==
-DCB -> DSS: PUT /DSS/v1/subscriptions/resource-subscription/{subscriptionid}
-DCB <-- DSS: resource references (empty)
-
-DCB -> DSS: PUT /DSS/v1/subscriptions/operation-subscription/{subscriptionid}
-DCB <-- DSS: operation references (empty)
+DCB -> DSS: PUT /DSS/v1/subscriptions/{subscriptionid}
+DCB <-- DSS: resource & operation references (empty)
 
 note over DCB
 No resources exist. Nothing to do yet. 
@@ -73,8 +70,8 @@ loop For all subscribers
 end
 
 == A new subscriber joins == 
-DCB2 -> DSS: PUT /dss/v1/subscriptions/resource-subscription/
-DCB2 <-- DSS: resource references
+DCB2 -> DSS: PUT /dss/v1/subscriptions/
+DCB2 <-- DSS: resource & operation references
 loop For each resource reference received
     note over DCB2
     Get all resource details.
@@ -82,8 +79,6 @@ loop For each resource reference received
     DCB2 -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
     DCB2 <-- RIS: resource details (everything)
 end
-DCB2 -> DSS: PUT /dss/v1/subscriptions/operation-subscription/
-DCB2 <-- DSS: operation references
 loop For each operation reference received
     note over DCB2
     Get all operation details.
@@ -109,7 +104,7 @@ else If no imbalance detected
 end
 
 ==Conformance Monitoring==
-CM -> DSS: PUT /dss/v1/subscriptions/resource-subscription/
+CM -> DSS: PUT /dss/v1/subscriptions/
 CM <-- DSS: resource references
 CM -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
 CM <-- RIS: resource details (everything)
