@@ -10,11 +10,19 @@ participant "Conformance Monitoring (CM)" as CM
 participant "CM2" as CM2
 
 ==DCB subscribe to resources==
-DCB -> DSS: PUT /DSS/v1/subscriptions/{subscriptionid}
-DCB <-- DSS: resource & operation references (empty)
+DCB -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
+note over DSS
+    Subscription request includes
+    indication of which data triggers
+    notification when changed: 
+    operations, constraints, and resources. 
+end note
+DCB <-- DSS: operational intent references & resource references
 
 note over DCB
-No resources exist. Nothing to do yet. 
+No resources or operational 
+intents exist currently. 
+Nothing to do yet. 
 end note
 
 ==Make resources discoverable==
@@ -22,39 +30,41 @@ note over RO
 Resource is originally defined here.
 end note 
 RO -> RIS: Submit initial resource definition, capacity, and status
-RIS -> DSS: PUT /DSS/v1/resource-reference/
+RIS -> DSS: PUT /dss/v1/resource_references/{entityid}
 note over DSS
-Resource reference creation creates an implicit self-subscription
-for any changes needed to the resource due to OIM flight intents.
+Resource reference creation
+creates an implicit self-subscription
+for any changes needed to the resource
+due to OIM flight intents.
 end note
-DSS --> RIS: subscribers, resource-reference including subscription id
+DSS --> RIS: subscribers, resource-reference including subscription id & ovn
 loop For each resource subscriber
-    DCB <-- RIS: POST /v1/resource-details/{resource-id}  (everything, includes OVN)
+    DCB <-- RIS: POST /dcb/v1/resource_details\n(includes resource reference, physical definition & default capacity, and current status)
 end
 note over DCB
 Assumption: ResourceDetails contains definition, status and capacity. 
 end note
 
-== Resource capacity, status or definition is adjusted ==
-RO -> RIS: Update resource capacity
-RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
-RIS <-- DSS: subscribers
+== Resource capacity, status or definition is updated ==
+RO -> RIS: Update a future resource capacity
+RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=CAPACITY)
+RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
-    RIS -> DCB: POST /v1/resource-details/{resource-id}/capacity (includes OVN)
+    RIS -> DCB: PUT /dcb/v1/resource_details/{entityid}/capacities\n(includes reference-reference and future capacities)
 end
 
-RO -> RIS: Update resource status
-RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
-RIS <-- DSS: subscribers
+RO -> RIS: Update resource status or current capacity
+RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=STATUS)
+RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
-    RIS -> DCB: POST /v1/resource-details/{resource-id}/status (includes OVN)
+    RIS -> DCB: PUT /dcb/v1/resource_details/{entityid}/status\n(includes reference-reference and current resource status)
 end
 
-RO -> RIS: Update resource definition
-RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
-RIS <-- DSS: subscribers
+RO -> RIS: Update resource definition or default capacity
+RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=DEFINITION)
+RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
-    RIS -> DCB: POST /v1/resource-details/{resource-id}/definition (includes OVN)
+    RIS -> DCB: PUT /dcb/v1/resource-details/{resource-id}/definition\n(includes reference-reference, physical definition & default capacity)
 end
 
 == OIM receives request from operator and submits an operation to the DSS in proposed state == 
@@ -70,20 +80,20 @@ loop For all subscribers
 end
 
 == A new subscriber joins == 
-DCB2 -> DSS: PUT /dss/v1/subscriptions/
-DCB2 <-- DSS: resource & operation references
+DCB2 -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
+DCB2 <-- DSS: operational intent references & resource references
 loop For each resource reference received
     note over DCB2
     Get all resource details.
     end note
-    DCB2 -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
-    DCB2 <-- RIS: resource details (everything)
+    DCB2 -> RIS: GET /ris/v1/resource_details/{entityid}\n(includes resource reference, physical definition & default capacity, and current status)
+    DCB2 <-- RIS: resource details (includes resource reference, physical definition & default capacity, and current status)
 end
 loop For each operation reference received
     note over DCB2
     Get all operation details.
     end note
-    DCB2 -> OIM: GET /v1/operation_intents/{operation-id} (includes OVN)
+    DCB2 -> OIM: GET /oim/v1/operation_intents/{operation-id} (includes OVN)
     DCB2 <-- OIM: operation details (everything)
 end
 
@@ -106,7 +116,7 @@ end
 ==Conformance Monitoring==
 CM -> DSS: PUT /dss/v1/subscriptions/
 CM <-- DSS: resource references
-CM -> RIS: GET /v1/resource-details/{resource-id} (includes OVN)
+CM -> RIS: GET /ris/v1/resource-details/{resource-id} (includes OVN)
 CM <-- RIS: resource details (everything)
 OIM -> CM: POST /cm/v1/operational_intents
 
@@ -144,30 +154,41 @@ else If vehicle position for operation in Activated state
 end
 
 ==Conformance monitoring when resource capacity changes==
-RO -> RIS: Update resource capacity
-RIS -> DSS: PUT /DSS/v1/resource-reference/{resource-id}
-RIS <-- DSS: subscribers
+RO -> RIS: Update a future resource capacity
+RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=CAPACITY)
+RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
-    RIS -> DCB: POST /v1/resource-details/{resource-id}/capacity
+    RIS -> DCB: PUT /dcb/v1/resource_details/{entityid}/capacities\n(includes reference-reference and future capacities)
     DCB -> DCB: Adjust demand/capacity values
-    RIS -> DCB2: POST /v1/resource-details/{resource-id}/capacity
-    RIS -> CM: POST /v1/resource-details/{resource-id}/capacity
-end
-note over CM: DCB check
-CM -> DCB: POST /dcb/v1/imbalance/intent
-CM <-- DCB: Yes/no, OVNs for all resources, available time ranges
-
-alt If imbalance detected
-    CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
-    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
-    OIM <-- DSS: operation intent reference with subscribers
-    loop For all subscribers
-        OIM -> DCB2: POST /dcb/v1/operational_intents
-        OIM -> DCB: POST /dcb/v1/operational_intents
+    alt If imbalance detected
+        DCB -> OIM: POST /oim/v1/imbalance
+        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
+        OIM <-- DSS: operation intent reference with subscribers
+        loop For all subscribers
+            OIM -> DCB2: POST /dcb/v1/operational_intents
+            OIM -> DCB: POST /dcb/v1/operational_intents
+        end
+    else If no imbalace detected
+        note over DCB: do nothing
     end
-else If no imbalance detected
-    note over CM: do nothing
-end 
+    RIS -> DCB2: PUT /dcb/v1/resource_details/{entityid}/capacities\n(includes reference-reference and future capacities)
+    RIS -> CM: PUT /cm/v1/resource_details/{entityid}/capacities\n(includes reference-reference and future capacities)
+end
+'note over CM: DCB check
+'CM -> DCB: POST /dcb/v1/imbalance/intent
+'CM <-- DCB: Yes/no, OVNs for all resources, available time ranges
+
+'alt If imbalance detected
+    'CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
+    'OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
+    'OIM <-- DSS: operation intent reference with subscribers
+    'loop For all subscribers
+        'OIM -> DCB2: POST /dcb/v1/operational_intents
+        'OIM -> DCB: POST /dcb/v1/operational_intents
+    'end
+'else If no imbalance detected
+    'note over CM: do nothing
+'end 
 
 ==Position Sharing==
 loop 
