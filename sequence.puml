@@ -143,8 +143,8 @@ else If vehicle position for operation in Activated state
     alt If operation in conformance
         note over CM: Do nothing
     else If operation not in conformance
-        CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
+        CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming)
+        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming)
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
             OIM -> DCB2: POST /dcb/v1/operational_intents
@@ -168,7 +168,7 @@ loop For each resource subscriber
             OIM -> DCB2: POST /dcb/v1/operational_intents
             OIM -> DCB: POST /dcb/v1/operational_intents
         end
-    else If no imbalace detected
+    else If no imbalance detected
         note over DCB: do nothing
     end
     RIS -> DCB2: PUT /dcb/v1/resource_details/{entityid}/capacities\n(includes reference-reference and future capacities)
