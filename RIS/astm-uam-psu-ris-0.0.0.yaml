@@ -669,6 +669,46 @@ components:
           description: |-
             Describes the properties of the capacity requirements defined for the resource.
           $ref: "#/components/schemas/CapacityPropertyType"
+    PerformanceBound:
+      description: Performance bounds for a resource indicate lateral, vertical, and time 
+        bounds which must be met for an operational intent to remain conforming. 
+      # required:
+      #   - maximum_altitude_deviation
+      #   - maximum_lateral_deviation
+      #   - maximum_time_deviation 
+      #   - min_altitude
+      #   - max_altitude
+      #   - radius
+      properties: 
+        maximum_time_deviation:
+          description: The time buffer allowed from the expecting crossing or occupation time that is allowed in Seconds. 
+          type: number
+        maximum_altitude_deviation:
+          description: The maximum allowed altitude deviation in feet. 
+          type: number
+        maximum_lateral_deviation:
+          description: The maximum allowed lateral deviation in feet. 
+          type: number
+        min_altitude:
+          description: The minimum allowed altitude for usage of this resource.
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
+        max_altitude:
+          description: The maximum allowed altitude for usage of this resource.
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
+        radius:
+          description: The maximum allowed radius for usage of this resource.
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Radius'
+          # TODO: What all do we want here?
+          # TODO: A single performance bound as part of the definition or do we need to include future performance bounds? 
+        performance_bound_start_time:
+          description: The time at which the performance bound start, if known. 
+          anyOf:
+          - $ref: '#../../PSU/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+        performance_bound_end_time:
+          description: The time at which the performance bound ends, if known. 
+            If not provided, the performance bound continues indefinitely. 
+          anyOf:
+          - $ref: '#../../PSU/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
     TemporaryResourceCapacity:
       required: 
         - id
@@ -720,6 +760,7 @@ components:
       required:
         - status
         - active_capacity
+        - performance_bound
       description: |-
         Returns the current resource status and active capacity rule in place. 
       properties:
@@ -727,6 +768,8 @@ components:
           $ref: '#/components/schemas/ResourceStatus'
         active_capacity:
           $ref: '#/components/schemas/ActiveResourceCapacity'
+        performance_bound:
+          $ref: '#/components/schemas/PerformanceBound'
     ResourceDetails:
       required:
         - resource_reference
@@ -809,6 +852,8 @@ components:
           $ref: '#/components/schemas/ResourcePhysicalDefinition'
         default_capacity:
           $ref: '#/components/schemas/ResourceCapacity'
+        performance_bound:
+          $ref: '#/components/schemas/PerformanceBound'
       description: Response to peer request for the resource definition of the resource with the given ID.
     QueryCurrentResourceStatusResponse:
       description: Returns the current status of the resource. 

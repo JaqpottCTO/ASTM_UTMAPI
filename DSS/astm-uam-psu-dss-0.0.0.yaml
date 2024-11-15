@@ -1791,7 +1791,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/Time'
       description: Contiguous block of geographic spacetime.
-    ResourceReferenceProof:
+    ResourceOccupation:
       required:
         - resource_id
         - resource_ovn
@@ -1807,12 +1807,14 @@ components:
           description: |-
             The OVN of the resource being occupied or crossed by the operational intent. 
             This proves the operation considers the latest status and capacity of the resource. 
-          $ref: '#/components/schemas/EntityOVN'  
+          $ref: '#/components/schemas/EntityOVN' 
+      # TODO: Do we need to include details about how the operation will be using the resource
+      # to support conformance monitoring when we share this?  Ex. will the operation be at a specific
+      # altitude, speed, location, etc? 
     Volume4DExtent:
       required:
       - volume4D
       - occupied_resources
-      - non_occupied_resources
       type: object
       properties:
         volume4d:
@@ -1820,14 +1822,8 @@ components:
         occupied_resources:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceReferenceProof'
-          description: List of resources which will be fully occupied during the duration of the volume. 
-        non_occupied_resource_ids:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityID'
-          description: List of resources whose extents physically overlap with the volume extent, but
-            the actual operation volume does not overlap. 
+            $ref: '#/components/schemas/ResourceOccupation'
+          description: List of resources which will be fully occupied during the duration of the volume.  
       description: |-
         A 4D volume which includes a list of resources which will be fully occupied 
         during the duration of the volume. 
@@ -1900,7 +1896,7 @@ components:
           default: false
         notify_for_resources:
           type: boolean
-          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
+          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
           default: false
         implicit_subscription:
           type: boolean
@@ -1971,7 +1967,7 @@ components:
           default: false
         notify_for_resources:
           type: boolean
-          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
+          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
           default: false
       description: Parameters for a request to create/update a subscription in the DSS.  At least one form of notifications must be requested.
     SubscriptionUssBaseURL:
@@ -2123,10 +2119,18 @@ components:
           description: "The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications that the operational intent must be aware of.  This includes, at least, notifications for relevant changes in operational intents."
           anyOf:
           - $ref: '#/components/schemas/SubscriptionUssBaseURL'
+        notify_for_operational_intents:
+          type: boolean
+          description: "If true, trigger notifications when operational intents are created, updated, or deleted.  Otherwise, changes in operational intents should not trigger notifications.  The scope utm.strategic_coordination is required to set this flag true."
+          default: false
         notify_for_constraints:
           type: boolean
-          description: "True if this operational intent's subscription should trigger notifications when constraints change. Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true, and a USS performing the constraint processing role should set this flag true."
+          description: "If true, trigger notifications when constraints are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
           default: false
+        notify_for_resources:
+          type: boolean
+          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
+          default: false  
       description: Information necessary to create a subscription to serve a single operational intent's notification needs.
     GetOperationalIntentReferenceResponse:
       required:
@@ -2505,7 +2509,7 @@ components:
       properties:
         crossing_time:
           $ref: "#/components/schemas/Time"
-    ResourceOccupation:
+    ResourceOccupationDuration:
       required:
        - entry_time
        - exit_time
@@ -2528,7 +2532,7 @@ components:
             for a waypoint based resource. 
           anyOf:
             - $ref: "#/components/schemas/ResourceCrossing"
-            - $ref: "#/components/schemas/ResourceOccupation"  
+            - $ref: "#/components/schemas/ResourceOccupationDuration"  
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 
@@ -2543,7 +2547,6 @@ components:
     ResourceExtents:
       required:
         - extents
-        - non_occupied_resources
       type: object
       properties: 
         extents:
@@ -2554,13 +2557,6 @@ components:
             will be occupied by the Flight Intent. 
           items:
             $ref: '#/components/schemas/ResourceExtent'
-        non_occupied_resource_ids:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityID'
-          description: List of resources whose extents physically overlap with a straight line path
-            created by linking the individual ResourceExtents for this operation. The operation is
-            confirming that the DSS may see these as potential overlaps, but it will not occupy the resource. 
     OperationalExtents:
       type: object
       required:

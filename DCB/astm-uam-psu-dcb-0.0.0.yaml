@@ -19,24 +19,229 @@ security:
   - fimsAzAuth: []
 
 tags:
-  - name: Operational intent details
+  - name: Imbalance monitoring 
     description: |-
-      Endpoints exposed by PSU DCBs to recieve details of operational intents based on a subscription.
-  - name: Resource details
-    description: "Endpoints exposed by PSU DCBs to receive details of resources based on a subscription"
-  - name: DCB query
-    description: "Endpoints exposed by PSU DCBs for interfacing with PSU OIMs"
+      Endpoints exposed by PSU DCBs to allow OIMs to request monitoring for specific operational intents
+      for demand and capacity issues. 
+  - name: Imbalance checks
+    description: Endpoints exposed by PSU DCBs to allow for on-demand imbalance checks. 
  
 paths:
+  /dcb/v1/imbalance_subscriptions/{subscriptionid}:
+    summary: Create/read endpoint for a specific subscription in the DCB
+    get:
+      tags:
+      - Imbalance monitoring 
+      summary: Retrieve the specified imbalance subscription from the DCB.
+      description: Retrieve a specific subscription.
+      operationId: getImbalanceSubscription
+      parameters:
+      - name: subscriptionid
+        in: path
+        description: SubscriptionID of the subscription of interest.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/SubscriptionID'
+      responses:
+        "200":
+          description: Subscription information was retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImbalanceSubscription'
+        "400":
+          description: One or more input parameters were missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "404":
+          description: A subscription with the specified ID was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.constraint_processing
+      - Authority:
+        - utm.strategic_coordination
+    put:
+      tags:
+      - Imbalance monitoring 
+      summary: Create the specified imbalance subscription in the DSS.
+      description: |-
+        Create a subscription.
+      operationId: createImbalanceSubscription
+      parameters:
+      - name: subscriptionid
+        in: path
+        description: SubscriptionID of the subscription of interest.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/SubscriptionID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateImbalanceSubscriptionParameters'
+        required: true
+      responses:
+        "200":
+          description: A new subscription was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImbalanceSubscription'
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the subscription in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint or the request.
+            * Client attempted to request notifications for an Entity type to which the scopes included in the access token do not provide access.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * A subscription with the specified ID already exists.
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "429":
+          description: The client may have issued too many requests within a small period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.constraint_processing
+      - Authority:
+        - utm.strategic_coordination
+  /dss/v1/imbalance_subscriptions/{subscriptionid}/{version}:
+    summary: Update/delete a specific imbalance subscription in the DCB.
+    put:
+      tags:
+      - Imbalance monitoring
+      summary: Update the specified imbalance subscription in the DCB.
+      description: |-
+        Update a subscription.
+      operationId: updateImbalanceSubscription
+      parameters:
+      - name: subscriptionid
+        in: path
+        description: SubscriptionID of the subscription of interest.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/SubscriptionID'
+      - name: version
+        in: path
+        description: Version of the subscription to be modified.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateImbalanceSubscriptionParameters'
+        required: true
+      responses:
+        "200":
+          description: A subscription was updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImbalanceSubscription'
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the subscription in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint or the request.
+            * Client attempted to request notifications for an Entity type to which the scopes included in the access token do not provide access.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * A subscription with the specified ID already exists and is managed by a different client.
+            * The provided `version` does not match the current subscription.
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "429":
+          description: The client may have issued too many requests within a small period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
   /dcb/v1/imbalance/intent:
     post:
-      #Copied summary to description
       description: >-
         Demand-capacity imbalance detection endpoint that requires users to submit 
         a planned operational intent to detect whether the resources included in this 
         operational intent are below, at, or above available capacity. The returned 
         demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS.
+        operational intent but only consider operational intents known to DSS. This endpoint
+        is intended to return details sufficient for submitting the operational intent
+        to the DSS and other OIMs with the returned information. 
       tags:
         - DCB query
       summary: >-
@@ -64,7 +269,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImbalanceResponse'
+                $ref: '#/components/schemas/IntentBasedImbalanceResponse'
         '400':
           content:
             application/json:
@@ -111,40 +316,16 @@ paths:
             
   /dcb/v1/imbalance/area:
     post:
-      #Copied summary to description
       description: >-
         Demand-capacity imbalance detection endpoint that requires users to submit a 
         specification of area of interest defined as Volume4D to detect whether the 
-        resources included in this areas are under, at, or over available capacity.
+        resources included in this areas are under, at, or over available capacity. 
       tags:
-        - DCB query
+        - Imbalance checks
       summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a specification of area of interest defined as Volume4D to detect whether the resources included in this areas are under, at, or over available capacity. 
+        Demand-capacity imbalance detection endpoint that requires users to submit a specification of area of interest 
+        defined as Volume4D to detect whether the resources included in this areas are under, at, or over available capacity. 
       operationId: postImbalanceArea
-      parameters:
-        - name: timePeriod
-          in: query
-          required: true
-          description: Parameter defining the time period for which demand capacity imbalances are requested. Default end-time is 24 hours from the start-time.
-          schema:
-            type: object
-            $ref: '#/components/schemas/TimePeriod'
-            # properties:
-            #   time_start:
-            #     type: string
-            #     format: "iso8601"
-            #     minLength: 20
-            #     maxLength: 24
-            #     pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
-            #     example: "2021-12-08T14:00:00Z"
-            #   time_end:
-            #     type: string
-            #     format: "iso8601"
-            #     minLength: 20
-            #     maxLength: 24
-            #     pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
-            #     example: "2021-12-08T16:00:00Z"
-
       requestBody:
         content:
           application/json:
@@ -202,83 +383,83 @@ paths:
           description: |-
             DCB service availability error triggered by unavailability of one or more required services such as DSS.
   
-  /dcb/v1/imbalance/standalone:
-    post:
-      #Copied summary to description
-      description: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a 
-        planned operational intent to detect whether the resources included in this 
-        operational intent are below, at, or above available capacity. Contrary to the 
-        /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the 
-        operational intents known to DSS but uses operational intents provided as background 
-        demand to compute resource imbalances. This endpoint is mostly suitable for testing 
-        since the client controls all the inputs required for demand-capacity calculations 
-        (i.e., the calculations are not dependent on the dynamically changing status of DSS 
-        operational intents and capacities are assumed to be static).
-      tags:
-        - DCB query
-      summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a planned operational intent to detect whether the resources included in this operational intent are below, at, or above available capacity. Contrary to the /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the operational intents known to DSS but uses operational intents provided as background demand to compute resource imbalances. This endpoint is mostly suitable for testing since the client controls all the inputs required for demand-capacity calculations (i.e., the calculations are not dependent on the dynamically changing status of DSS operational intents and capacities are assumed to be static).
-      operationId: postImbalanceStandalone
-      parameters:
-        - name: timeBuffer
-          in: query
-          required: false
-          description: Parameter defining a time buffer in minutes around resource ETAs (ETA-timeBuffer, ETA+timeBuffer) for which demand capacity imbalances are requested
-          schema:
-            type: integer
-            minimum: 0
-            maximum: 120
-            default: 0
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StandaloneImbalanceRequest'
-      responses:
-        '200':
-          description: >-
-            Demand-capacity imbalance status for the resources included in the planned operational intent
-          content:
-            application/json:
-              schema:
-                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ImbalanceResponse'
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
-          description: >-
-            One or more parameters were missing or invalid.
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
-          description: >-
-            Bearer access token was not provided in Authorization header,
-            token could not be decoded, or token was invalid.
-        '415':
-          content:
-            application/json:
-              schema:
-                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
-          description: >-
-            Request Content-type header was different from the required application/json.
-        '429':
-          content:
-            application/json:
-              schema:
-                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
-          description: |-
-            The number of requests exceeded the processing capabilities. The client should wait and then retry sending the request.
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
-          description: |-
-            DCB service error.
+  # /dcb/v1/imbalance/standalone:
+  #   post:
+  #     #Copied summary to description
+  #     description: >-
+  #       Demand-capacity imbalance detection endpoint that requires users to submit a 
+  #       planned operational intent to detect whether the resources included in this 
+  #       operational intent are below, at, or above available capacity. Contrary to the 
+  #       /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the 
+  #       operational intents known to DSS but uses operational intents provided as background 
+  #       demand to compute resource imbalances. This endpoint is mostly suitable for testing 
+  #       since the client controls all the inputs required for demand-capacity calculations 
+  #       (i.e., the calculations are not dependent on the dynamically changing status of DSS 
+  #       operational intents and capacities are assumed to be static).
+  #     tags:
+  #       - DCB query
+  #     summary: >-
+  #       Demand-capacity imbalance detection endpoint that requires users to submit a planned operational intent to detect whether the resources included in this operational intent are below, at, or above available capacity. Contrary to the /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the operational intents known to DSS but uses operational intents provided as background demand to compute resource imbalances. This endpoint is mostly suitable for testing since the client controls all the inputs required for demand-capacity calculations (i.e., the calculations are not dependent on the dynamically changing status of DSS operational intents and capacities are assumed to be static).
+  #     operationId: postImbalanceStandalone
+  #     parameters:
+  #       - name: timeBuffer
+  #         in: query
+  #         required: false
+  #         description: Parameter defining a time buffer in minutes around resource ETAs (ETA-timeBuffer, ETA+timeBuffer) for which demand capacity imbalances are requested
+  #         schema:
+  #           type: integer
+  #           minimum: 0
+  #           maximum: 120
+  #           default: 0
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/StandaloneImbalanceRequest'
+  #     responses:
+  #       '200':
+  #         description: >-
+  #           Demand-capacity imbalance status for the resources included in the planned operational intent
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ImbalanceResponse'
+  #       '400':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: >-
+  #           One or more parameters were missing or invalid.
+  #       '401':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: >-
+  #           Bearer access token was not provided in Authorization header,
+  #           token could not be decoded, or token was invalid.
+  #       '415':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: >-
+  #           Request Content-type header was different from the required application/json.
+  #       '429':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: |-
+  #           The number of requests exceeded the processing capabilities. The client should wait and then retry sending the request.
+  #       '500':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: |-
+  #           DCB service error.
   
   
   /dcb/v1/availability/{resourceId}:
@@ -379,55 +560,200 @@ components:
          'aud' claim must be 'dcb-uam.metronaviation.com'.
          
   schemas:
+    IntentTrajectoryPoint:
+      type: object
+      required:
+        - lat_lng_point
+        - altitude
+        - time
+        - speed
+      properties:
+        lat_lng_point:
+          description: "Latitude and Longitude of the point."
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/LatLngPoint'
+        altitude:
+          description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
+        time:
+          description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+        # TODO: Does it make sense to include speed for intermediate point prediction? 
+        speed:
+          description: |-
+            Speed of the vehicle at this TrajectoryPoint.
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Velocity'
+    IntentTrajectory:
+      type: object
+      required:
+        - points
+      properties:
+        points:
+          type: array
+          description: "The list of TrajectoryPoints for this operation.  This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on \npoints to be included, see the enumeration of property types in the \nTrajectoryPoint4D model."
+          items:
+            $ref: '#/components/schemas/IntentTrajectoryPoint'
     IntentBasedImbalanceRequest:
       type: object
       required:
-        - planned_operation
+        - intent_trajectory
       properties:
-        planned_operation:
-          $ref: '#/components/schemas/OperationalIntent'
+        intent_trajectory:
+          $ref: '#/components/schemas/IntentTrajectory'
+        update_imbalance_subscription:
+          description: Notification to track this operational intent id
+            and report to OIM in case of a future imbalance. 
+          $ref: '#/components/schemas/UpdateImbalanceSubscriptionParameters'
       description: >- 
             Operational intent that is being planned and for which resource demand capacity 
-            imbalances need to be checked. The 'ovn' attribute in the operational intert reference 
+            imbalances need to be checked. The 'ovn' attribute in the operational intent reference 
             is not required/processed since it is assumed that this DCB endpoint is checked first 
             before communicating with DSS. 
-
-
+    IntentBasedImbalanceResponse:
+      type: object
+      required:
+        - trajectory
+        - resource_extents
+      properties:
+        trajectory:
+          maxItems: 1000
+          minItems: 2
+          type: array
+          description: The list of TrajectoryPoints for this operation.  
+            This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on 
+            points to be included, see the enumeration of property types in the \nTrajectoryPoint4D model.
+          items:
+            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/TrajectoryPoint4D'
+        resource_extents:
+          required:
+          - extents
+          type: object
+          properties: 
+            extents:
+              minItems: 1
+              type: array
+              description: |-
+                List of resources and crossing OR entry/exit times when the resource
+                will be occupied by the Flight Intent. 
+              items:
+                $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceExtent'
+      description: >- 
+            Response to an intent based imbalance request. Returns the original trajectory
+            (may be truncated to remove unimportant points) along with resource ids and crossing times
+            and trajectory properties.  Ideally this response could be plugged into the OperationalIntentDetails
+            shared with PSUs and OperationalIntentReference shared with the DSS.  
+    CreateImbalanceSubscriptionParameters:
+      required:
+      - uss_base_url
+      type: object
+      properties:
+        uss_base_url:
+          description: "The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications that the operational intent must be aware of.  This includes, at least, notifications for relevant changes in operational intents."
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionUssBaseURL'
+        add_operational_intents:
+          type: array
+          description: Operational intents to add for monitoring. 
+          items:
+            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+          default: []
+    ImbalanceSubscription:
+      required:
+      - subscription_id
+      - uss_base_url
+      - operational_intents_monitored
+      - version
+      type: object
+      properties:
+        subscription_id:
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionID'
+          description: ID of the DCB monitoring subscription. 
+        uss_base_url:
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionUssBaseURL'
+          description: Base URL which will be called when a DCB imbalance is detected for one 
+            of the operational intents monitored by this subscription. 
+        operational_intents_monitored:
+          type: array
+          description: List of IDs for operational intents that are monitored as part of this DCB. 
+          items:
+            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+          default: []
+        version:
+          type: string
+          description: Version of the subscription that the DCB changes every time a OIM changes the subscription.  
+            The DCB incrementing the notification_index does not constitute a change that triggers a new version.  
+            A USS must specify this version when modifying an existing subscription to ensure consistency in read-modify-write operations and distributed systems.
+      description: Subscription details, callback URL, and list of operational intents monitored by this DCB. 
+    UpdateImbalanceSubscriptionParameters:
+      type: object
+      required:
+      - version
+      properties:
+        add_operational_intents:
+          type: array
+          description: Operational intents to add for monitoring. 
+          items:
+            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+          default: []
+        remove_operational_intents:
+          type: array
+          description: Operational intents to remove from monitoring. 
+          items:
+            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+          default: []
+        version:
+          type: string
+          description: Version of the subscription that the DCB changes every time a OIM changes the subscription.  
+            The DCB incrementing the notification_index does not constitute a change that triggers a new version.  
+            A USS must specify this version when modifying an existing subscription to ensure consistency in read-modify-write operations and distributed systems.
     AreaBasedImbalanceRequest:
       type: object
       required:
         - areas_of_interest
+        - start_time
+        - end_time
       properties:
         areas_of_interest:
           type: array
           items:
             $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Volume4D'
-        exempt_resource_ids:
-          description: Resources which may be located in/very near the area of interest, but do
-            not need to be included in this query. 
-          type: array
-          items:
-            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
+        start_time:
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+          description: Beginning time for the imbalances to be checked. 
+        end_time:
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+          description: Ending time for the imbalances to be checked. 
+        # TODO: Can I remove this? It seems like OIMs may not really track resources, so this
+        # would never realistically be used? 
+        # exempt_resource_ids:
+        #   description: Resources which may be located in/very near the area of interest, but do
+        #     not need to be included in this query. 
+        #   type: array
+        #   items:
+        #     $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
           
             
-    StandaloneImbalanceRequest:
-      type: object
-      #Moved description out of properties
-      description: |- 
-        Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. 
-        The 'ovn' attribute in the operational intent reference is not required/processed since it is assumed that this 
-        DCB endpoint is checked first before communicating with DSS. 
-      required:
-        - planned_operation
-        - background_demand
-      properties:
-        planned_operation:
-          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/OperationalIntent'
-        background_demand:
-          type: array
-          items:
-            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/OperationalIntent'
-          minItems: 0
+    # StandaloneImbalanceRequest:
+    #   type: object
+    #   #Moved description out of properties
+    #   description: |- 
+    #     Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. 
+    #     The 'ovn' attribute in the operational intent reference is not required/processed since it is assumed that this 
+    #     DCB endpoint is checked first before communicating with DSS. 
+    #   required:
+    #     - planned_operation
+    #     - background_demand
+    #   properties:
+    #     planned_operation:
+    #       $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/OperationalIntent'
+    #     background_demand:
+    #       type: array
+    #       items:
+    #         $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/OperationalIntent'
+    #       minItems: 0
 
     ImbalanceResponse:
       type: object
@@ -437,36 +763,27 @@ components:
         resource_imbalances:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceDemandCapacityImbalance'
+            $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
 
-    ResourceDemandCapacityImbalance:
+    DemandCapacityImbalanceInterval:
       type: object
       description: >-
-        a set of properties describing a resource imbalance status that includes a resource reference from the adaptation data, 
-        the start and end time of the time bin used for demand-capacity imbalance computation, the magnitude of the imbalance, 
-        the imbalance status, and a potentially empty set of OVNs for all operations contributing to the reported demand at this resource at this time bin
+        Returns a time range, imbalance status for the range, and all operation OVNs contributing to 
+        demand within that time range.
       required:
-        - resource_id
-        - resource_ovn
         - time_start
-        # - time_end - only if we have a limit during a time duration. Otherwise empty. 
+        - time_end
         - imbalance_magnitude
         - imbalance_status
         - operation_ovns
       properties:
-        resource_id:
-            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
-        resource_ovn:
-          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
-          description: >-
-            OVN proving knowledge of the latest status & capacity info for the resource. 
         time_start:
           description: Beginning time of the time bin for computing this demand capacity imbalance status. If the capacity requirements
             are based on rate or an instantaneous limit, this value will be the time when that capacity rule began. Must be before time_end.
           anyOf:
             - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'
         time_end:
-          description: End time  of the time bin for computing this demand capacity imbalance status. Can be empty if the capacity rule
+          description: End time of the time bin for computing this demand capacity imbalance status. Can be empty if the capacity rule
             in place is an instantaneous or rate limit.  If included, must be after time_start.
           anyOf:
             - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'     
@@ -490,6 +807,28 @@ components:
           minItems: 0
           description: >-
             OVNs for all operations contributing to the reported demand at this resource at this time bin
+    ResourceDemandCapacityImbalances:
+      type: object
+      description: >-
+        a set of properties describing a resource imbalance status that includes a resource reference from the adaptation data, 
+        the start and end time of the time bin used for demand-capacity imbalance computation, the magnitude of the imbalance, 
+        the imbalance status, and a potentially empty set of OVNs for all operations contributing to the reported demand at this resource at this time bin
+      required:
+        - resource_id
+        - resource_ovn
+        - resource_imbalances
+      properties:
+        resource_id:
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
+        resource_ovn:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
+          description: >-
+            OVN proving knowledge of the latest status & capacity info for the resource. 
+        resource_imbalances:
+          type: array
+          items:
+            $ref: '#/components/schemas/DemandCapacityImbalanceInterval'
+          description: List of imbalance time ranges and determinations for the resource. 
 
           
     AvailabilityResponse:
