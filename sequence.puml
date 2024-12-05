@@ -120,8 +120,8 @@ CM -> RIS: GET /ris/v1/resource-details/{resource-id} (includes OVN)
 CM <-- RIS: resource details (everything)
 OIM -> CM: POST /cm/v1/operational_intents
 
-op -> CM: Vehicle position
-alt If vehicle position for operation in Accepted state
+op -> CM: Information for CM
+alt If information for CM for operation in Accepted state
     CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
     note over OIM: OIM does a DCB check
     OIM -> DCB: POST /dcb/v1/imbalance/intent
@@ -138,7 +138,7 @@ alt If vehicle position for operation in Accepted state
             OIM -> DCB: POST /dcb/v1/operational_intents
         end
     end 
-else If vehicle position for operation in Activated state
+else If information for CM for operation in Activated state
     CM -> CM: Conformance monitoring
     alt If operation in conformance
         note over CM: Do nothing
