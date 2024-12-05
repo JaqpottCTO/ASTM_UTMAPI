@@ -19,159 +19,263 @@ security:
   - fimsAzAuth: []
 
 tags:
-  - name: Operational intent details
+  - name: Imbalance monitoring 
     description: |-
-      Endpoints exposed by PSU DCBs to recieve details of operational intents based on a subscription.
-  - name: Resource details
-    description: "Endpoints exposed by PSU DCBs to receive details of resources based on a subscription"
-  - name: DCB query
-    description: "Endpoints exposed by PSU DCBs for interfacing with PSU OIMs"
+      Endpoints exposed by PSU DCBs to allow OIMs to request monitoring for specific operational intents
+      for demand and capacity issues. 
+  - name: Imbalance checks
+    description: Endpoints exposed by PSU DCBs to allow for on-demand imbalance checks. 
  
 paths:
-  /dcb/v1/operational_intents:
-    summary: "A PSU's representation of detailed information about operational intents."
- 
-    post:
+  /dcb/v1/imbalance_subscriptions/{subscriptionid}:
+    summary: Create/read endpoint for a specific subscription in the DCB
+    get:
       tags:
-        - Operational intent details
-        # - p2p_uam
+      - Imbalance monitoring 
+      summary: Retrieve the specified imbalance subscription from the DCB.
+      description: Retrieve a specific subscription.
+      operationId: getImbalanceSubscription
+      parameters:
+      - name: subscriptionid
+        in: path
+        description: SubscriptionID of the subscription of interest.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/SubscriptionID'
+      responses:
+        "200":
+          description: Subscription information was retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImbalanceSubscription'
+        "400":
+          description: One or more input parameters were missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "404":
+          description: A subscription with the specified ID was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
       security:
-        - Authority:
-            - utm.strategic_coordination
-      summary: Notify a peer PSU of changed operational intent details.
-      operationId: notifyOperationalIntentDetailsChanged
-      description: Notify a peer PSU directly of changed operational intent details 
-        (usually as a requirement of previous interactions with the DSS).
+      - Authority:
+        - utm.constraint_processing
+      - Authority:
+        - utm.strategic_coordination
+    put:
+      tags:
+      - Imbalance monitoring 
+      summary: Create the specified imbalance subscription in the DSS.
+      description: |-
+        Create a subscription.
+      operationId: createImbalanceSubscription
+      parameters:
+      - name: subscriptionid
+        in: path
+        description: SubscriptionID of the subscription of interest.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/SubscriptionID'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
+              $ref: '#/components/schemas/CreateImbalanceSubscriptionParameters'
         required: true
       responses:
-        '204':
-          description: "New or updated full operational intent information received successfully."
-        '400':
+        "200":
+          description: A new subscription was created successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ImbalanceSubscription'
+        "400":
           description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-        '401':
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the subscription in a disallowed way.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "403":
           description: |-
-            Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid.
-        '403':
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint or the request.
+            * Client attempted to request notifications for an Entity type to which the scopes included in the access token do not provide access.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "409":
           description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-        '409':
+            * A subscription with the specified ID already exists.
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-        '429':
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "429":
+          description: The client may have issued too many requests within a small period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: "The client issued too many requests in a short period of time."
-  
-  
-  /dcb/v1/resource_details:
-    summary: A PSU's representation of detailed information about resources.
- 
-    post:
-      tags:
-        - Resource details
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
       security:
-        - Authority:
-            - utm.strategic_coordination
-      summary: Notify a peer PSU of changed resource details.
-      operationId: notifyResourceDetailsChanged
-      description: Notify a peer PSU directly of changed resource details 
-        (usually as a requirement of previous interactions with the DSS).
+      - Authority:
+        - utm.constraint_processing
+      - Authority:
+        - utm.strategic_coordination
+  /dss/v1/imbalance_subscriptions/{subscriptionid}/{version}:
+    summary: Update/delete a specific imbalance subscription in the DCB.
+    put:
+      tags:
+      - Imbalance monitoring
+      summary: Update the specified imbalance subscription in the DCB.
+      description: |-
+        Update a subscription.
+      operationId: updateImbalanceSubscription
+      parameters:
+      - name: subscriptionid
+        in: path
+        description: SubscriptionID of the subscription of interest.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/SubscriptionID'
+      - name: version
+        in: path
+        description: Version of the subscription to be modified.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutResourceDetailsParameters'
+              $ref: '#/components/schemas/UpdateImbalanceSubscriptionParameters'
         required: true
       responses:
-        '204':
-          description: "New or updated full operational intent information received successfully."
-        '400':
+        "200":
+          description: A subscription was updated successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ImbalanceSubscription'
+        "400":
           description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-        '401':
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the subscription in a disallowed way.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "403":
           description: |-
-            Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid.
-        '403':
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint or the request.
+            * Client attempted to request notifications for an Entity type to which the scopes included in the access token do not provide access.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "409":
           description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-        '409':
+            * A subscription with the specified ID already exists and is managed by a different client.
+            * The provided `version` does not match the current subscription.
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-        '429':
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+        "429":
+          description: The client may have issued too many requests within a small period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: "The client issued too many requests in a short period of time."  
-        
-  
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
   /dcb/v1/imbalance/intent:
     post:
-      #Copied summary to description
       description: >-
         Demand-capacity imbalance detection endpoint that requires users to submit 
-        a planned operational intent to detect whether the resources included in this 
+        a planned trajectory to detect whether the resources included in this 
         operational intent are below, at, or above available capacity. The returned 
         demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS.
+        operational intent but only consider operational intents known to DSS. This endpoint
+        is intended to return details sufficient for submitting the operational intent
+        to the DSS and other OIMs with the returned information. 
       tags:
         - DCB query
       summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a planned operational intent to detect whether the resources included in this operational intent are below, at, or above available capacity. The returned demand-capacity imbalance responses do NOT include contributions from the planned operational intent but only consider operational intents known to DSS. 
+        Demand-capacity imbalance detection endpoint that requires users to submit 
+        a planned trajectory to detect whether the resources included in this 
+        operational intent are below, at, or above available capacity. The returned 
+        demand-capacity imbalance responses do NOT include contributions from the planned 
+        operational intent but only consider operational intents known to DSS. This endpoint
+        is intended to return details sufficient for submitting the operational intent
+        to the DSS and other OIMs with the returned information.
       operationId: postImbalanceIntent
       parameters:
+        - name: existingOperationalIntentId
+          in: query
+          required: false
+          description: If this call is testing an different trajectory for an existing
+            flight instance, the existing flight instance id must be provided.  The DCB 
+            will need to ignore the existing resource usage for this flight intent and only
+            consider the trajectory provided in the body. 
+          schema:
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
+        - name: returnAvailability
+          in: query
+          required: false
+          description: If imbalances are detected with the trajectory, return a list
+            of availability blocks for each of the resources. 
+          schema:
+            type: boolean
+            default: false
         - name: timeBuffer
           in: query
           required: false
-          description: Parameter defining a time buffer in minutes around resource ETAs (ETA-timeBuffer, ETA+timeBuffer) for which demand capacity imbalances are requested
+          description: Parameter defining a time buffer in minutes around resource ETAs 
+            (ETA-timeBuffer, ETA+timeBuffer) for which availability time ranges are requested
           schema:
             type: integer
             minimum: 0
@@ -189,19 +293,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImbalanceResponse'
+                $ref: '#/components/schemas/IntentBasedImbalanceResponse'
         '400':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: >-
             One or more parameters were missing or invalid.
         '401':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             Bearer access token was not provided in Authorization header,
             token could not be decoded, or token was invalid.
@@ -209,67 +313,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             Request Content-type header was different from the required application/json.
         '429':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             The number of requests exceeded DCB processing capabilities. The client should wait and then retry sending the request.
         '500':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             DCB service error.
         '503':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             DCB service availability error triggered by unavailability of one or more required services such as DSS.
             
   /dcb/v1/imbalance/area:
     post:
-      #Copied summary to description
       description: >-
         Demand-capacity imbalance detection endpoint that requires users to submit a 
         specification of area of interest defined as Volume4D to detect whether the 
-        resources included in this areas are under, at, or over available capacity.
+        resources included in this areas are under, at, or over available capacity. 
       tags:
-        - DCB query
+        - Imbalance checks
       summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a specification of area of interest defined as Volume4D to detect whether the resources included in this areas are under, at, or over available capacity. 
+        Demand-capacity imbalance detection endpoint that requires users to submit a specification of area of interest 
+        defined as Volume4D to detect whether the resources included in this areas are under, at, or over available capacity. 
       operationId: postImbalanceArea
-      parameters:
-        - name: timePeriod
-          in: query
-          required: true
-          description: Parameter defining the time period for which demand capacity imbalances are requested. Default end-time is 24 hours from the start-time.
-          schema:
-            type: object
-            $ref: '#/components/schemas/TimePeriod'
-            # properties:
-            #   time_start:
-            #     type: string
-            #     format: "iso8601"
-            #     minLength: 20
-            #     maxLength: 24
-            #     pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
-            #     example: "2021-12-08T14:00:00Z"
-            #   time_end:
-            #     type: string
-            #     format: "iso8601"
-            #     minLength: 20
-            #     maxLength: 24
-            #     pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
-            #     example: "2021-12-08T16:00:00Z"
-
       requestBody:
         content:
           application/json:
@@ -287,14 +367,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: >-
             One or more parameters were missing or invalid.
         '401':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             Bearer access token was not provided in Authorization header,
             token could not be decoded, or token was invalid.
@@ -302,181 +382,165 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             Request Content-type header was different from the required application/json.
         '429':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             The number of requests exceeded DCB processing capabilities. The client should wait and then retry sending the request.
         '500':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             DCB service error.   
         '503':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             DCB service availability error triggered by unavailability of one or more required services such as DSS.
   
-  /dcb/v1/imbalance/standalone:
-    post:
-      #Copied summary to description
-      description: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a 
-        planned operational intent to detect whether the resources included in this 
-        operational intent are below, at, or above available capacity. Contrary to the 
-        /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the 
-        operational intents known to DSS but uses operational intents provided as background 
-        demand to compute resource imbalances. This endpoint is mostly suitable for testing 
-        since the client controls all the inputs required for demand-capacity calculations 
-        (i.e., the calculations are not dependent on the dynamically changing status of DSS 
-        operational intents and capacities are assumed to be static).
-      tags:
-        - DCB query
-      summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a planned operational intent to detect whether the resources included in this operational intent are below, at, or above available capacity. Contrary to the /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the operational intents known to DSS but uses operational intents provided as background demand to compute resource imbalances. This endpoint is mostly suitable for testing since the client controls all the inputs required for demand-capacity calculations (i.e., the calculations are not dependent on the dynamically changing status of DSS operational intents and capacities are assumed to be static).
-      operationId: postImbalanceStandalone
-      parameters:
-        - name: timeBuffer
-          in: query
-          required: false
-          description: Parameter defining a time buffer in minutes around resource ETAs (ETA-timeBuffer, ETA+timeBuffer) for which demand capacity imbalances are requested
-          schema:
-            type: integer
-            minimum: 0
-            maximum: 120
-            default: 0
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/StandaloneImbalanceRequest'
-      responses:
-        '200':
-          description: >-
-            Demand-capacity imbalance status for the resources included in the planned operational intent
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ImbalanceResponse'
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: >-
-            One or more parameters were missing or invalid.
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: >-
-            Bearer access token was not provided in Authorization header,
-            token could not be decoded, or token was invalid.
-        '415':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: >-
-            Request Content-type header was different from the required application/json.
-        '429':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: |-
-            The number of requests exceeded the processing capabilities. The client should wait and then retry sending the request.
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-          description: |-
-            DCB service error.
+  # /dcb/v1/imbalance/standalone:
+  #   post:
+  #     #Copied summary to description
+  #     description: >-
+  #       Demand-capacity imbalance detection endpoint that requires users to submit a 
+  #       planned operational intent to detect whether the resources included in this 
+  #       operational intent are below, at, or above available capacity. Contrary to the 
+  #       /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the 
+  #       operational intents known to DSS but uses operational intents provided as background 
+  #       demand to compute resource imbalances. This endpoint is mostly suitable for testing 
+  #       since the client controls all the inputs required for demand-capacity calculations 
+  #       (i.e., the calculations are not dependent on the dynamically changing status of DSS 
+  #       operational intents and capacities are assumed to be static).
+  #     tags:
+  #       - DCB query
+  #     summary: >-
+  #       Demand-capacity imbalance detection endpoint that requires users to submit a planned operational intent to detect whether the resources included in this operational intent are below, at, or above available capacity. Contrary to the /dcb/v2/imbalance/intent endpoint it does not check with the DSS regarding the operational intents known to DSS but uses operational intents provided as background demand to compute resource imbalances. This endpoint is mostly suitable for testing since the client controls all the inputs required for demand-capacity calculations (i.e., the calculations are not dependent on the dynamically changing status of DSS operational intents and capacities are assumed to be static).
+  #     operationId: postImbalanceStandalone
+  #     parameters:
+  #       - name: timeBuffer
+  #         in: query
+  #         required: false
+  #         description: Parameter defining a time buffer in minutes around resource ETAs (ETA-timeBuffer, ETA+timeBuffer) for which demand capacity imbalances are requested
+  #         schema:
+  #           type: integer
+  #           minimum: 0
+  #           maximum: 120
+  #           default: 0
+  #     requestBody:
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/StandaloneImbalanceRequest'
+  #     responses:
+  #       '200':
+  #         description: >-
+  #           Demand-capacity imbalance status for the resources included in the planned operational intent
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ImbalanceResponse'
+  #       '400':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: >-
+  #           One or more parameters were missing or invalid.
+  #       '401':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: >-
+  #           Bearer access token was not provided in Authorization header,
+  #           token could not be decoded, or token was invalid.
+  #       '415':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: >-
+  #           Request Content-type header was different from the required application/json.
+  #       '429':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: |-
+  #           The number of requests exceeded the processing capabilities. The client should wait and then retry sending the request.
+  #       '500':
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
+  #         description: |-
+  #           DCB service error.
   
   
-  /dcb/v1/availability/{resname}:
+  /dcb/v1/availability/{resourceId}:
     get:
-      #Copied summary to description
       description: >-
-        Resource availability endpoint that provides information on avaiable time intervals 
+        Resource availability endpoint that provides information on available time intervals 
         for a given resource, i.e., time intervals during which demand is below available capacity.
       tags:
         - DCB query
       summary: >-
-        Resource availability endpoint that provides information on avaiable time intervals for a given resource, i.e., time intervals during which demand is below available capacity  
-      operationId: getAvailabilityResname
+        Resource availability endpoint that provides information on available time intervals for a given resource, i.e., 
+        time intervals during which demand is below available capacity. 
+      operationId: getAvailabilityByResource
       parameters:
-        - name: resname
+        - name: resourceId
           in: path
-          description: Name of the resource as defined in the adaptation
-          required: true
-          schema:
-            type: "string"
-            minLength: 1
-            maxLength: 5
-            example: DF25
+          description: Id of the resource
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
         - name: time_start
           in: query
           required: true
-          description: Parameter defining the start time for the interval for querying resource availability
-          schema:
-            type: "string"
-            format: "iso8601"
-            minLength: 20
-            maxLength: 24
-            pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
-            example: "2021-12-08T14:00:00Z"
+          description: Parameter defining the start time for querying resource availability
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'
         - name: time_end
           in: query
           required: true
-          description: Parameter defining the end time for the interval for querying resource availability
-          schema:
-            type: "string"
-            format: "iso8601"
-            minLength: 20
-            maxLength: 24
-            pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{1,3})?Z$"
-            example: "2021-12-08T16:00:00Z"
-        - name: exempt_Id
-          in: query
-          description: Entity id of operational intent that is exempt from demand estimation
-          required: false
-          schema:
-            anyOf:
-              - $ref: '#/components/schemas/UUIDv4'
-            example: 2f8343be-6482-4d1b-a474-16847e01af1e
+          description: Parameter defining the end time for querying resource availability
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'
+        # TODO: Why do we need this? 
+        # - name: exempt_Id
+        #   in: query
+        #   description: Entity id of operational intent that is exempt from demand estimation
+        #   required: false
+        #   schema:
+        #     anyOf:
+        #       - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/UUIDv4'
+        #     example: 2f8343be-6482-4d1b-a474-16847e01af1e
       responses:
         '200':
           description: >-
-            Resource avaiability information
+            Resource availability information
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AvailabilityResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/                                          '
         '400':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: >-
             One or more parameters were missing or invalid.
         '401':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             Bearer access token was not provided in Authorization header,
             token could not be decoded, or token was invalid.   
@@ -484,28 +548,28 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             Provided resname is not a valid vertiport name. 
         '429':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             The number of requests exceeded the processing capabilities. The client should wait and then retry sending the request.
         '500':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             DCB server or processing error.
         '503':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/ErrorResponse'
           description: |-
             DCB service availability error triggered by unavailability of one or more required services such as DSS.
 components:
@@ -520,51 +584,235 @@ components:
          'aud' claim must be 'dcb-uam.metronaviation.com'.
          
   schemas:
+    IntentTrajectoryPoint:
+      type: object
+      required:
+        - lat_lng_point
+        - altitude
+        - time
+        #- groundspeed
+      properties:
+        lat_lng_point:
+          description: "Latitude and Longitude of the point."
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/LatLngPoint'
+        altitude:
+          description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
+        time:
+          description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+        groundspeed:
+          description: |-
+            Speed of the vehicle at this TrajectoryPoint.
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Velocity'
+    IntentTrajectory:
+      type: object
+      required:
+        - points
+      properties:
+        points:
+          type: array
+          description: "The list of TrajectoryPoints for this operation.  This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on \npoints to be included, see the enumeration of property types in the \nTrajectoryPoint4D model."
+          items:
+            $ref: '#/components/schemas/IntentTrajectoryPoint'
     IntentBasedImbalanceRequest:
       type: object
       required:
-        - planned_operation
+        - intent_trajectory
       properties:
-        planned_operation:
-          $ref: '#/components/schemas/OperationalIntent'
+        intent_trajectory:
+          $ref: '#/components/schemas/IntentTrajectory'
+        # update_imbalance_subscription:
+        #   description: Notification to track this operational intent id
+        #     and report to OIM in case of a future imbalance. 
+        #   $ref: '#/components/schemas/UpdateImbalanceSubscriptionParameters'
       description: >- 
             Operational intent that is being planned and for which resource demand capacity 
-            imbalances need to be checked. The 'ovn' attribute in the operational intert reference 
+            imbalances need to be checked. The 'ovn' attribute in the operational intent reference 
             is not required/processed since it is assumed that this DCB endpoint is checked first 
             before communicating with DSS. 
-
-
+    IntentBasedImbalanceResponse:
+      type: object
+      required:
+        - trajectory
+        - resource_extents
+        - resource_imbalances
+        - is_dcb_compliant
+      properties:
+        is_dcb_compliant:
+          type: boolean
+          description: Returns true if the trajectory is DCB compliant (no imbalances). 
+            Returns false if any imbalances exist (trajectory non-DCB compliant). 
+        trajectory:
+          maxItems: 1000
+          minItems: 2
+          type: array
+          description: The list of TrajectoryPoints for this operation which are to be shared
+            with other stakeholders as part of the OperationalIntentDetails.  
+            This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on 
+            points to be included, see the enumeration of property types in the TrajectoryPoint4D model.
+            In addition, each trajectory point includes details of any resource(s) which are being utilized
+            by the trajectory and an indication if this is a crossing for waypoint-based resources or an 
+            entry/exit for volume-based resources. 
+          items:
+            $ref: '#../../DSS/astm-uam-psu-oim-0.0.0.yaml/components/schemas/TrajectoryPoint4D'
+        resource_extents:
+          required:
+          - extents
+          type: object
+          properties: 
+            extents:
+              minItems: 1
+              type: array
+              description: |-
+                List of resources and crossing OR entry/exit times when the resource
+                will be occupied by the  Operational Intent.  These extents are intended to be
+                shared with the DSS when the Operation Intent is submitted/updated. 
+              items:
+                $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceExtent'
+        resource_imbalances:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
+          default: []
+        availability:
+          description: Includes a list of all utilized resources with ranges of time when 
+            the resource is below capacity.  OVNs are not included.  It is assumed the caller
+            will adjust the trajectory to utilize the resources at new times and will submit
+            an updated request. 
+          type: array
+          items: 
+            $ref: '#/components/schemas/ResourceAvailability'
+      description: >- 
+            Response to an intent based imbalance request. Returns the original trajectory
+            (may be truncated to remove unimportant points) along with resource ids and crossing times
+            and trajectory properties.  Ideally this response could be plugged into the OperationalIntentDetails
+            shared with PSUs and OperationalIntentReference shared with the DSS.  
+    CreateImbalanceSubscriptionParameters:
+      required:
+      - uss_base_url
+      type: object
+      properties:
+        uss_base_url:
+          description: "The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications that the operational intent must be aware of.  This includes, at least, notifications for relevant changes in operational intents."
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionUssBaseURL'
+        add_operational_intents:
+          type: array
+          description: Operational intents to add for monitoring. 
+          items:
+            $ref: '#/components/schemas/OperationalIntentForMonitoring'
+          default: []
+    OperationalIntentForMonitoring:
+      required:
+        - operational_intent_id
+        - operational_intent_details
+      type: object
+      properties:
+        operational_intent_id:
+          description: The ID of the operational intent (as shared with the DSS and other entities). 
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+        operational_intent_details:
+          description: The operational intent details shared with other stakeholders.
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/OperationalIntentDetails'
+    ImbalanceSubscription:
+      required:
+      - subscription_id
+      - uss_base_url
+      - operational_intents_monitored
+      - version
+      type: object
+      properties:
+        subscription_id:
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionID'
+          description: ID of the DCB monitoring subscription. 
+        uss_base_url:
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionUssBaseURL'
+          description: Base URL which will be called when a DCB imbalance is detected for one 
+            of the operational intents monitored by this subscription. 
+        operational_intents_monitored:
+          type: array
+          description: List of IDs for operational intents that are monitored as part of this DCB. 
+          items:
+            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+          default: []
+        version:
+          type: string
+          description: Version of the subscription that the DCB changes every time a OIM changes the subscription.  
+            The DCB incrementing the notification_index does not constitute a change that triggers a new version.  
+            A USS must specify this version when modifying an existing subscription to ensure consistency in read-modify-write operations and distributed systems.
+      description: Subscription details, callback URL, and list of operational intents monitored by this DCB. 
+    UpdateImbalanceSubscriptionParameters:
+      type: object
+      required:
+      - version
+      properties:
+        update_operational_intents:
+          type: array
+          description: Operational intents either to add for monitoring or for which the operational intent is being updated. 
+          items:
+            $ref: '#/components/schemas/OperationalIntentForMonitoring'
+          default: []
+        remove_operational_intents:
+          type: array
+          description: Operational intents to remove from monitoring. 
+          items:
+            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+          default: []
+        version:
+          type: string
+          description: Version of the subscription that the DCB changes every time a OIM changes the subscription.  
+            The DCB incrementing the notification_index does not constitute a change that triggers a new version.  
+            A USS must specify this version when modifying an existing subscription to ensure consistency in read-modify-write operations and distributed systems.
     AreaBasedImbalanceRequest:
       type: object
       required:
-        - area_of_interest
+        - areas_of_interest
+        - start_time
+        - end_time
       properties:
-        area_of_interest:
-          $ref: '#/components/schemas/Volume4D'
-        exempt_ids:
+        areas_of_interest:
           type: array
           items:
-            $ref: '#/components/schemas/EntityID'
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Volume4D'
+        start_time:
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+          description: Beginning time for the imbalances to be checked. 
+        end_time:
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
+          description: Ending time for the imbalances to be checked. 
+        # TODO: Can I remove this? It seems like OIMs may not really track resources, so this
+        # would never realistically be used? 
+        # exempt_resource_ids:
+        #   description: Resources which may be located in/very near the area of interest, but do
+        #     not need to be included in this query. 
+        #   type: array
+        #   items:
+        #     $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
           
             
-    StandaloneImbalanceRequest:
-      type: object
-      #Moved description out of properties
-      description: |- 
-        Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. 
-        The 'ovn' attribute in the oeprational intert reference is not required/processed since it is assumed that this 
-        DCB endpoint is checked first before communicating with DSS. 
-      required:
-        - planned_operation
-        - background_demand
-      properties:
-        planned_operation:
-          $ref: '#/components/schemas/OperationalIntent'
-        background_demand:
-          type: array
-          items:
-            $ref: '#/components/schemas/OperationalIntent'
-          minItems: 0
+    # StandaloneImbalanceRequest:
+    #   type: object
+    #   #Moved description out of properties
+    #   description: |- 
+    #     Operational intent that is being planned and for which resource demand capacity imbalances need to be checked. 
+    #     The 'ovn' attribute in the operational intent reference is not required/processed since it is assumed that this 
+    #     DCB endpoint is checked first before communicating with DSS. 
+    #   required:
+    #     - planned_operation
+    #     - background_demand
+    #   properties:
+    #     planned_operation:
+    #       $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/OperationalIntent'
+    #     background_demand:
+    #       type: array
+    #       items:
+    #         $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/OperationalIntent'
+    #       minItems: 0
 
     ImbalanceResponse:
       type: object
@@ -574,34 +822,47 @@ components:
         resource_imbalances:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceDemandCapacityImbalance'
-
-    ResourceDemandCapacityImbalance:
+            $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
+    ImbalanceContributingOperation:
+      type: object
+      description: Id and OVN of an operation contributing to demand or imbalance. 
+      required:
+        - operational_intent_id
+        - operation_ovn
+      properties:
+        operation_ovn:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
+          description: OVN of the operation
+        operational_intent_id:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
+          description: Operational intent ID of the operation
+    DemandCapacityImbalanceInterval:
       type: object
       description: >-
-        a set of properties describing a resource imbalance status that includes a resource reference from the adaptation data, the start and end time of the time bin used for demand-capacity imbalance computation, the magnitutde of the imabalance, the imabalance status, and a potentially empty set of (OVNs) for all operations contributing to the reported demand at this resource at this time bin
+        Returns a time range, imbalance status for the range, and all operation OVNs contributing to 
+        demand within that time range.
       required:
-        - resource
         - time_start
         - time_end
         - imbalance_magnitude
         - imbalance_status
-        - ovns
+        - operations
       properties:
-        resource:
-            $ref: '#/components/schemas/ResourceDefinition'
         time_start:
-          description: Beginning time of the time bin for computing this demand capacity imbalance status. Must be before time_end.
+          description: Beginning time of the time bin for computing this demand capacity imbalance status. If the capacity requirements
+            are based on rate or an instantaneous limit, this value will be the time when that capacity rule began. Must be before time_end.
           anyOf:
-            - $ref: '#/components/schemas/Time'
+            - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'
         time_end:
-          description: End time  of the time bin for computing this demand capacity imbalance status. Must be after time_start.
+          description: End time of the time bin for computing this demand capacity imbalance status. Can be empty if the capacity rule
+            in place is an instantaneous or rate limit.  If included, must be after time_start.
           anyOf:
-            - $ref: '#/components/schemas/Time'     
+            - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'     
         imbalance_magnitude:
           type: number
           format: double
-          description: The magnitude of demand capacity imbalance. Negative values indicate available capacity, zero indicates at capacity, and positive values indicate over capacity
+          description: The magnitude of demand capacity imbalance. Negative values indicate available capacity, zero indicates at capacity, 
+            and positive values indicate over capacity
         imbalance_status:
           type: string
           enum:
@@ -610,746 +871,66 @@ components:
             - UNDER_CAPACITY
           description: >-
             string indicating whether corresponding resource is over, at or under capacity
-        ovns:
+        operations:
           type: array
           items:
-            $ref: '#/components/schemas/EntityOVN'
+            $ref: '#/components/schemas/ImbalanceContributingOperation'
           minItems: 0
           description: >-
-            (OVNs) for all operations contributing to the reported demand at this resource at this time bin
-          
-    AvailabilityResponse:
+            IDs and OVNs for all operations contributing to the reported demand at this resource at this time bin
+    ResourceDemandCapacityImbalances:
+      type: object
+      description: >-
+        a set of properties describing a resource imbalance status that includes a resource reference from the adaptation data, 
+        the start and end time of the time bin used for demand-capacity imbalance computation, the magnitude of the imbalance, 
+        the imbalance status, and a potentially empty set of OVNs for all operations contributing to the reported demand at this resource at this time bin
+      required:
+        - resource_id
+        - resource_ovn
+        - resource_imbalances
+      properties:
+        resource_id:
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
+        resource_ovn:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
+          description: >-
+            OVN proving knowledge of the latest status & capacity info for the resource. 
+        resource_imbalances:
+          type: array
+          items:
+            $ref: '#/components/schemas/DemandCapacityImbalanceInterval'
+          description: List of imbalance time ranges and determinations for the resource. 
+
+    ResourceAvailability:
+      description: Returns a list of time intervals within the provided start/end duration during which
+        the demand is under the capacity of the resource.  
       type: object
       required:
-        - resource
+        - resource_id
         - available_intervals
       properties:
-        resource:
-            $ref: '#/components/schemas/ResourceDefinition'
+        resource_id:
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
         available_intervals:
           type: array
           items:
             $ref: '#/components/schemas/ResourceAvailabilityInterval'
  
     ResourceAvailabilityInterval:
+      description: An interval of time when the resource is UNDER_CAPACITY. Includes the OVNs
+        for all operations contributing to the demand within that interval. 
       type: object
       required:
         - time_start
         - time_end
-        - ovns
       properties:
         time_start:
           description: Beginning time of this availability time interval. Must be before time_end.
           anyOf:
-            - $ref: '#/components/schemas/Time'
+            - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'
         time_end:
           description: End time of this availability time interval. Must be after time_start.
           anyOf:
-            - $ref: '#/components/schemas/Time'        
-        ovns:
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityOVN'
-          minItems: 0
-          description: >-
-            (OVNs) for all operations contributing to the reported demand at this resource during this time interval          
-            
-          
-    UUIDv4:
-      description: |-
-        Universally-unique identifier (version 4).
-      maxLength: 36
-      minLength: 36
-      type: string
-      format: uuid
-      #Fixed pattern so it matches
-      pattern: "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-4[0-9a-fA-F]{3}\\-[89abAB][0-9a-fA-F]{3}\\-[0-9a-fA-F]{12}$"
-      example: d290f1ee-6c54-4b01-90e6-d701748f0851
- 
-    EntityID:
-      description: |-
-        Identifier for an Entity communicated through the DSS.  Formatted as
-        a UUIDv4.
-      anyOf:
-        - $ref: '#/components/schemas/UUIDv4'
-      example: 2f8343be-6482-4d1b-a474-16847e01af1e
- 
-    EntityOVN:
-      title: EntityOVN
-      description: |-
-        A token associated with a particular UAM Entity+version created
-        by the DSS upon creation or modification of an Entity reference and provided
-        to the client creating or modifying the Entity reference.  The EntityOVN
-        is stored privately by the DSS and then compared against entries in a Key
-        provided to mutate the airspace.  The EntityOVN is also provided by
-        the client whenever that client transmits the full information of the Entity
-        (either via GET, or via a subscription notification).
-      type: string
-      minLength: 16
-      maxLength: 128
-      example: 9d158f59-80b7-4c11-9c0c-8a2b4d936b2d
- 
-    SubscriptionID:
-      description: |-
-        Identifier for a subscription communicated through the DSS.  Formatted
-        as a UUIDv4.
-      anyOf:
-        - $ref: '#/components/schemas/UUIDv4'
-      example: 78ea3fe8-71c2-4f5c-9b44-9c02f5563c6f
- 
-    Time:
-      required:
-        - value
-        - format
-      type: object
-      properties:
-        value:
-          type: string
-          description: RFC3339-formatted time/date string.  The time zone must be
-            'Z'.
-          format: date-time
-          example: '1985-04-12T23:20:50.52Z'
-        format:
-          type: string
-          enum:
-            - RFC3339
- 
-    Radius:
-      required:
-        - value
-        - units
-      type: object
-      properties:
-        value:
-          format: float
-          description: Distance from the centerpoint of a circular area, along the
-            WGS84 ellipsoid.
-          type: number
-          minimum: 0
-          exclusiveMinimum: true
-          example: 300.183
-        units:
-          type: string
-          description: FIXM-compatible units.  Only meters ("M") are acceptable for
-            UAM.
-          enum:
-            - M
- 
-    Altitude:
-      type: object
-      required:
-        - value
-        - reference
-        - units
-      properties:
-        value:
-          description: |-
-            The numeric value of the altitude. Note that min and max values are
-            added as a sanity check. As use cases evolve and more options are
-            made available in terms of units of measure or reference systems,
-            these bounds may be re-evaluated.
-          type: number
-          format: double
-          minimum: -8000
-          exclusiveMinimum: false
-          maximum: 100000
-          exclusiveMaximum: false
-        reference:
-          description: |-
-            A code indicating the reference for a vertical distance. See AIXM 5.1
-            and FIXM 4.2.0. Currently, UAM only allows WGS84 with no immediate
-            plans to allow other options. FIXM and AIXM allow for 'SFC' which is
-            equivalent to AGL.
-          type: string
-          enum:
-            - W84
-        units:
-          description: |-
-            The reference quantities used to express the value of altitude. See
-            FIXM 4.2. Currently, UAM only allows meters with no immediate plans
-            to allow other options.
-          type: string
-          enum:
-            - M
- 
-    Latitude:
-      description: Degrees of latitude north of the equator, with reference to the
-        WGS84 ellipsoid.
-      maximum: 90
-      exclusiveMaximum: false
-      minimum: -90
-      exclusiveMinimum: false
-      type: number
-      format: double
-      example: 34.123
- 
-    Longitude:
-      description: Degrees of longitude east of the Prime Meridian, with reference
-        to the WGS84 ellipsoid.
-      minimum: -180
-      exclusiveMaximum: false
-      maximum: 180
-      exclusiveMinimum: false
-      type: number
-      format: double
-      example: -118.456
- 
-    Polygon:
-      description: |-
-        An enclosed area on the earth.
-        The bounding edges of this polygon are defined to be the shortest paths between connected vertices.  This means, for instance, that the edge between two points both defined at a particular latitude is not generally contained at that latitude.
-        The winding order must be interpreted as the order which produces the smaller area.
-        The path between two vertices is defined to be the shortest possible path between those vertices.
-        Edges may not cross.
-        Vertices may not be duplicated.  In particular, the final polygon vertex must not be identical to the first vertex.
-      required:
-        - vertices
-      type: object
-      properties:
-        vertices:
-          minItems: 3
-          type: array
-          items:
-            $ref: '#/components/schemas/LatLngPoint'
- 
-    LatLngPoint:
-      description: Point on the earth's surface.
-      required:
-        - lat
-        - lng
-      type: object
-      properties:
-        lng:
-          $ref: '#/components/schemas/Longitude'
-        lat:
-          $ref: '#/components/schemas/Latitude'
- 
-    Circle:
-      description: |-
-        A circular area on the surface of the earth.
-      type: object
-      required:
-        - center
-        - radius
-      properties:
-        center:
-          $ref: '#/components/schemas/LatLngPoint'
-        radius:
-          $ref: '#/components/schemas/Radius'
- 
-    Volume3D:
-      description: |-
-        A three-dimensional geographic volume consisting of a vertically-extruded shape.
-        Exactly one outline must be specified.
-      required:
-        - altitude_lower
-        - altitude_upper
-      type: object
-      properties:
-        outline_circle:
-          anyOf:
-            - $ref: '#/components/schemas/Circle'
-          description: A circular geographic shape on the surface of the earth.
-        outline_polygon:
-          anyOf:
-            - $ref: '#/components/schemas/Polygon'
-          description: A polygonal geographic shape on the surface of the earth.
-        altitude_lower:
-          description: Minimum bounding altitude of this volume. Must be less than
-            altitude_upper, if specified.
-          anyOf:
-            - $ref: '#/components/schemas/Altitude'
-        altitude_upper:
-          description: Maximum bounding altitude of this volume. Must be greater than
-            altitude_lower, if specified.
-          anyOf:
-            - $ref: '#/components/schemas/Altitude'
- 
-    Volume4D:
-      description: Contiguous block of geographic spacetime.
-      required:
-        - volume
-        - time_start
-        - time_end
-      type: object
-      properties:
-        volume:
-          $ref: '#/components/schemas/Volume3D'
-        time_start:
-          description: Beginning time of this volume. Must be before time_end.
-          anyOf:
-            - $ref: '#/components/schemas/Time'
-        time_end:
-          description: End time of this volume. Must be after time_start.
-          anyOf:
-            - $ref: '#/components/schemas/Time'
- 
-    ErrorResponse:
-      description: |-
-        Error specification returned when an error occurs as a result of a PSU - DCB transaction.
-      type: object
-      required: 
-        - type
-        - title
-        - status
-        - time
-      properties:
-        type:
-          description: |-
-            Provides definition of the high-level type of error.
-          type: string
-          example: AUTHORIZATION_ERROR
-        title:
-          description: |-
-            Provides a short, human-readable summary of the problem type
-          type: string
-          example: Unauthorized
-        status:
-          description: |-
-            Provides a HTTP status code
-          type: number
-          example: 401
-        time:
-          description: |-
-            Provides the time instance of when the error happened
-          type: "string"
-          format: "iso8601"
-          #In this case it looks like milliseconds are required on the pattern, so 24 chars and added to the example.
-          minLength: 24
-          maxLength: 24
-          pattern: "^([0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]{3})Z$"
-          example: "2021-12-08T14:00:00.000Z"
-        detail:
-          description: |-
-            Provides a human-readable explanation specific to this occurrence of the problem
-          type: string
-        instance:
-          description: |-
-            Provides a reference that identifies the specific occurrence of the problem
-          type: string
-        errorId:
-          description: |-
-            Provides a unique error id for this error type for support
-          type: string
-        debugMessage:
-          description: |-
-            Provides a debug message describing the error in more detail for support
-          type: string
-          
-    # UssBaseURL:
-    #   description: |-
-    #     The base URL of a PSU implementation of part or all of the PSU API. Per the PSU API, the full URL
-    #     of a particular resource can be constructed by appending, e.g., `/psu/v1/{resource}/{id}` to this base URL.
-    #     Accordingly, this URL may not have a trailing '/' character.
-    #   type: string
-    #   example: https://uam_psu.com/uam
- 
-    OperationalIntentState:  
-    # Needs to incorporate other states as described in v2.1 of the spec.
-    # Incorporate the following modifications to the states:
-    # - Proposed (new)
-    # - Canceled (new)
-    # - Completed (new)
-    # - Nonconforming -> DCB-noncompliant (change name)
-
-      description: |-
-        State of an operational intent.
-        'Accepted': Operational intent is created and shared, but not yet in use; see standard text for more details.
-        The create or update request for this operational intent reference must include a Key containing all OVNs for
-        all relevant Entities.
-        'Activated': Operational intent is in active use; see standard text for more details.
-        The create or update request for this operational intent reference must include a Key containing all OVNs for
-        all relevant Entities.
-        'Nonconforming': This operation is not conforming to its operational intent per the Community Based Rules (CBR). 
-        The create or update request for this operational intent may omit a Key 
-        in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
-        'Contingent': UA is considered unrecoverably unable to conform with its coordinate operational intent; see
-        standard text for more details. 
-        This state must transition to Ended.
-        The create or update request for
-        this operational intent may omit a Key in this case because the operational intent is being adjusted as flown 
-        and cannot necessarily deconflict.
-      type: string
-      enum:
-        - Proposed
-        - Accepted
-        - Activated
-        - DCB-noncompliant
-        - Contingent
-        - Canceled
-        - Completed 
- 
-    OperationalIntentReference:
-      description: |-
-        The high-level information of a planned or active operational intent with the URL
-        of a PSU to query for details.  
-        This information is sourced from the exchange between the PSU and the DSS
-      required:
-        - id
-        - manager
-        - uss_availability
-        - version
-        - state
-        - time_start
-        - time_end
-        - uss_base_url
-        - subscription_id
-      type: object
-      properties:
-        id:
-          $ref: '#/components/schemas/EntityID'
-        manager:
-          type: string
-          example: psu1
-          description: |-
-            Created by the DSS based on creating client's ID (via access token).  Used internal
-            to the DSS for restricting mutation and deletion operations to manager.  Used by PSUs
-            to reject operational intent update notifications originating from a PSU that does not manage
-            the operational intent.
-        uss_availability:
-          $ref: '#/components/schemas/UssAvailabilityState'
-        version:
-          type: integer
-          format: int32
-          example: 1
-          description: |-
-            Numeric version of this operational intent which increments upon each change in the operational intent,
-            regardless of whether any field of the operational intent reference changes.  A PSU with the
-            details of this operational intent when it was at a particular version does not need to retrieve
-            the details again until the version changes.
-        state:
-          $ref: '#/components/schemas/OperationalIntentState'
-        ovn:
-          description: |-
-            Opaque version number of this operational intent.  Populated only when the OperationalIntentReference
-            is managed by the PSU retrieving or providing it.  Not populated when the
-            OperationalIntentReference is not managed by the PSU retrieving or providing it (instead, the
-            PSU must obtain the OVN from the details retrieved from the managing PSU).
-          anyOf:
-            - $ref: '#/components/schemas/EntityOVN'
-        time_start:
-          description: Beginning time of operational intent. The estimated time at which the aircraft will
-            commence movement associated with departure? (ETD).
-          externalDocs:
-            description: See FIXM 4.2.0 for further information.
-            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_DepartureType.html#Link243 
-          anyOf:
-            - $ref: '#/components/schemas/Time'
-        time_end:
-          description: End time of operational intent. The estimated time at which the aircraft will arrive
-            at the destination vertiport (ETA).
-          anyOf:
-            - $ref: '#/components/schemas/Time'
-        uss_base_url:
-          $ref: '#/components/schemas/OperationalIntentUssBaseURL'
-        subscription_id:
-          description: |-
-            The ID of the subscription that is ensuring the operational intent manager receives relevant
-            airspace updates.
-          anyOf:
-            - $ref: '#/components/schemas/SubscriptionID'
- 
-    # OperationalIntentUssBaseURL:
-    #   description: |-
-    #     The base URL of a PSU implementation that implements the parts of the PSU API necessary for
-    #     providing the details of this operational intent, and telemetry during non-conformance or contingency,
-    #     if applicable.
-    #   anyOf:
-    #     - $ref: '#/components/schemas/UssBaseURL'
-
-
-    OperationalIntentDetails:
-      description: |-
-        Details of a UAM operational intent. Note that this data is not stored in the DSS; only with the clients.
-      required:
-        - trajectory
-      type: object
-      properties:
-        aircraft_registration:
-          type: string
-          pattern: "[A-Z0-9]{1,7}"
-          description: |
-            A unique, alphanumeric string that identifies a civil aircraft and consists of the Aircraft
-            Nationality or Common Mark and an additional alphanumeric string, the registration mark,
-            assigned by the state of registry or common mark registering authority. [FIXM]
-          minLength: 1
-          maxLength: 7
-          x-uam-data-accessibility: PUBLIC
-          externalDocs:
-            description: See FIXM 4.2.0 for further information.
-            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftRegistrationType.html#LinkBC
-        operator_name:
-          description: The identifier of the UAM Operator. Required if different than the PSU. 
-            For X4 this can be any code that meets the required pattern, and does not need to be
-            an ICAO Airline Code.?
-          type: string
-          pattern: "[A-Z]{3}"
-          example: "AAL" 
-          externalDocs:
-            description: See FIXM 4.2.0 for further information.
-            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftOperatorType.html#Link1E3
-        trajectory:
-          type: array
-          minItems: 2
-          maxItems: 1000
-          description: |-
-            The list of TrajectoryPoints for this operation.  This list must contain
-            all significant TrajectoryPoints per the CBRs. For additional insight on 
-            points to be included, see the enumeration of property types in the 
-            TrajectoryPoint4D model.
-          items:
-            $ref: '#/components/schemas/TrajectoryPoint4D'
- 
-    OperationalIntent:
-      description: Full description of a UAM operational intent.
-      required:
-        - reference
-        - details
-      type: object
-      properties:
-        reference:
-          $ref: '#/components/schemas/OperationalIntentReference'
-        details:
-          $ref: '#/components/schemas/OperationalIntentDetails'
- 
-    TrajectoryPoint4D:
-      description: |
-        A point for use within a planned trajectory.
-        Tolerance around the point is standardized, and will be applicable
-        to all operations in a given area.
- 
-        Currently Flight Rule is not expected to change during an operation. If it does, the
-        following may be added as a new property:
-          https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_RouteTrajectoryElementType.html#Link2A3
-      required:
-        - lat_lng_point
-        - altitude
-        - time
-        - speed
-        - trajectory_property_array
-      type: object
-      properties:
-        point_designator:
-          description: The name of the designated point.
-            This is required for all named airspace structure point from ASDS, including vertipads.
-          type: string
-          example: ee123
-        lat_lng_point:
-          description: Latitude and Longitude of the point. If this is for a named airspace structure 
-            point from ASDS, it should be the same value as from ASDS.
-          anyOf:
-            - $ref: '#/components/schemas/LatLngPoint'
-        altitude:
-          description: Altitude of the point. If this is for a named airspace structure 
-            point from ASDS, it should be the same value as from ASDS.
-          anyOf:
-            - $ref: '#/components/schemas/Altitude'  
-        time:
-          description: |-
-              Estimated time when the vehicle will be at the location of the TrajectoryPoint
-          anyOf:
-            - $ref: '#/components/schemas/Time'
-        speed:
-          description: |-
-            Speed of the vehicle at this TrajectoryPoint.
-            FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
-          anyOf:
-            - $ref: '#/components/schemas/Velocity'
-        trajectory_property_array:
-          description: |-
-            Describes any applicable properties of the trajectory point.
-            May include multiple properties per point. FIXM allows up to 2000 properties per
-            trajectory point. For X4 we are allowing up to 4.
-            The first point of initial plan must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
-            The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
-            A named airspace structure point from ASDS must include at a minimum: WAYPOINT
-            If the airspace structure point has a SchedulingType, it must be included as follows:
-              SchedulingType enum   |   Property enum
-              Entry                 |   ENTRY_CORRIDOR
-              Exit                  |   EXIT_CORRIDOR
-              Crossing              |   CROSSING_TRACK
-              Merge                 |   MERGE_TRACK
-          type: array
-          minItems: 1
-          maxItems: 4
-          items:
-            $ref: '#/components/schemas/TrajectoryProperty'
-          externalDocs:
-            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC                   
-      externalDocs:
-        description: See FIXM 4.2.0 for further information.
-        url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link116     
- 
-    TrajectoryProperty:
-      description: Describes any applicable properties of the trajectory point.
-      type: object
-      required:
-        - property_type
-      properties:
-        property_type:
-          description: |
-            Provides the type of trajectory point property. Enum list is based on the FIXM definition
-            of TrajectoryPointPropertyType.
-          type: string
-          enum:
-            - TOP_OF_CLIMB
-            - TOP_OF_DESCENT
-            - TCP_VERTICAL
-            - TCP_SPEED
-            - TCP_LATERAL
-            - WHEELS_OFF
-            - WHEELS_ON
-            - AIRPORT_REFERENCE_LOCATION
-            - WAYPOINT
-            - ENTRY_CORRIDOR
-            - EXIT_CORRIDOR
-            - CROSSING_TRACK
-            - MERGE_TRACK
-          externalDocs:
-            description: FIXM definition of TrajectoryPointPropertyType
-            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPointPropertyType.html#Link2B0
-    Velocity:
-      description: |-
-        Velocity of the associated vehicle at the time_measured.
-      required:
-        - speed
-        - units_speed
-      type: object
-      properties:
-        speed:
-          format: float
-          type: number
-          description: |-
-            Speed numerical value.
-          example: 200.1
-        units_speed:
-          type: string
-          enum:
-            - MetersPerSecond
-            - Knots
-        track:
-          format: float
-          type: number
-          description: |-
-            Direction of flight expressed as a "True North-based" ground track angle.
-            This value is provided in degrees East of North with a minimum resolution of 1 degree.
-            A value of 360 indicates invalid, no value, or unknown.
-          example: 120
-          default: 0
-        speed_type:
-          description: |-
-            Air speed or ground speed
-          type: string
-          enum:
-            - GROUND
-            - AIR
-          default: GROUND
- 
- 
-    # UssAvailabilityState:
-    #   type: string
-    #   enum:
-    #   - Unknown
-    #   - Normal
-    #   - Down
-    #   description: |-
-    #     A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with
-    #     availability arbitration scope.  Upon determination via availability arbitration, a PSU is
-    #     Down when it does not respond appropriately, and a Down PSU may not perform the following
-    #     operations in the DSS:
-    #       * Create an operational intent in the Accepted or Activated states
-    #       * Modify an operational intent whose new or unchanged state is Accepted or Activated
-    #       * Delete an operational intent
-    #     A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the
-    #     Normal state.
-
-    ResourceDefinition:
-    # May need to modify it to enable the definition itself to contain information regarding resource type and its availability 
-    # "Each baseline resource definition should include information about its location (geospatial coordinates), altitude range(s), time range(s) when the definition is valid, and possibly other criteria providing information on accessibility, use restrictions, and performance requirements. "
-      description: |-
-        A definition of a resource that only includes resource reference specification.
-      required:
-      - reference
-      type: object
-      properties:
-        reference:
-          $ref: '#/components/schemas/ResourceReference'
-
-    ResourceReference:
-      description: |-
-        A resource reference specification providing necessary elements for resource identification.
-      required:
-      - name
-      - resource_type
-      type: object
-      properties:
-        id:
-          description: id associated with specific resource for which capacity data were requested
-          anyOf:
-            - $ref: '#/components/schemas/UUIDv4'
-        resource_type:
-          description: type specification identifying the resource
-          type: "string"
-          minLength: 1
-          maxLength: 36
-          example: uam-waypoint
-        name:
-          type: string
-          description: Descriptive name for the resource
-          minLength: 1
-          maxLength: 36
-          example: SE6
-        geometry:
-          type: object
-          description: GeoJSon geometry defining this resource
-          externalDocs:
-            url: http://geojson.org/geojson-spec.html#id5
-          anyOf:
-            - $ref: "#/components/schemas/Point"      
-            
-    Geometry:
-      type: object
-      description: GeoJSon geometry
-      discriminator:
-        propertyName: type
-      required:
-        - type
-      externalDocs:
-        url: http://geojson.org/geojson-spec.html#geometry-objects
-      properties:
-        type:
-          type: string
-          enum:
-          - Point
-          description: the geometry type
-    Point:
-      type: object
-      description: GeoJSon geometry
-      externalDocs:
-        url: http://geojson.org/geojson-spec.html#id2
-      allOf:
-        - $ref: "#/components/schemas/Geometry"
-        - properties:
-            coordinates:
-              type: array
-              items:
-                type: number #GeoJSON would require float?
-              minItems: 2
-
-              maxItems: 3 #GeoJSON looks to be only Lat, Lon. Should it be 2?
-
-
-    TimePeriod:
-      type: object
-      description: Time period
-      required:
-        - start
-        - end
-      properties:
-        start:
-          $ref: '#/components/schemas/Time'
-        end:
-          $ref: '#/components/schemas/Time'
-
+            - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'
              
 

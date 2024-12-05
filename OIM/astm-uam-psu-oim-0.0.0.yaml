@@ -391,6 +391,126 @@ paths:
         - utm.conformance_monitoring_sa
       - Authority:
         - utm.availability_arbitration
+  /oim/v1/uss_availability:
+    summary: Share USS availability with users of the airspace. 
+    post:
+      tags:
+      - Availability
+      - p2p_uam
+      summary: Notify a peer of USS availability change.
+      description: Notify a peer of USS availability change which has been reported by 
+        a source with utm.availability_arbitration scope. 
+      operationId: notifyAvailabilityArbitrationChange
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutUssAvailabilityDetails'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.availability_arbitration
+  /oim/v1/imbalance:
+    summary: Submit details about a detected resource demand capacity imbalance
+      to the OIM which manages the operation. 
+    post:
+      tags:
+      - Imbalance monitoring 
+      summary: Notify an OIM of a demand capacity balance which for which their operation 
+        is contributing. 
+      description: Notify an OIM of a demand capacity balance which for which their operation 
+        is contributing. 
+      operationId: notifyDCBImbalanceParticipant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#../DCB/astm-uam-psu-dcb-0.0.0/components/schemas/ImbalanceResponse'
+        required: true
+      responses:
+        "204":
+          description: DCB imbalance information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        # TODO: What authority is this under?
+        - utm.strategic_coordination
 components:
   schemas:
     UUIDv4Format:
@@ -991,6 +1111,29 @@ components:
       - HA10m
       - HA3m
       - HA1m
+    ResourceEventType:
+      type: string
+      description: Describes if the trajectory point is a resource crossing or the beginning or end
+        of resource usage. 
+      enum:
+        - RESOURCE_ENTRY
+        - RESOURCE_EXIT
+        - RESOURCE_CROSSING
+    ResourceUsage:
+      required:
+        - resource_id
+        - resource_event
+      properties:
+        resource_id:
+          description: |-
+            The ID of the resource being referenced by the trajectory property array.
+            Required when crossing a waypoint-based resource or entering/exiting a 
+            volume-based resource. 
+          $ref: '#/components/schemas/EntityID'
+        resource_event:
+          description: Describes if the trajectory point is a resource crossing or the beginning or end
+            of resource usage. 
+          $ref: '#/components/schemas/ResourceEventType'
     TrajectoryPoint4D:
       required:
       - altitude
@@ -999,11 +1142,12 @@ components:
       - time
       - trajectory_property_array
       type: object
-      properties:
-        point_designator:
-          type: string
-          description: "The name of the designated point. This is required for all named airspace structure point from ASDS, including vertipads."
-          example: ee123
+      properties:  
+        # TODO: Do we still need point_designator? Seems like this is replaced by the resource_id
+        # point_designator:
+        #   type: string
+        #   description: "The name of the designated point. This is required for all named airspace structure point from ASDS, including vertipads."
+        #   example: ee123
         lat_lng_point:
           description: "Latitude and Longitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
           anyOf:
@@ -1032,17 +1176,16 @@ components:
             trajectory point. For X4 we are allowing up to 4.
             The first point of initial plan must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
             The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
-            A named airspace structure point from ASDS must include at a minimum: WAYPOINT
-            If the airspace structure point has a SchedulingType, it must be included as follows:
-              SchedulingType enum   |   Property enum
-              Entry                 |   ENTRY_CORRIDOR
-              Exit                  |   EXIT_CORRIDOR
-              Crossing              |   CROSSING_TRACK
-              Merge                 |   MERGE_TRACK
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
             $ref: '#/components/schemas/TrajectoryProperty'
+        resource_usage:
+          type: array
+          description: If this trajectory point describes a resource crossing or entry/exit, the resource and the event type
+            must be included. 
+          items: 
+            $ref: '#/components/schemas/ResourceUsage'
       description: |
         A point for use within a planned trajectory.
         Tolerance around the point is standardized, and will be applicable
@@ -1076,11 +1219,6 @@ components:
           - WHEELS_OFF
           - WHEELS_ON
           - AIRPORT_REFERENCE_LOCATION
-          - WAYPOINT
-          - ENTRY_CORRIDOR
-          - EXIT_CORRIDOR
-          - CROSSING_TRACK
-          - MERGE_TRACK
       description: Describes any applicable properties of the trajectory point.
     Position:
       required:
@@ -1168,6 +1306,24 @@ components:
       - Unknown
       - Normal
       - Down
+    PutUssAvailabilityDetails:
+      required:
+      - uss_availability_status
+      - subscriptions
+      type: object
+      properties:
+        uss_availability_status:
+          description: ID of operational intent that has changed.
+          anyOf:
+          - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/UssAvailabilityStatus'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '#/components/schemas/SubscriptionState'
+      description: |-
+        Updated uss availability details. 
     ExchangeRecord:
       required:
       - method

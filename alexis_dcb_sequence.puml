@@ -1,0 +1,58 @@
+@startuml
+
+participant "OIM" as oim
+participant "DCB" as dcb
+participant "DSS" as dss
+participant "Operation Subscribers" as subs
+
+note across 
+Check if a flight intent is balanced & submit to DSS
+end note
+
+oim -> dcb: POST /dcb/v1/imbalance/intent\nInput: List of trajectory points
+oim <-- dcb: Output0)DCB Compliant\nOutput1)ResourceExtents to share with DSS (includes all OVNs)\nOutput2)Trajectory (part of OperationalIntentDetails) to share
+note over oim
+Trajectory is DCB compliant.
+end note
+oim -> oim: Build request to submit
+oim -> dss: PUT /dss/v1/operational_intent_references/{entityid}\nSubmit operation using ResourceExtents
+oim <-- dss: (OperationalIntentReference, subscribers to notify)
+loop For all operation subscribers
+    oim -> subs: POST /oim/v1/operational_intents\nSend OperationalIntentDetails
+end
+oim -> dcb: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}\nCreate subscription to monitor the intent id, OperationalIntentDetails
+
+note across 
+DCB notices a flight is affected by an inbalance and notifies OIM
+end note
+loop For all subscribers contributing to the imbalance
+    dcb -> oim: POST /oim/v1/imbalance (ResourceDemandCapacityImbalances)
+end
+oim -> oim: Build alternate trajectory to avoid the imbalance
+oim -> dcb: POST /dcb/v1/imbalance/intent\nInput: List of trajectory points
+oim <-- dcb: Output0) DCB Non-compliant\nOutput1)ResourceExtents to share with DSS (includes all OVNs)\nOutput2)Trajectory (part of OperationalIntentDetails) to share\nOutput3)List of resource imbalances\nOutput4)List of availability time ranges, if requested
+
+note over oim
+Trajectory is non-DCB compliant.
+end note
+oim -> oim: Adjust alternate trajectory to avoid the imbalance
+note over oim
+OIM requests one more DCB
+check with the updated trajectory
+to obtain all the OVNs for submission. 
+end note
+oim -> dcb: POST /dcb/v1/imbalance/intent\nInput: List of trajectory points
+oim <-- dcb: Output0)DCB Compliant\nOutput1)ResourceExtents to share with DSS (includes all OVNs)\nOutput2)Trajectory (part of OperationalIntentDetails) to share
+note over oim
+Trajectory is DCB compliant.
+end note
+oim -> oim: Build request to submit
+
+oim -> dss: PUT /dss/v1/operational_intent_references/{entityid}/{ovn}\nUpdate existing operation using ResourceExtents
+oim <-- dss: (OperationalIntentReference, subscribers to notify)
+loop For all operation subscribers
+    oim -> subs: POST /oim/v1/operational_intents\nSend OperationalIntentDetails
+end
+oim -> dcb: PUT /dss/v1/imbalance_subscriptions/{subscriptionid}/{version}\nUpdate subscription with the latest OperationalIntentDetails
+
+@enduml
