@@ -254,7 +254,7 @@ paths:
         to the DSS and other OIMs with the returned information.
       operationId: postImbalanceIntent
       parameters:
-        - name: existingFlightInstanceId
+        - name: existingOperationalIntentId
           in: query
           required: false
           description: If this call is testing an different trajectory for an existing
@@ -654,7 +654,10 @@ components:
           description: The list of TrajectoryPoints for this operation which are to be shared
             with other stakeholders as part of the OperationalIntentDetails.  
             This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on 
-            points to be included, see the enumeration of property types in the \nTrajectoryPoint4D model.
+            points to be included, see the enumeration of property types in the TrajectoryPoint4D model.
+            In addition, each trajectory point includes details of any resource(s) which are being utilized
+            by the trajectory and an indication if this is a crossing for waypoint-based resources or an 
+            entry/exit for volume-based resources. 
           items:
             $ref: '#../../DSS/astm-uam-psu-oim-0.0.0.yaml/components/schemas/TrajectoryPoint4D'
         resource_extents:
