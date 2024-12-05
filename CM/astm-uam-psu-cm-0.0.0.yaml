@@ -1,0 +1,251 @@
+openapi: 3.0.3
+info:
+  title: ASTM UAM PSU CM API
+  description: "Interface definitions for the Conformance Monitoring function within the Providers of Services to UAM (PSU)\ninteroperability network. Functionality includes sharing details of flight operational intents.\n "
+  version: 0.0.0
+servers:
+- url: /
+security:
+- Authority:
+  - utm.strategic_coordination
+  - utm.conformance_monitoring_sa
+tags:
+- name: Operational intent details
+  description: Endpoints exposed by PSU OIMs for interaction with details of operational intents.
+- name: Telemetry
+- name: p2p_uam
+  description: Endpoints exposed by PSUs for peer-peer communication.
+paths:
+  /cm/v1/operational_intents:
+    summary: An PSU OIM's representation of detailed information about operational intents to the CM.
+    post:
+      tags:
+      - Operational intent details
+      - p2p_uam
+      summary: Notify a PSU CM role of operational intent details for conformance monitoring.
+      description: Notify a PSU CM role directly of operational intent details for conformance monitoring.
+      operationId: notifyOperationalIntentDetails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutOperationalIntentDetails'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+  /cm/v1/operational_intents/{entityid}:
+    summary: An PSU OIM's representation of detailed information about operational intents to the CM.  
+    put:
+      tags:
+      - Operational intent details
+      - p2p_uam
+      summary: Notify a PSU CM role of changes to operational intent details for conformance monitoring.
+      description: Notify a PSU CM role directly of changes to operational intent details for conformance monitoring.
+      operationId: putOperationalIntentDetails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutOperationalIntentDetails'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+  /cm/v1/operational_intents/{entityid}/telemetry:
+    summary: Detailed information on the aircraft position associated with an operational intent.
+    post:
+      tags:
+      - Telemetry
+      - p2p_uam
+      summary: Notify the PSU CM role of detailed information on the position of an aircraft associated with an operational intent.
+      operationId: notifyOperationalIntentTelemetry
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for this operational intent. The 'entityid' http request URL parameter is the ID of the Operation for which telemetry data is requested.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutOperationalIntentTelemetry'
+        required: true
+      responses:
+        "204":
+          description: New or updated telemetry associated with an operational intent received successfully.
+        "400":
+          description: One or more input parameters were missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "404":
+          description: The requested Entity could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.conformance_monitoring_sa
+components:
+  schemas:
+    PutOperationalIntentDetails:
+      required:
+      - operational_intent_id
+      - operational_intent
+      type: object
+      properties:
+        operational_intent_id:
+          description: ID of operational intent that has changed.
+          anyOf:
+          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/EntityID'
+        operational_intent:
+          description: |-
+            Full information about the operational intent that has changed.  If this field is omitted,
+            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
+            populated.
+          anyOf:
+          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/OperationalIntent'
+      description: |-
+        Parameters of a message informing of detailed information for an operational intent that requirements conformance monitoring.
+        Pushed (by an OIM role) directly to CM roles when an operational intent is authorized, or changes are made.
+    PutOperationalIntentTelemetry:
+      required:
+      - operational_intent_id
+      - telemetry
+      type: object
+      properties:
+        operational_intent_id:
+          description: ID of the operational intent which the vehicle reporting telemetry is flying.
+          anyOf:
+          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/EntityID'
+        telemetry:
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/VehicleTelemetry'
+      description: provide detailed information on the position of an aircraft associated with an operational intent.
+  securitySchemes:
+    Authority:
+      type: oauth2
+      description: |-
+        Authorization from, or on behalf of, an authorization authority.  This authority will issue access tokens that are JSON Web Tokens as defined in RFC 7519, using the `RS256` algorithm for the signature, publish to all providers the public key for verifying that signature, and implement standard OAuth server discovery mechanisms as described in RFC 8414.
+        The following fields must be included in the JWT claim for access tokens issued by this authority:
+        * `iss`, with the URL at which the token generation request was received.
+        * `exp`, with a time no further than 1 hour in the future.
+        * `sub`, with unique ID of the client requesting the access token.
+        * `scope`, with a string composed of a space-separated list of strings indicating the scopes granted, per RFC 6749.
+        * `jti`, according to RFC 7519.
+        Following the principle of least privilege, only one of the scopes enumerated in this document should be granted in a single token (though other scopes may accompany it).  The tokens granted by this authority must protect against reuse of received tokens to impersonate the sender to other recipients (via use of the `aud` claim or other means).
+        When using the `aud` claim to protect against the reuse of received tokens, and absent guidance on behalf of the competent authority to the contrary, the JWT `aud` claim requested by the client must be included in each access token and must contain the fully qualified domain name of the URL the access token will be used to access.  For example, if a PSU were querying the endpoint at https://dss.example.com:8888/rid/v2/dss/identification_service_areas, the access token included in the request should specify `"aud": "dss.example.com"`.
+        Clients must provide these access tokens in an `Authorization` header in the form `Bearer <token>` in accordance with RFC 6750.
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes:
+            utm.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
+            utm.constraint_management: "Client may manage (create, edit, and delete) constraints according to the constraint management role."
+            utm.constraint_processing: Client may read constraint references from the DSS and details from the partner PSUs according to the constraint processing role.
+            utm.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
+            utm.availability_arbitration: Client may set the availability state of PSUs in the DSS.
