@@ -450,6 +450,67 @@ paths:
       security:
       - Authority:
         - utm.availability_arbitration
+  /oim/v1/imbalance:
+    summary: Submit details about a detected resource demand capacity imbalance
+      to the OIM which manages the operation. 
+    post:
+      tags:
+      - Imbalance monitoring 
+      summary: Notify an OIM of a demand capacity balance which for which their operation 
+        is contributing. 
+      description: Notify an OIM of a demand capacity balance which for which their operation 
+        is contributing. 
+      operationId: notifyDCBImbalanceParticipant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#../DCB/astm-uam-psu-dcb-0.0.0/components/schemas/ImbalanceResponse'
+        required: true
+      responses:
+        "204":
+          description: DCB imbalance information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        # TODO: What authority is this under?
+        - utm.strategic_coordination
 components:
   schemas:
     UUIDv4Format:

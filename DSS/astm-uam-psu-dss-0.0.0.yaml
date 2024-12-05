@@ -1795,6 +1795,7 @@ components:
       required:
         - resource_id
         - resource_ovn
+        - operation_ovns
       type: object
       properties:
         resource_id:
@@ -1807,10 +1808,14 @@ components:
           description: |-
             The OVN of the resource being occupied or crossed by the operational intent. 
             This proves the operation considers the latest status and capacity of the resource. 
-          $ref: '#/components/schemas/EntityOVN' 
-      # TODO: Do we need to include details about how the operation will be using the resource
-      # to support conformance monitoring when we share this?  Ex. will the operation be at a specific
-      # altitude, speed, location, etc? 
+          $ref: '#/components/schemas/EntityOVN'
+        operation_ovns:
+          description: |-
+            The OVNs of all operations contributing to demand at this resource during the
+            relevant times based upon resource demand & capacity requirements. 
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityOVN'
     Volume4DExtent:
       required:
       - volume4D
@@ -2524,6 +2529,7 @@ components:
         - resource_id
         - resource_usage
         - resource_ovn
+        - operation_ovns
       type: object
       properties:
         resource_usage:
@@ -2544,6 +2550,13 @@ components:
             The OVN of the resource being occupied or crossed by the operational intent. 
             This proves the operation considers the latest status and capacity of the resource. 
           $ref: '#/components/schemas/EntityOVN'
+        operation_ovns:
+          description: |-
+            The OVNs of all operations contributing to demand at this resource during the
+            relevant times based upon resource demand & capacity requirements. 
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityOVN'
     ResourceExtents:
       required:
         - extents

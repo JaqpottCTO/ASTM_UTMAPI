@@ -672,13 +672,10 @@ components:
     PerformanceBound:
       description: Performance bounds for a resource indicate lateral, vertical, and time 
         bounds which must be met for an operational intent to remain conforming. 
-      # required:
-      #   - maximum_altitude_deviation
-      #   - maximum_lateral_deviation
-      #   - maximum_time_deviation 
-      #   - min_altitude
-      #   - max_altitude
-      #   - radius
+      required:
+        - maximum_altitude_deviation
+        - maximum_lateral_deviation
+        - maximum_time_deviation 
       properties: 
         maximum_time_deviation:
           description: The time buffer allowed from the expecting crossing or occupation time that is allowed in Seconds. 
@@ -695,11 +692,20 @@ components:
         max_altitude:
           description: The maximum allowed altitude for usage of this resource.
           $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Altitude'
+        min_speed:
+          description: The minimum allowed speed for usage of this resource.
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Velocity'
+        max_speed:
+          description: The maximum allowed speed for usage of this resource.
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Velocity'
         radius:
           description: The maximum allowed radius for usage of this resource.
           $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Radius'
-          # TODO: What all do we want here?
-          # TODO: A single performance bound as part of the definition or do we need to include future performance bounds? 
+        trajectory_interval_required:
+          description: Specifies how frequently trajectory points are required to be
+            provided when describing use of this resource, in seconds. 
+          type: number
+          format: integer 
         performance_bound_start_time:
           description: The time at which the performance bound start, if known. 
           anyOf:

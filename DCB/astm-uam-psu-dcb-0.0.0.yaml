@@ -236,7 +236,7 @@ paths:
     post:
       description: >-
         Demand-capacity imbalance detection endpoint that requires users to submit 
-        a planned operational intent to detect whether the resources included in this 
+        a planned trajectory to detect whether the resources included in this 
         operational intent are below, at, or above available capacity. The returned 
         demand-capacity imbalance responses do NOT include contributions from the planned 
         operational intent but only consider operational intents known to DSS. This endpoint
@@ -245,13 +245,37 @@ paths:
       tags:
         - DCB query
       summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a planned operational intent to detect whether the resources included in this operational intent are below, at, or above available capacity. The returned demand-capacity imbalance responses do NOT include contributions from the planned operational intent but only consider operational intents known to DSS. 
+        Demand-capacity imbalance detection endpoint that requires users to submit 
+        a planned trajectory to detect whether the resources included in this 
+        operational intent are below, at, or above available capacity. The returned 
+        demand-capacity imbalance responses do NOT include contributions from the planned 
+        operational intent but only consider operational intents known to DSS. This endpoint
+        is intended to return details sufficient for submitting the operational intent
+        to the DSS and other OIMs with the returned information.
       operationId: postImbalanceIntent
       parameters:
+        - name: existingFlightInstanceId
+          in: query
+          required: false
+          description: If this call is testing an different trajectory for an existing
+            flight instance, the existing flight instance id must be provided.  The DCB 
+            will need to ignore the existing resource usage for this flight intent and only
+            consider the trajectory provided in the body. 
+          schema:
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
+        - name: returnAvailability
+          in: query
+          required: false
+          description: If imbalances are detected with the trajectory, return a list
+            of availability blocks for each of the resources. 
+          schema:
+            type: boolean
+            default: false
         - name: timeBuffer
           in: query
           required: false
-          description: Parameter defining a time buffer in minutes around resource ETAs (ETA-timeBuffer, ETA+timeBuffer) for which demand capacity imbalances are requested
+          description: Parameter defining a time buffer in minutes around resource ETAs 
+            (ETA-timeBuffer, ETA+timeBuffer) for which availability time ranges are requested
           schema:
             type: integer
             minimum: 0
@@ -504,7 +528,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/AvailabilityResponse'
+                $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/                                          '
         '400':
           content:
             application/json:
@@ -566,7 +590,7 @@ components:
         - lat_lng_point
         - altitude
         - time
-        - speed
+        #- groundspeed
       properties:
         lat_lng_point:
           description: "Latitude and Longitude of the point."
@@ -580,8 +604,7 @@ components:
           description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
           anyOf:
           - $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/Time'
-        # TODO: Does it make sense to include speed for intermediate point prediction? 
-        speed:
+        groundspeed:
           description: |-
             Speed of the vehicle at this TrajectoryPoint.
           anyOf:
@@ -603,10 +626,10 @@ components:
       properties:
         intent_trajectory:
           $ref: '#/components/schemas/IntentTrajectory'
-        update_imbalance_subscription:
-          description: Notification to track this operational intent id
-            and report to OIM in case of a future imbalance. 
-          $ref: '#/components/schemas/UpdateImbalanceSubscriptionParameters'
+        # update_imbalance_subscription:
+        #   description: Notification to track this operational intent id
+        #     and report to OIM in case of a future imbalance. 
+        #   $ref: '#/components/schemas/UpdateImbalanceSubscriptionParameters'
       description: >- 
             Operational intent that is being planned and for which resource demand capacity 
             imbalances need to be checked. The 'ovn' attribute in the operational intent reference 
@@ -617,16 +640,23 @@ components:
       required:
         - trajectory
         - resource_extents
+        - resource_imbalances
+        - is_dcb_compliant
       properties:
+        is_dcb_compliant:
+          type: boolean
+          description: Returns true if the trajectory is DCB compliant (no imbalances). 
+            Returns false if any imbalances exist (trajectory non-DCB compliant). 
         trajectory:
           maxItems: 1000
           minItems: 2
           type: array
-          description: The list of TrajectoryPoints for this operation.  
+          description: The list of TrajectoryPoints for this operation which are to be shared
+            with other stakeholders as part of the OperationalIntentDetails.  
             This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on 
             points to be included, see the enumeration of property types in the \nTrajectoryPoint4D model.
           items:
-            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/TrajectoryPoint4D'
+            $ref: '#../../DSS/astm-uam-psu-oim-0.0.0.yaml/components/schemas/TrajectoryPoint4D'
         resource_extents:
           required:
           - extents
@@ -637,9 +667,23 @@ components:
               type: array
               description: |-
                 List of resources and crossing OR entry/exit times when the resource
-                will be occupied by the Flight Intent. 
+                will be occupied by the  Operational Intent.  These extents are intended to be
+                shared with the DSS when the Operation Intent is submitted/updated. 
               items:
                 $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ResourceExtent'
+        resource_imbalances:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
+          default: []
+        availability:
+          description: Includes a list of all utilized resources with ranges of time when 
+            the resource is below capacity.  OVNs are not included.  It is assumed the caller
+            will adjust the trajectory to utilize the resources at new times and will submit
+            an updated request. 
+          type: array
+          items: 
+            $ref: '#/components/schemas/ResourceAvailability'
       description: >- 
             Response to an intent based imbalance request. Returns the original trajectory
             (may be truncated to remove unimportant points) along with resource ids and crossing times
@@ -658,8 +702,20 @@ components:
           type: array
           description: Operational intents to add for monitoring. 
           items:
-            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+            $ref: '#/components/schemas/OperationalIntentForMonitoring'
           default: []
+    OperationalIntentForMonitoring:
+      required:
+        - operational_intent_id
+        - operational_intent_details
+      type: object
+      properties:
+        operational_intent_id:
+          description: The ID of the operational intent (as shared with the DSS and other entities). 
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+        operational_intent_details:
+          description: The operational intent details shared with other stakeholders.
+          $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/OperationalIntentDetails'
     ImbalanceSubscription:
       required:
       - subscription_id
@@ -692,11 +748,11 @@ components:
       required:
       - version
       properties:
-        add_operational_intents:
+        update_operational_intents:
           type: array
-          description: Operational intents to add for monitoring. 
+          description: Operational intents either to add for monitoring or for which the operational intent is being updated. 
           items:
-            $ref: '#../../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/EntityID'
+            $ref: '#/components/schemas/OperationalIntentForMonitoring'
           default: []
         remove_operational_intents:
           type: array
@@ -764,7 +820,19 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
-
+    ImbalanceContributingOperation:
+      type: object
+      description: Id and OVN of an operation contributing to demand or imbalance. 
+      required:
+        - operational_intent_id
+        - operation_ovn
+      properties:
+        operation_ovn:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
+          description: OVN of the operation
+        operational_intent_id:
+          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
+          description: Operational intent ID of the operation
     DemandCapacityImbalanceInterval:
       type: object
       description: >-
@@ -775,7 +843,7 @@ components:
         - time_end
         - imbalance_magnitude
         - imbalance_status
-        - operation_ovns
+        - operations
       properties:
         time_start:
           description: Beginning time of the time bin for computing this demand capacity imbalance status. If the capacity requirements
@@ -800,13 +868,13 @@ components:
             - UNDER_CAPACITY
           description: >-
             string indicating whether corresponding resource is over, at or under capacity
-        operation_ovns:
+        operations:
           type: array
           items:
-            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
+            $ref: '#/components/schemas/ImbalanceContributingOperation'
           minItems: 0
           description: >-
-            OVNs for all operations contributing to the reported demand at this resource at this time bin
+            IDs and OVNs for all operations contributing to the reported demand at this resource at this time bin
     ResourceDemandCapacityImbalances:
       type: object
       description: >-
@@ -830,22 +898,16 @@ components:
             $ref: '#/components/schemas/DemandCapacityImbalanceInterval'
           description: List of imbalance time ranges and determinations for the resource. 
 
-          
-    AvailabilityResponse:
+    ResourceAvailability:
       description: Returns a list of time intervals within the provided start/end duration during which
-        the demand is under the capacity of the resource.  Returns all the OVNs for the demand operations. 
+        the demand is under the capacity of the resource.  
       type: object
       required:
         - resource_id
-        - resource_ovn
         - available_intervals
       properties:
         resource_id:
             $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityID'
-        resource_ovn:
-          $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
-          description: >-
-            OVN proving knowledge of the latest status & capacity info for the resource. 
         available_intervals:
           type: array
           items:
@@ -858,7 +920,6 @@ components:
       required:
         - time_start
         - time_end
-        - operation_ovns
       properties:
         time_start:
           description: Beginning time of this availability time interval. Must be before time_end.
@@ -867,14 +928,6 @@ components:
         time_end:
           description: End time of this availability time interval. Must be after time_start.
           anyOf:
-            - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'        
-        operation_ovns:
-          type: array
-          items:
-            $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/EntityOVN'
-          minItems: 0
-          description: >-
-            OVNs for all operations contributing to the reported demand at this resource during this time interval          
-            
+            - $ref: '#../DSS/astm-uam-psu-dss-0.0.0/components/schemas/Time'
              
 
