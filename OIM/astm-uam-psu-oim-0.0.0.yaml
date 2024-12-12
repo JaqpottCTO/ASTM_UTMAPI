@@ -1213,9 +1213,9 @@ components:
           enum:
           - TOP_OF_CLIMB
           - TOP_OF_DESCENT
-          - TCP_VERTICAL
-          - TCP_SPEED
-          - TCP_LATERAL
+          - TRAJECTORY_CHANGE_POINT_VERTICAL
+          - TRAJECTORY_CHANGE_POINT_SPEED
+          - TRAJECTORY_CHANGE_POINT_LATERAL
           - WHEELS_OFF
           - WHEELS_ON
           - AIRPORT_REFERENCE_LOCATION
