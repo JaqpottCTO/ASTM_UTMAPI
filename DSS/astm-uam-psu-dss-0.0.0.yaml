@@ -1949,17 +1949,30 @@ components:
       description: Response to DSS request for the subscription with the given id.
     PutSubscriptionParameters:
       required:
-      - extents
       - uss_base_url
       type: object
       properties:
-        extents:
+        area_of_interest:
           description: |-
-            Spacetime extents of the volume to subscribe to.
-            This subscription will automatically be deleted after its end time if it has not been refreshed by then. If end time is not specified, the value will be chosen automatically by the DSS. If start time is not specified, it will default to the time the request is processed. The end time may not be in the past.
+            Volume of airspace to subscribe to.
+            This subscription will automatically be deleted after its end time if it has not been refreshed by then. 
             Note that some Entities triggering notifications may lie entirely outside the requested area.
           anyOf:
-          - $ref: '#/components/schemas/Volume4D'
+          - $ref: '#/components/schemas/Volume3D'
+        resource_ids:
+          description: List of resources for which to create the subscription. 
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityID'
+        time_start:
+          description: If start time is not specified, it will default to the time the request is processed. 
+          anyOf:
+          - $ref: '#/components/schemas/Time'
+        time_end:
+          description: If end time is not specified, the value will be chosen automatically by the DSS. 
+            The end time may not be in the past.
+          anyOf:
+          - $ref: '#/components/schemas/Time'
         uss_base_url:
           $ref: '#/components/schemas/SubscriptionUssBaseURL'
         notify_for_operational_intents:
@@ -1975,6 +1988,7 @@ components:
           description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
           default: false
       description: Parameters for a request to create/update a subscription in the DSS.  At least one form of notifications must be requested.
+        At least one of the volume_of_interest or resource_ids must be provided. A combination of volume and resource ids may be provided. 
     SubscriptionUssBaseURL:
       description: The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications requested by this subscription.
       anyOf:
@@ -2164,8 +2178,26 @@ components:
       type: object
       properties:
         area_of_interest:
-          $ref: '#/components/schemas/Volume4D'
-      description: Parameters for a request to find OperationalIntentReferences matching the provided criteria.
+          description: |-
+            Volume of airspace to search for operational intents.
+          anyOf:
+          - $ref: '#/components/schemas/Volume3D'
+        resource_ids:
+          description: List of resources for which to return operational intents using the resource. 
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityID'
+        time_start:
+          description: Start time of the information query. If start time is not specified, it will default to the time the request is processed. 
+          anyOf:
+          - $ref: '#/components/schemas/Time'
+        time_end:
+          description: End tme of the information query. If end time is not specified, the value will be chosen automatically by the DSS. 
+            The end time may not be in the past.
+          anyOf:
+          - $ref: '#/components/schemas/Time'
+      description: Parameters for a request to find OperationalIntentReferences matching the provided criteria.  This can be queried by volume and/or
+        by the ids of the resources of interest. 
     QueryOperationalIntentReferenceResponse:
       required:
       - operational_intent_references
