@@ -2095,6 +2095,11 @@ components:
           description: The ID of the subscription that is ensuring the operational intent manager receives relevant airspace updates.
           anyOf:
           - $ref: '#/components/schemas/SubscriptionID'
+        occupied_resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceOccupation'
+          description: List of resources which will be fully occupied during the duration of the intent. 
       description: "The high-level information of a planned or active operational intent with the URL of a USS to query for details.  Note: 'ovn' is returned ONLY to the USS that created the operational intent but NEVER to other USS instances."
     OperationalIntentUssBaseURL:
       description: "The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this operational intent, and telemetry during non-conformance or contingency, if applicable."
@@ -2479,47 +2484,6 @@ components:
             $ref: '#/components/schemas/ConstraintReference'
           default: []
       description: Data provided when an airspace conflict was encountered.
-    OperationalIntentDetails:
-      type: object
-      properties:
-        volumes:
-          type: array
-          description: |-
-            Volumes that wholly contain the operational intent while being as small as practical.
-            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
-            Required with at least one item when the operational intent is Accepted, Activated, or Nonconforming.
-            May not contain any items when the operational intent is Contingent.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-          default: []
-        off_nominal_volumes:
-          type: array
-          description: |-
-            Volumes that contain the anticipated area of non-conformance while the aircraft is in the Nonconforming or Contingent states.
-            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
-            Required with at least one item when the operational intent is Nonconforming or Contingent.
-            May not contain any items when the operational intent is Accepted or Activated.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-          default: []
-        priority:
-          $ref: '#/components/schemas/Priority'
-      description: Details of a UTM operational intent. Note that this data is not stored in the DSS; only with the clients.
-    Priority:
-      type: integer
-      description: "Ordinal priority of the operational intent, as defined by the regulator.  Operational intents with lesser values are lower priority than all operational intents with greater values.  A lower-priority operational intent may not create a conflict with a higher-priority operational intent.  A higher-priority operational intent may create a conflict with a lower-priority operational intent.  The regulator specifies whether an operational intent may create a conflict with other operational intents of the same priority."
-      default: 0
-    OperationalIntent:
-      required:
-      - details
-      - reference
-      type: object
-      properties:
-        reference:
-          $ref: '#/components/schemas/OperationalIntentReference'
-        details:
-          $ref: '#/components/schemas/OperationalIntentDetails'
-      description: Full description of a UTM operational intent.
     VolumeExtents:
       required:
         - extents
@@ -2540,6 +2504,22 @@ components:
             of extents without actual resource usage could occur. 
           items:
             $ref: '#/components/schemas/Volume4DExtent'
+    OffNominalVolumeExtents:
+      required:
+        - extents
+      type: object
+      properties: 
+        extents:
+          minItems: 1
+          type: array
+          description: |-
+            Spacetime extents that bound this operational intent. All volumes, both nominal and off-nominal, 
+            must be encompassed in these extents. However, these extents do not need to match the precise 
+            volumes of the operational intent; a single bounding extent may be provided instead, for instance.
+            Start and end times, as well as lower and upper altitudes, are required for each volume.
+            The end time may not be in the past. 
+          items:
+            $ref: '#/components/schemas/Volume4D'
     ResourceCrossing:
       required:
        - crossing_time
@@ -2612,35 +2592,7 @@ components:
           anyOf:
           - $ref: "#/components/schemas/ResourceExtents"
           - $ref: "#/components/schemas/VolumeExtents"
-    PutOperationalIntentDetailsParameters:
-      required:
-      - operational_intent_id
-      - subscriptions
-      type: object
-      properties:
-        operational_intent_id:
-          description: ID of operational intent that has changed.
-          anyOf:
-          - $ref: '#/components/schemas/EntityID'
-        operational_intent:
-          description: "Full information about the operational intent that has changed.  If this field is omitted, the operational intent was deleted.  The `ovn` field in the nested `reference` must be populated."
-          anyOf:
-          - $ref: '#/components/schemas/OperationalIntent'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '#/components/schemas/SubscriptionState'
-      description: "Parameters of a message informing of detailed information for a peer operational intent. Pushed (by a client, not the DSS) directly to clients with subscriptions when another client makes a change to airspace within a cell with a subscription."
-    GetOperationalIntentDetailsResponse:
-      required:
-      - operational_intent
-      type: object
-      properties:
-        operational_intent:
-          $ref: '#/components/schemas/OperationalIntent'
-      description: Response to peer request for the details of operational intent with the given ID.
+          - $ref: "#/components/schemas/OffNominalVolumeExtents"
     ConstraintDetails:
       required:
       - volumes

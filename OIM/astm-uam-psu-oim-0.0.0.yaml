@@ -933,7 +933,32 @@ components:
           description: "The list of TrajectoryPoints for this operation.  This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on \npoints to be included, see the enumeration of property types in the \nTrajectoryPoint4D model."
           items:
             $ref: '#/components/schemas/TrajectoryPoint4D'
+        volumes:
+          type: array
+          description: |-
+            Volumes that wholly contain the operational intent while being as small as practical.
+            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
+            May not contain any items when the operational intent is Contingent.
+          items:
+            $ref: '#/components/schemas/Volume4D'
+          default: []
+        off_nominal_volumes:
+          type: array
+          description: |-
+            Volumes that contain the anticipated area of non-conformance while the aircraft is in the Nonconforming or Contingent states.
+            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
+            Required with at least one item when the operational intent is Nonconforming or Contingent.
+            May not contain any items when the operational intent is Proposed, Accepted, Activated or DCB-Noncompliant.
+          items:
+            $ref: '#/components/schemas/Volume4D'
+          default: []
+        priority:
+          $ref: '#/components/schemas/Priority'
       description: Details of a UAM operational intent. Note that this data is not stored in the DSS; only with the clients.
+    Priority:
+      type: integer
+      description: "Ordinal priority of the operational intent, as defined by the regulator.  Operational intents with lesser values are lower priority than all operational intents with greater values.  A lower-priority operational intent may not create a conflict with a higher-priority operational intent.  A higher-priority operational intent may create a conflict with a lower-priority operational intent.  The regulator specifies whether an operational intent may create a conflict with other operational intents of the same priority."
+      default: 0
     OperationalIntent:
       required:
       - details
