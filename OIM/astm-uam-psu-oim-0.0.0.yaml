@@ -729,6 +729,12 @@ components:
           description: End time of this volume. Must be after time_start.
           anyOf:
           - $ref: '#/components/schemas/Time'
+        resource_usage:
+          type: array
+          description: If this volume describes a resource crossing or entry/exit, the resource and the event type
+            must be included. 
+          items: 
+            $ref: '#/components/schemas/ResourceUsage'
       description: Contiguous block of geographic spacetime.
     ErrorResponse:
       type: object
