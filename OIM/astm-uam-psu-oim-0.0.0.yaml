@@ -56,31 +56,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "404":
           description: The requested Entity could not be found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.strategic_coordination
@@ -119,13 +119,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -133,7 +133,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -142,13 +142,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
   /oim/v1/operational_intents:
     # ToDo - Is this endpoint still needed if we have the PUT instead?
     summary: A PSU's representation of detailed information about new operational intents.
@@ -175,13 +175,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -189,7 +189,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -198,13 +198,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.strategic_coordination
@@ -244,31 +244,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "404":
           description: The requested Entity could not be found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.constraint_processing
@@ -297,13 +297,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -311,19 +311,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "409":
           description: "The Entity version specified in this message is lower than a previously-received notification, or identical to a previously-received notification and the Entity is different."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.constraint_management
@@ -356,7 +356,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "401":
           description: |-
             Bearer access token was not provided in Authorization header,
@@ -364,19 +364,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "403":
           description: '* The access token was decoded successfully but did not include a scope appropriate to this endpoint.'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.strategic_coordination
@@ -414,13 +414,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -428,7 +428,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -437,13 +437,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.availability_arbitration
@@ -474,13 +474,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -488,7 +488,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -497,13 +497,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/ErrorResponse'
       security:
       - Authority:
         # TODO: What authority is this under?
@@ -734,16 +734,6 @@ components:
           items: 
             $ref: '#/components/schemas/ResourceUsage'
       description: Contiguous block of geographic spacetime.
-    ErrorResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Human-readable message indicating what error occurred and/or why.
-          example: "The error occurred because [...]"
-      description: |-
-        Human-readable string returned when an error occurs
-        as a result of a PSU - DSS transaction.
     SubscriptionState:
       required:
       - notification_index
