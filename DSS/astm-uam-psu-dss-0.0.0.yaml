@@ -2098,7 +2098,7 @@ components:
         occupied_resources:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceOccupation'
+            $ref: '#/components/schemas/ResourceExtent'
           description: List of resources which will be fully occupied during the duration of the intent. 
       description: "The high-level information of a planned or active operational intent with the URL of a USS to query for details.  Note: 'ovn' is returned ONLY to the USS that created the operational intent but NEVER to other USS instances."
     OperationalIntentUssBaseURL:
