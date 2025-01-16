@@ -717,6 +717,7 @@ components:
       - time_end
       - time_start
       - volume
+      - resource_usage
       type: object
       properties:
         volume:
@@ -908,7 +909,7 @@ components:
       - $ref: '#/components/schemas/UssBaseURL'
     OperationalIntentDetails:
       required:
-      - trajectory
+      - intent
       type: object
       properties:
         aircraft_registration:
@@ -932,22 +933,24 @@ components:
           externalDocs:
             description: See FIXM 4.2.0 for further information.
             url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftOperatorType.html#Link1E3
-        trajectory:
-          maxItems: 1000
-          minItems: 2
-          type: array
-          description: "The list of TrajectoryPoints for this operation.  This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on \npoints to be included, see the enumeration of property types in the \nTrajectoryPoint4D model."
-          items:
-            $ref: '#/components/schemas/TrajectoryPoint4D'
-        volumes:
-          type: array
-          description: |-
-            Volumes that wholly contain the operational intent while being as small as practical.
-            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
-            May not contain any items when the operational intent is Contingent.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-          default: []
+        intent:
+          oneOf:
+          - trajectory:
+            maxItems: 1000
+            minItems: 2
+            type: array
+            description: "The list of TrajectoryPoints for this operation.  This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on \npoints to be included, see the enumeration of property types in the \nTrajectoryPoint4D model."
+            items:
+              $ref: '#/components/schemas/TrajectoryPoint4D'
+          - volumes:
+            type: array
+            description: |-
+              Volumes that wholly contain the operational intent while being as small as practical.
+              Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
+              May not contain any items when the operational intent is Contingent.
+            items:
+              $ref: '#/components/schemas/Volume4D'
+            default: []
         off_nominal_volumes:
           type: array
           description: |-
@@ -1172,6 +1175,7 @@ components:
       - speed
       - time
       - trajectory_property_array
+      - resource_usage
       type: object
       properties:  
         # TODO: Do we still need point_designator? Seems like this is replaced by the resource_id
