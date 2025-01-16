@@ -84,15 +84,81 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
+    put:
+      tags:
+      - Operational intent details
+      - p2p_uam
+      summary: Update the specified operational intent details for another PSU.
+      description: |-
+        The PSU managing an operation uses this endpoint to updates the details (and reference) of an
+        operational intent it manages with the PSU that hosts the endpoint, typically in response to a 
+        subscription in the DSS.
+      operationId: notifyOperationalIntentDetailsChanged
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for this operational intent.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /oim/v1/operational_intents:
-    summary: A PSU's representation of detailed information about operational intents.
+    # ToDo - Is this endpoint still needed if we have the PUT instead?
+    summary: A PSU's representation of detailed information about new operational intents.
     post:
       tags:
       - Operational intent details
       - p2p_uam
-      summary: Notify a peer PSU of changed operational intent details.
-      description: Notify a peer PSU directly of changed operational intent details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyOperationalIntentDetailsChanged
+      summary: Notify a peer PSU of new operational intent details.
+      description: Notify a peer PSU directly of new operational intent details (usually as a requirement of previous interactions with the DSS).
+      operationId: notifyOperationalIntentDetails
       requestBody:
         content:
           application/json:
