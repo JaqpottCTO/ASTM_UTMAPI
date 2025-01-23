@@ -41,13 +41,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -55,7 +55,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -64,13 +64,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.strategic_coordination
@@ -99,13 +99,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -113,7 +113,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -122,13 +122,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.strategic_coordination
@@ -148,7 +148,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/EntityID'
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/EntityID'
       requestBody:
         content:
           application/json:
@@ -163,31 +163,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "404":
           description: The requested Entity could not be found.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.conformance_monitoring_sa
@@ -205,56 +205,56 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/EntityID'
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: OperationalIntent telemetry details were retrieved successfully.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/GetOperationalIntentTelemetryResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/GetOperationalIntentTelemetryResponse'
         "400":
           description: One or more input parameters were missing or invalid.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "404":
           description: The requested Entity could not be found.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "412":
           description: No telemetry data is available.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "409":
           description: Operational intent is not in a state that provides telemetry.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/ErrorResponse'
+                $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.conformance_monitoring_sa
@@ -269,14 +269,14 @@ components:
         operational_intent_id:
           description: ID of operational intent that has changed.
           anyOf:
-          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/EntityID'
+          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/EntityID'
         operational_intent:
           description: |-
             Full information about the operational intent that has changed.  If this field is omitted,
             the operational intent was deleted.  The `ovn` field in the nested `reference` must be
             populated.
           anyOf:
-          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/OperationalIntent'
+          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
       description: |-
         Parameters of a message informing of detailed information for an operational intent that requirements conformance monitoring.
         Pushed (by an OIM role) directly to CM roles when an operational intent is authorized, or changes are made.
@@ -289,9 +289,9 @@ components:
         operational_intent_id:
           description: ID of the operational intent which the vehicle reporting telemetry is flying.
           anyOf:
-          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/EntityID'
+          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/EntityID'
         telemetry:
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml/components/schemas/VehicleTelemetry'
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/VehicleTelemetry'
       description: provide detailed information on the position of an aircraft associated with an operational intent.
   securitySchemes:
     Authority:
