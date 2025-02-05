@@ -1136,7 +1136,7 @@ components:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         operational_intent_details:
           description: The operational intent details shared with other stakeholders.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/OperationalIntentDetails'
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntentDetails'
     ImbalanceSubscription:
       required:
       - subscription_id
