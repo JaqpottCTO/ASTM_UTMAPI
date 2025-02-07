@@ -9,15 +9,21 @@ security:
 - Authority:
   - utm.strategic_coordination
   - utm.conformance_monitoring_sa
+  - uam.availability_arbitration
 tags:
 - name: Operational intent details
   description: Endpoints exposed by PSU OIMs for interaction with details of operational intents.
 - name: Telemetry
 - name: p2p_uam
   description: Endpoints exposed by PSUs for peer-peer communication.
+- name: Reports
+  description: Endpoints exposed by the PSUs for reporting peer PSU issues.
+- name: Availability
+  description: Endpoints exposed by the DSS for declaring USS availability.
+
 paths:
   /cm/v1/operational_intents:
-    summary: An PSU OIM's representation of detailed information about operational intents to the CM.
+    summary: A PSU OIM's representation of detailed information about operational intents to the CM.
     post:
       tags:
       - Operational intent details
@@ -258,6 +264,120 @@ paths:
       security:
       - Authority:
         - utm.conformance_monitoring_sa
+  /cm/v1/reports:
+    summary: Error reports of issues communicating with a peer PSU.
+    post:
+      tags:
+      - Reports
+      summary: Notify PSU of an error encountered that might otherwise go unnoticed.
+      description: "Endpoint to provide feedback (errors, etc.) that might otherwise go unnoticed by this PSU.  This endpoint is used for all feedback related to operational intents and constraints."
+      operationId: makePsuReport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorReport'
+        required: true
+      responses:
+        "201":
+          description: Report received and successfully archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The report could not be parsed, or contains unrecognized data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: |-
+            Bearer access token was not provided in Authorization header,
+            token could not be decoded, or token was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: '* The access token was decoded successfully but did not include a scope appropriate to this endpoint.'
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - uam.availability_arbitration
+      - Authority:
+        - uam.resource_management
+      - Authority:
+        - uam.resource_processing
+  /cm/v1/uss_availability:
+    summary: Share USS availability with users of the airspace. 
+    post:
+      tags:
+      - Availability
+      summary: Notify a peer of USS availability change.
+      description: Notify a peer of USS availability change which has been reported by 
+        a source with uam.availability_arbitration scope. 
+      operationId: notifyAvailabilityArbitrationChange
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutUssAvailabilityDetails'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - uam.availability_arbitration
 components:
   schemas:
     PutOperationalIntentDetails:

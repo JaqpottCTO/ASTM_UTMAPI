@@ -11,7 +11,9 @@ servers:
 - url: /
 security:
 - Authority:
-  - utm.strategic_coordination
+  - uam.resource_management
+  - uam.resource_processing
+  - uam.availability_arbitration
 tags:
 - name: Resource references
   description: Endpoints exposed by the RIS for details regarding resource references. 
@@ -21,8 +23,11 @@ tags:
   description: Endpoints exposed by the RIS for details regarding the physical definition and default capacity of a resource. 
 - name: Resource status
   description: Endpoints exposed by the RIS for details regarding the current status and capacity of a resource. 
-- name: p2p_utm
-  description: Endpoints exposed by PSUs for peer-peer communication.
+- name: Reports
+  description: Endpoints exposed by the PSUs for reporting peer PSU issues.
+- name: Availability
+  description: Endpoints exposed by the DSS for declaring USS availability.
+
 
 paths:
   /ris/v1/resource_details:
@@ -85,7 +90,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.resource_management
   /ris/v1/resource_details/{entityid}:
     summary: Query detailed information of a resource from RIS. 
     get:
@@ -147,7 +152,9 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.resource_processing
+      - Authority:
+        - uam.resource_management
     put:
       tags:
       - Resource references
@@ -215,7 +222,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.resource_management
   /ris/v1/resource_details/{entityid}/capacities:
     summary: Get future capacity details for the resource. 
     get:
@@ -288,7 +295,9 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.resource_management
+      - Authority:
+        - uam.resource_processing
     put:
       tags:
       - Resource capacities
@@ -365,7 +374,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.resource_management
   /ris/v1/resource_details/{entityid}/status:
     summary: Get the current resource status 
     get:
@@ -421,7 +430,9 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.resource_processing
+      - Authority:
+        - uam.resource_management
     put:
       tags:
       - Resource status
@@ -498,7 +509,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.resource_management
   /ris/v1/resource_details/{entityid}/definition:
     summary: Get the resource definition 
     get:
@@ -554,7 +565,9 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.resource_processing
+      - Authority:
+        - uam.resource_management
     put:
       tags:
       - Resource definition
@@ -631,8 +644,121 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
-
+        - uam.resource_management
+  /ris/v1/reports:
+    summary: Error reports of issues communicating with a peer PSU.
+    post:
+      tags:
+      - Reports
+      summary: Notify PSU of an error encountered that might otherwise go unnoticed.
+      description: "Endpoint to provide feedback (errors, etc.) that might otherwise go unnoticed by this PSU.  This endpoint is used for all feedback related to operational intents and constraints."
+      operationId: makePsuReport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorReport'
+        required: true
+      responses:
+        "201":
+          description: Report received and successfully archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorReport'
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The report could not be parsed, or contains unrecognized data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: |-
+            Bearer access token was not provided in Authorization header,
+            token could not be decoded, or token was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: '* The access token was decoded successfully but did not include a scope appropriate to this endpoint.'
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - uam.availability_arbitration
+      - Authority:
+        - uam.resource_management
+      - Authority:
+        - uam.resource_processing
+  /ris/v1/uss_availability:
+    summary: Share USS availability with users of the airspace. 
+    post:
+      tags:
+      - Availability
+      summary: Notify a peer of USS availability change.
+      description: Notify a peer of USS availability change which has been reported by 
+        a source with uam.availability_arbitration scope. 
+      operationId: notifyAvailabilityArbitrationChange
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutUssAvailabilityDetails'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - uam.availability_arbitration
 components:
   schemas:
     ResourceShape:
@@ -690,11 +816,23 @@ components:
           type: string
           description: |
             The type of capacity limitation which is to be met for the resource. 
+            Types of constraint at waypoint are:
+            - FLOW_RATE_CONSTANT
+              Constant time rate of separation.
+            - FLOW_RATE_FIXED_BIN
+              Constraint values for number of operations within a fixed time bin with duration in seconds. 
+              - Fixed time bin should start at top-of-the-hour and evenly divide up an hour. For more details, see description for unit = seconds in CapacityPropertyType.
+            - FLOW_RATE_ROLLING_BIN
+              Constraint values for number of operations within a rolling time bin starting at end of previous time bin. Duration of time bin is in seconds in CapacityPropertyType. 
+              - Rolling time bin does not necessarily start at top-of-the-hour.
+            - INSTANTANEOUS
+              The maximum number of operations that are permitted to occupy the resource at any time.
           externalDocs:
             url: TBD
           enum: 
           - FLOW_RATE_CONSTANT
           - FLOW_RATE_FIXED_BIN
+          - FLOW_RATE_ROLLING_BIN
           - INSTANTANEOUS
     CapacityPropertyType:
       required:
