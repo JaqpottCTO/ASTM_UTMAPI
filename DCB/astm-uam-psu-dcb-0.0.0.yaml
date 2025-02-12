@@ -659,12 +659,8 @@ paths:
               $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutFutureCapacities'
         required: true
       responses:
-        "201":
+        "204":
           description: Future temporary capacities were successfully received.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more input parameters were missing or invalid.
@@ -740,12 +736,8 @@ paths:
               $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutCurrentResourceStatus'
         required: true
       responses:
-        "201":
+        "204":
           description: Current resource status was successfully received.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more input parameters were missing or invalid.
@@ -821,12 +813,8 @@ paths:
               $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutResourceDefinition'
         required: true
       responses:
-        "201":
+        "204":
           description: Updated resource definition was successfully received.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more input parameters were missing or invalid.
@@ -1017,7 +1005,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ErrorReport'
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         required: true
       responses:
         "201":
@@ -1025,7 +1013,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorReport'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more parameters were missing or invalid.

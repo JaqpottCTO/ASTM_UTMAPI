@@ -276,7 +276,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ErrorReport'
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         required: true
       responses:
         "201":
@@ -284,7 +284,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorReport'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more parameters were missing or invalid.

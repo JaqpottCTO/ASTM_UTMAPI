@@ -339,7 +339,7 @@ paths:
       security:
       - Authority:
         - uam.constraint_management
-  /psu/v1/reports:
+  /oim/v1/reports:
     summary: Error reports of issues communicating with a peer PSU.
     post:
       tags:
@@ -352,7 +352,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ErrorReport'
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         required: true
       responses:
         "201":
@@ -360,7 +360,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorReport'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more parameters were missing or invalid.
@@ -478,7 +478,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#../DCB/astm-uam-psu-dcb-0.0.0/components/schemas/ImbalanceResponse'
+              $ref: '../DCB/astm-uam-psu-dcb-0.0.0.yaml#/components/schemas/ImbalanceResponse'
         required: true
       responses:
         "204":
@@ -1361,72 +1361,6 @@ components:
             $ref: '#/components/schemas/SubscriptionState'
       description: |-
         Updated uss availability details. 
-    ExchangeRecord:
-      required:
-      - method
-      - recorder_role
-      - request_source
-      - request_time
-      - url
-      type: object
-      properties:
-        url:
-          type: string
-          description: Full URL of request.
-        method:
-          type: string
-          description: "HTTP verb used by requestor (e.g., \"PUT,\" \"GET,\" etc.)."
-        headers:
-          type: array
-          description: Set of headers associated with request or response. Requires 'Authorization:' field (at a minimum)
-          items:
-            type: string
-          default: []
-        recorder_role:
-          type: string
-          description: "A coded value that indicates the role of the logging PSU: 'Client' (initiating a request to a remote PSU) or 'Server' (handling a request from a remote PSU)"
-          enum:
-          - Client
-          - Server
-        request_time:
-          description: The time at which the request was sent/received.
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-        request_body:
-          type: string
-          description: Base64-encoded body content sent/received as a request.
-          default: ""
-        response_time:
-          description: The time at which the response was sent/received.
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-        response_body:
-          type: string
-          description: Base64-encoded body content sent/received in response to request.
-          default: ""
-        response_code:
-          type: integer
-          description: HTTP response code sent/received in response to request.
-          format: int32
-          default: 0
-        problem:
-          type: string
-          description: "Human-readable description of the problem with the exchange, if any."
-      description: Details of a request/response data exchange.
-    ErrorReport:
-      required:
-      - exchange
-      type: object
-      properties:
-        report_id:
-          maxLength: 128
-          type: string
-          description: ID assigned by the server receiving the report.  Not populated when submitting a report.
-        exchange:
-          description: The request (by this PSU) and response associated with the error.
-          anyOf:
-          - $ref: '#/components/schemas/ExchangeRecord'
-      description: A report informing a server of a communication problem.
   securitySchemes:
     Authority:
       type: oauth2

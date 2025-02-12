@@ -320,12 +320,8 @@ paths:
               $ref: '#/components/schemas/PutFutureCapacities'
         required: true
       responses:
-        "201":
+        "204":
           description: Future temporary capacities were successfully received.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more input parameters were missing or invalid.
@@ -355,13 +351,7 @@ paths:
               schema:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
         "412":
-          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "413":
-          description: The area of the operational intent is too large.
+          description: The client attempted to update resource capacity while marked as Down in the DSS.
           content:
             application/json:
               schema:
@@ -455,12 +445,8 @@ paths:
               $ref: '#/components/schemas/PutCurrentResourceStatus'
         required: true
       responses:
-        "201":
+        "204":
           description: Current resource status was successfully received.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more input parameters were missing or invalid.
@@ -490,13 +476,7 @@ paths:
               schema:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
         "412":
-          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "413":
-          description: The area of the operational intent is too large.
+          description: The client attempted to update resource status while marked as Down in the DSS.
           content:
             application/json:
               schema:
@@ -590,12 +570,8 @@ paths:
               $ref: '#/components/schemas/PutResourceDefinition'
         required: true
       responses:
-        "201":
+        "204":
           description: Updated resource definition was successfully received.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more input parameters were missing or invalid.
@@ -625,13 +601,13 @@ paths:
               schema:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
         "412":
-          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
+          description: The client attempted to update resource definition while marked as Down in the DSS.
           content:
             application/json:
               schema:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "413":
-          description: The area of the operational intent is too large.
+          description: The area of the resource definition is too large.
           content:
             application/json:
               schema:
@@ -657,7 +633,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ErrorReport'
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         required: true
       responses:
         "201":
@@ -665,7 +641,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorReport'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more parameters were missing or invalid.
