@@ -1342,7 +1342,7 @@ components:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
           description: OVN of the operation
         operational_intent_id:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
           description: Operational intent ID of the operation
         resource_usage:
           description: |-
