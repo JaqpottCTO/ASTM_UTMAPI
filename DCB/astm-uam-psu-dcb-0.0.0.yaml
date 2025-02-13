@@ -511,7 +511,7 @@ paths:
       - p2p_uam
       summary: Notify a peer PSU of changed resource details.
       description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyResourceDetailsChanged
+      operationId: notifyResourceDetails
       requestBody:
         content:
           application/json:
