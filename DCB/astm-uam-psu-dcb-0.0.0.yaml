@@ -646,7 +646,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutOperationalIntentDetailsParameters'
+              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
         required: true
       responses:
         "204":
@@ -716,7 +716,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutOperationalIntentDetailsParameters'
+              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
         required: true
       responses:
         "204":
@@ -1214,6 +1214,33 @@ components:
           description: End time of this availability time interval. Must be after time_start.
           anyOf:
             - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+    PutOperationalIntentDetailsParameters:
+      required:
+      - operational_intent_id
+      - subscriptions
+      type: object
+      properties:
+        operational_intent_id:
+          description: ID of operational intent that has changed.
+          anyOf:
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+        operational_intent:
+          description: |-
+            Full information about the operational intent that has changed.  If this field is omitted,
+            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
+            populated.
+          anyOf:
+          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '#/components/schemas/SubscriptionState'
+      description: |-
+        Parameters of a message informing of detailed information for a peer operational intent.
+        Pushed (by a client, not the DSS) directly to clients with subscriptions when
+        another client makes a change to airspace within a cell with a subscription.
     PutResourceDetails:
       required:
         - resource_id

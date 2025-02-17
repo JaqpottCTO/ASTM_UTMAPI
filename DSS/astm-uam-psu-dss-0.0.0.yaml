@@ -2156,22 +2156,6 @@ components:
           - $ref: "#/components/schemas/ResourceExtents"
           - $ref: "#/components/schemas/VolumeExtents"
           - $ref: "#/components/schemas/OffNominalVolumeExtents"
-    GetOperationalIntentTelemetryResponse:
-      required:
-      - operational_intent_id
-      type: object
-      properties:
-        operational_intent_id:
-          description: ID of the operational intent which the vehicle reporting telemetry is flying.
-          anyOf:
-          - $ref: '#/components/schemas/EntityID'
-        telemetry:
-          $ref: '#/components/schemas/VehicleTelemetry'
-        next_telemetry_opportunity:
-          description: "The next telemetry similar to this telemetry is not expected to be available until at or after this time, so the polling USS should generally not poll the endpoint providing this response data again until at or after that time.  If this field is omitted, then there is no current expectation of new telemetry becoming available."
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-      description: Response to a peer request for telemetry of an off-nominal operational intent.
     VehicleTelemetry:
       required:
       - time_measured

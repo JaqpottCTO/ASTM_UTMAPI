@@ -411,7 +411,7 @@ components:
           anyOf:
           - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/EntityID'
         telemetry:
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/VehicleTelemetry'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/VehicleTelemetry'
       description: provide detailed information on the position of an aircraft associated with an operational intent.
   securitySchemes:
     Authority:
