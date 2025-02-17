@@ -13,8 +13,6 @@ servers:
 security:
 - Authority:
   - uam.strategic_coordination
-  - uam.constraint_management
-  - uam.constraint_processing
   - uam.conformance_monitoring_sa
   - uam.resource_management
   - uam.resource_processing
@@ -24,8 +22,6 @@ tags:
   description: Endpoints exposed by the DSS for interaction with references to operational intents.
 - name: Resource references
   description: Endpoints exposed by the DSS for interaction with references to resources.
-- name: Constraint references
-  description: Endpoints exposed by the DSS for interaction with references to constraints.
 - name: Subscriptions
   description: Endpoints exposed by the DSS for interaction with subscription entities.
 - name: Reports
@@ -471,7 +467,7 @@ paths:
       parameters:
       - name: entityid
         in: path
-        description: EntityID of the constraint.
+        description: EntityID of the resource.
         required: true
         style: simple
         explode: false
@@ -530,7 +526,7 @@ paths:
       parameters:
       - name: entityid
         in: path
-        description: EntityID of the constraint.
+        description: EntityID of the resource.
         required: true
         style: simple
         explode: false
@@ -552,7 +548,7 @@ paths:
         "400":
           description: |-
             * One or more input parameters were missing or invalid.
-            * The request attempted to mutate the constraint in a disallowed way.
+            * The request attempted to mutate the resource in a disallowed way.
           content:
             application/json:
               schema:
@@ -571,7 +567,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         "409":
           description: |-
-            * A constraint with the provided ID already exists.
+            * A resource with the provided ID already exists.
             * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
           content:
             application/json:
@@ -603,7 +599,7 @@ paths:
       parameters:
       - name: entityid
         in: path
-        description: EntityID of the constraint.
+        description: EntityID of the resource.
         required: true
         style: simple
         explode: false
@@ -682,7 +678,7 @@ paths:
       parameters:
       - name: entityid
         in: path
-        description: EntityID of the constraint.
+        description: EntityID of the resource.
         required: true
         style: simple
         explode: false
@@ -746,348 +742,7 @@ paths:
       security:
       - Authority:
         - uam.resource_management
-  /dss/v1/constraint_references/query:
-    summary: Query all constraint references in the DSS that intersect with a specified area/volume/time.
-    post:
-      tags:
-      - Constraint references
-      - dss
-      summary: Query all constraint references in the specified area/volume from the DSS.
-      description: "Note that this endpoint does not produce any mutations in the DSS despite using the HTTP POST verb.  The HTTP GET verb is traditionally used for operations like this one, but requiring or using a request body for HTTP GET requests is non-standard and not supported by some architectures.  POST is used here instead of GET to ensure robust support for the use of a request body."
-      operationId: queryConstraintReferences
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QueryConstraintReferenceParameters'
-        required: true
-      responses:
-        "200":
-          description: Constraint references were successfully retrieved.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/QueryConstraintReferencesResponse'
-        "400":
-          description: One or more input parameters were missing or invalid.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "413":
-          description: The requested area was too large.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.constraint_management
-      - Authority:
-        - uam.constraint_processing
-  /dss/v1/constraint_references/{entityid}:
-    summary: Create/read endpoint for a specified constraint reference in the DSS.
-    get:
-      tags:
-      - Constraint references
-      - dss
-      summary: Retrieve the specified constraint reference from the DSS.
-      operationId: getConstraintReference
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID of the constraint.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityID'
-      responses:
-        "200":
-          description: Constraint reference was retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetConstraintReferenceResponse'
-        "400":
-          description: One or more input parameters were missing or invalid.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "404":
-          description: The requested Entity could not be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.constraint_management
-      - Authority:
-        - uam.constraint_processing
-    put:
-      tags:
-      - Constraint references
-      - dss
-      summary: Create the specified constraint reference in the DSS.
-      operationId: createConstraintReference
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID of the constraint.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutConstraintReferenceParameters'
-        required: true
-      responses:
-        "201":
-          description: A constraint reference was created successfully in the DSS.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ChangeConstraintReferenceResponse'
-        "400":
-          description: |-
-            * One or more input parameters were missing or invalid.
-            * The request attempted to mutate the constraint in a disallowed way.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            * A constraint with the provided ID already exists.
-            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "413":
-          description: The area of the constraint is too large.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.constraint_management
-  /dss/v1/constraint_references/{entityid}/{ovn}:
-    summary: Update/delete endpoint for a specified constraint reference in the DSS.
-    put:
-      tags:
-      - Constraint references
-      - dss
-      summary: Update the specified constraint reference in the DSS.
-      operationId: updateConstraintReference
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID of the constraint.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityID'
-      - name: ovn
-        in: path
-        description: Opaque version number of the existing operational intent reference.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityOVN'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutConstraintReferenceParameters'
-        required: true
-      responses:
-        "200":
-          description: A constraint reference was updated successfully in the DSS.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ChangeConstraintReferenceResponse'
-        "400":
-          description: |-
-            * One or more input parameters were missing or invalid.
-            * The request attempted to mutate the constraint in a disallowed way.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            * The provided `ovn` does not match the current version of the existing constraint.
-            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "413":
-          description: The area of the constraint is too large.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.constraint_management
-    delete:
-      tags:
-      - Constraint references
-      - dss
-      summary: Delete the specified constraint reference from the DSS.
-      operationId: deleteConstraintReference
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID of the constraint.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityID'
-      - name: ovn
-        in: path
-        description: Opaque version number of the existing operational intent reference.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityOVN'
-      responses:
-        "200":
-          description: The constraint was successfully removed from the DSS.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ChangeConstraintReferenceResponse'
-        "400":
-          description: |-
-            * One or more input parameters were missing or invalid.
-            * The request attempted to mutate the constraint in a disallowed way.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "404":
-          description: The requested Entity could not be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            * The provided `ovn` does not match the current version of the existing constraint.
-            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.constraint_management
-  /dss/v1/subscriptions/query:
+/dss/v1/subscriptions/query:
     summary: Subscriptions for airspace updates to a volume of interest.
     post:
       tags:
@@ -2025,12 +1680,6 @@ components:
           items:
             $ref: '#/components/schemas/OperationalIntentReference'
           default: []
-        constraint_references:
-          type: array
-          description: "Constraints in or near the subscription area at the time of creation/update, if `notify_for_constraints` is true."
-          items:
-            $ref: '#/components/schemas/ConstraintReference'
-          default: []
         resource_references:
           type: array
           description: "Resources in or near the subscription area at the time of creation/update, if `notify_for_resources` is true."
@@ -2133,7 +1782,7 @@ components:
         extents:
           $ref: "#/components/schemas/OperationalExtents"
         key:
-          description: "Proof that the USS creating or mutating this operational intent was aware of the current state of the airspace, with the expectation that this operational intent is therefore deconflicted from all relevant features in the airspace.  This field is not required when declaring an operational intent Nonconforming or Contingent, or when there are no relevant Entities in the airspace, but is otherwise required. OVNs for constraints are required if and only if the USS managing this operational intent is performing the constraint processing role, which is indicated by whether the subscription associated with this operational intent triggers notifications for constraints.  The key does not need to contain the OVN for the operational intent being updated."
+          description: "Proof that the USS creating or mutating this operational intent was aware of the current state of the airspace, with the expectation that this operational intent is therefore deconflicted from all relevant features in the airspace.  This field is not required when declaring an operational intent Nonconforming or Contingent, or when there are no relevant Entities in the airspace, but is otherwise required. OVNs for resources are required if and only if the USS managing this operational intent is performing the resource processing role, which is indicated by whether the subscription associated with this operational intent triggers notifications for constraints.  The key does not need to contain the OVN for the operational intent being updated."
           anyOf:
           - $ref: '#/components/schemas/Key'
         state:
@@ -2254,7 +1903,7 @@ components:
           $ref: '#/components/schemas/UssAvailabilityState'
         version:
           type: integer
-          description: "Numeric version of this constraint which increments upon each change in the resource, regardless of whether any field of the resource reference changes.  A USS with the details of this resource when it was at a particular version does not need to retrieve the details again until the version changes."
+          description: "Numeric version of this resource which increments upon each change in the resource, regardless of whether any field of the resource reference changes.  A USS with the details of this resource when it was at a particular version does not need to retrieve the details again until the version changes."
           format: int32
           example: 1
         ovn:
@@ -2272,7 +1921,7 @@ components:
           $ref: '#/components/schemas/ResourceUssBaseURL'
       description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
     ResourceUssBaseURL:
-      description: The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this constraint.
+      description: The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this resource.
       anyOf:
       - $ref: '#/components/schemas/UssBaseURL'
     PostResourceReferenceParameters:
@@ -2385,104 +2034,6 @@ components:
             $ref: '#/components/schemas/ResourceReference'
           default: []
       description: Response to DSS query for ResourceReferences in an area of interest.
-    ConstraintReference:
-      required:
-      - id
-      - manager
-      - time_end
-      - time_start
-      - uss_availability
-      - uss_base_url
-      - version
-      type: object
-      properties:
-        id:
-          $ref: '#/components/schemas/EntityID'
-        manager:
-          type: string
-          description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USSs to reject constraint update notifications originating from a USS that does not manage the constraint.
-          example: uss1
-        uss_availability:
-          $ref: '#/components/schemas/UssAvailabilityState'
-        version:
-          type: integer
-          description: "Numeric version of this constraint which increments upon each change in the constraint, regardless of whether any field of the constraint reference changes.  A USS with the details of this constraint when it was at a particular version does not need to retrieve the details again until the version changes."
-          format: int32
-          example: 1
-        ovn:
-          description: "Opaque version number of this constraint.  Populated only when the ConstraintReference is managed by the USS retrieving or providing it.  Not populated when the ConstraintReference is not managed by the USS retrieving or providing it (instead, the USS must obtain the OVN from the details retrieved from the managing USS)."
-          anyOf:
-          - $ref: '#/components/schemas/EntityOVN'
-        time_start:
-          $ref: '#/components/schemas/Time'
-        time_end:
-          $ref: '#/components/schemas/Time'
-        uss_base_url:
-          $ref: '#/components/schemas/ConstraintUssBaseURL'
-      description: "A ConstraintReference (area in which a constraint is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
-    ConstraintUssBaseURL:
-      description: The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this constraint.
-      anyOf:
-      - $ref: '#/components/schemas/UssBaseURL'
-    PutConstraintReferenceParameters:
-      required:
-      - extents
-      - uss_base_url
-      type: object
-      properties:
-        extents:
-          minItems: 1
-          type: array
-          description: |-
-            Spacetime extents that bound this constraint.
-            The end time may not be in the past.
-            All volumes of the constraint must be encompassed in these extents. However, these extents do not need to match the precise volumes of the constraint; a single bounding extent may be provided instead, for instance.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-        uss_base_url:
-          $ref: '#/components/schemas/ConstraintUssBaseURL'
-      description: Parameters for a request to create/update a ConstraintReference in the DSS.
-    GetConstraintReferenceResponse:
-      required:
-      - constraint_reference
-      type: object
-      properties:
-        constraint_reference:
-          $ref: '#/components/schemas/ConstraintReference'
-      description: Response to DSS request for the ConstraintReference with the given ID.
-    ChangeConstraintReferenceResponse:
-      required:
-      - constraint_reference
-      - subscribers
-      type: object
-      properties:
-        subscribers:
-          type: array
-          description: DSS subscribers that this client now has the obligation to notify of the constraint changes just made.  This client must call POST for each provided URL according to the USS-USS `/uss/v1/constraints` path API.  The client's own subscriptions will also be included in this list.
-          items:
-            $ref: '#/components/schemas/SubscriberToNotify'
-          default: []
-        constraint_reference:
-          $ref: '#/components/schemas/ConstraintReference'
-      description: "Response to a request to create, update, or delete a ConstraintReference. in the DSS."
-    QueryConstraintReferenceParameters:
-      type: object
-      properties:
-        area_of_interest:
-          $ref: '#/components/schemas/Volume4D'
-      description: Parameters for a request to find ConstraintReferences matching the provided criteria.
-    QueryConstraintReferencesResponse:
-      required:
-      - constraint_references
-      type: object
-      properties:
-        constraint_references:
-          type: array
-          description: ConstraintReferences in the area of interest.
-          items:
-            $ref: '#/components/schemas/ConstraintReference'
-          default: []
-      description: Response to DSS query for ConstraintReferences in an area of interest.
     AirspaceConflictResponse:
       type: object
       properties:
@@ -2494,12 +2045,6 @@ components:
           description: "List of operational intent references for which current proof of knowledge was not provided.  If this field is present and contains elements, the calling USS should query the details URLs for these operational intents to obtain their details and correct OVNs.  The OVNs can be used to update the key, at which point the USS may retry this call."
           items:
             $ref: '#/components/schemas/OperationalIntentReference'
-          default: []
-        missing_constraints:
-          type: array
-          description: "List of constraint references for which current proof of knowledge was not provided.  If this field is present and contains elements, the calling USS should query the details URLs for these constraints to obtain their details and correct OVNs.  The OVNs can be used to update the key, at which point the USS may retry this call."
-          items:
-            $ref: '#/components/schemas/ConstraintReference'
           default: []
       description: Data provided when an airspace conflict was encountered.
     VolumeExtents:
@@ -2611,68 +2156,6 @@ components:
           - $ref: "#/components/schemas/ResourceExtents"
           - $ref: "#/components/schemas/VolumeExtents"
           - $ref: "#/components/schemas/OffNominalVolumeExtents"
-    ConstraintDetails:
-      required:
-      - volumes
-      type: object
-      properties:
-        volumes:
-          minItems: 1
-          type: array
-          description: |-
-            Volumes that wholly contain the constraint while being as small as practical.
-            The end time may not be in the past.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-        type:
-          type: string
-          description: Type of airspace feature this constraint represents.
-          example: com.example.non_utm_aircraft_operations
-        geozone:
-          description: "If this constraint is an ED-269 compliant geo zone, the details about that geo zone."
-          anyOf:
-          - $ref: '#/components/schemas/GeoZone'
-      description: Details of a UTM constraint. Note that this data is not stored in the DSS; only with the clients.
-    Constraint:
-      required:
-      - details
-      - reference
-      type: object
-      properties:
-        reference:
-          $ref: '#/components/schemas/ConstraintReference'
-        details:
-          $ref: '#/components/schemas/ConstraintDetails'
-      description: Full specification of a UTM constraint.
-    PutConstraintDetailsParameters:
-      required:
-      - constraint_id
-      - subscriptions
-      type: object
-      properties:
-        constraint_id:
-          description: ID of constraint that has changed.
-          anyOf:
-          - $ref: '#/components/schemas/EntityID'
-        constraint:
-          description: "Full information about the constraint that has changed.  If this field is omitted, the constraint was deleted.  The `ovn` field in the nested `reference` must be populated."
-          anyOf:
-          - $ref: '#/components/schemas/Constraint'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '#/components/schemas/SubscriptionState'
-      description: "Parameters of a message informing of new full information for a constraint.  Pushed (by a client, not the DSS) directly to clients with subscriptions when another client makes a change to airspace within a cell with a subscription."
-    GetConstraintDetailsResponse:
-      required:
-      - constraint
-      type: object
-      properties:
-        constraint:
-          $ref: '#/components/schemas/Constraint'
-      description: Response to peer request for the details of operational intent with the given ID.
     GetOperationalIntentTelemetryResponse:
       required:
       - operational_intent_id
@@ -2875,12 +2358,6 @@ components:
           description: "For a USS performing conformance monitoring, all position data used for conformance monitoring that is ingested from the UA."
           items:
             $ref: '#/components/schemas/OperationalIntentPositions'
-          default: []
-        constraint_provider_associations:
-          type: array
-          description: "For a USS that performs constraint management, associations of an authorized constraint provider with all constraints that transition to the valid state."
-          items:
-            $ref: '#/components/schemas/ConstraintProviderAssociation'
           default: []
       description: The set of log data fulfilling this standard's Logging requirements.
     ExchangeRecord:
@@ -3096,20 +2573,6 @@ components:
           type: string
           description: Unique identifier of the operator responsible for the operational intent
       description: Association between an operational intent and the operator of that operational intent
-    ConstraintProviderAssociation:
-      required:
-      - constraint_id
-      - constraint_provider_id
-      type: object
-      properties:
-        constraint_id:
-          description: ID of constraint to which this association pertains
-          anyOf:
-          - $ref: '#/components/schemas/EntityID'
-        constraint_provider_id:
-          type: string
-          description: Unique identifier of the constraint provider responsible for the constraint
-      description: Association between a constraint and the constraint provider responsible for that constraint
     GeoZone:
       required:
       - country
@@ -3358,7 +2821,5 @@ components:
           tokenUrl: https://auth.example.com/oauth/token
           scopes:
             utm.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
-            utm.constraint_management: "Client may manage (create, edit, and delete) constraints according to the constraint management role."
-            utm.constraint_processing: Client may read constraint references from the DSS and details from the partner USSs according to the constraint processing role.
             utm.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
             utm.availability_arbitration: Client may set the availability state of USSs in the DSS.

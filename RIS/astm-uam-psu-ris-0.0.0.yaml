@@ -792,14 +792,14 @@ components:
           type: string
           description: |
             The type of capacity limitation which is to be met for the resource. 
-            Types of constraint at waypoint are:
+            Types of capacity limitation at waypoint are:
             - FLOW_RATE_CONSTANT
               Constant time rate of separation.
             - FLOW_RATE_FIXED_BIN
-              Constraint values for number of operations within a fixed time bin with duration in seconds. 
+              Capacity values for number of operations within a fixed time bin with duration in seconds. 
               - Fixed time bin should start at top-of-the-hour and evenly divide up an hour. For more details, see description for unit = seconds in CapacityPropertyType.
             - FLOW_RATE_ROLLING_BIN
-              Constraint values for number of operations within a rolling time bin starting at end of previous time bin. Duration of time bin is in seconds in CapacityPropertyType. 
+              Capacity values for number of operations within a rolling time bin starting at end of previous time bin. Duration of time bin is in seconds in CapacityPropertyType. 
               - Rolling time bin does not necessarily start at top-of-the-hour.
             - INSTANTANEOUS
               The maximum number of operations that are permitted to occupy the resource at any time.
