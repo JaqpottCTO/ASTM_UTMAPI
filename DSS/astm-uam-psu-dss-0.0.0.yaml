@@ -12,11 +12,13 @@ servers:
 - url: /
 security:
 - Authority:
-  - utm.strategic_coordination
-  - utm.constraint_management
-  - utm.constraint_processing
-  - utm.conformance_monitoring_sa
-  - utm.availability_arbitration
+  - uam.strategic_coordination
+  - uam.constraint_management
+  - uam.constraint_processing
+  - uam.conformance_monitoring_sa
+  - uam.resource_management
+  - uam.resource_processing
+  - uam.availability_arbitration
 tags:
 - name: Operational intent references
   description: Endpoints exposed by the DSS for interaction with references to operational intents.
@@ -34,8 +36,6 @@ tags:
   description: "Pseudo-endpoints not intended to be implemented literally, but rather to illustrate logging data formats"
 - name: dss
   description: Endpoints exposed by the DSS server.
-- name: p2p_utm
-  description: Endpoints exposed by UTM USSs for peer-peer communication.
 
 paths:
   /dss/v1/operational_intent_references/query:
@@ -93,9 +93,9 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
       - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.resource_management
   /dss/v1/operational_intent_references/{entityid}:
     summary: Create/read endpoint for a specified operational intent reference in the DSS.
     get:
@@ -152,9 +152,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
       - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.conformance_monitoring_sa
+      - Authority:
+        - uam.resource_management
     put:
       tags:
       - Operational intent references
@@ -231,12 +233,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
-      - Authority:
-        - utm.strategic_coordination
-        - utm.constraint_processing
-      - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.strategic_coordination
   /dss/v1/operational_intent_references/{entityid}/{ovn}:
     summary: Update endpoint for a specified operational intent reference in the DSS.
     put:
@@ -324,12 +321,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
-      - Authority:
-        - utm.strategic_coordination
-        - utm.constraint_processing
-      - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.strategic_coordination
     delete:
       tags:
       - Operational intent references
@@ -408,9 +400,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
-      - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.strategic_coordination
   /dss/v1/resource_references/query:
     summary: Query all resource references in the DSS that intersect with a specified area/volume/time.
     post:
@@ -465,9 +455,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.resource_management
+        - uam.resource_management
       - Authority:
-        - utm.resource_processing
+        - uam.resource_processing
+      - Authority:
+        - uam.conformance_monitoring_sa
   /dss/v1/resource_references/{entityid}:
     summary: Create/read endpoint for a specified resource reference in the DSS.
     get:
@@ -524,9 +516,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.resource_management
+        - uam.resource_management
       - Authority:
-        - utm.resource_processing
+        - uam.resource_processing
+      - Authority:
+        - uam.conformance_monitoring_sa
     put:
       tags:
       - Resource references
@@ -597,7 +591,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.resource_management
+        - uam.resource_management
   /dss/v1/resource_references/{entityid}/{ovn}:
     summary: Update/delete endpoint for a specified resource reference in the DSS.
     put:
@@ -678,7 +672,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.resource_management
+        - uam.resource_management
     delete:
       tags:
       - Resource references
@@ -751,7 +745,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.resource_management
+        - uam.resource_management
   /dss/v1/constraint_references/query:
     summary: Query all constraint references in the DSS that intersect with a specified area/volume/time.
     post:
@@ -806,9 +800,9 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_management
+        - uam.constraint_management
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
   /dss/v1/constraint_references/{entityid}:
     summary: Create/read endpoint for a specified constraint reference in the DSS.
     get:
@@ -865,9 +859,9 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_management
+        - uam.constraint_management
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
     put:
       tags:
       - Constraint references
@@ -938,7 +932,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_management
+        - uam.constraint_management
   /dss/v1/constraint_references/{entityid}/{ovn}:
     summary: Update/delete endpoint for a specified constraint reference in the DSS.
     put:
@@ -1019,7 +1013,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_management
+        - uam.constraint_management
     delete:
       tags:
       - Constraint references
@@ -1092,7 +1086,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_management
+        - uam.constraint_management
   /dss/v1/subscriptions/query:
     summary: Subscriptions for airspace updates to a volume of interest.
     post:
@@ -1151,9 +1145,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
+      - Authority:
+        - uam.conformance_monitoring_sa
+      - Authority:
+        - uam.resource_processing
   /dss/v1/subscriptions/{subscriptionid}:
     summary: Create/read endpoint for a specific subscription in the DSS.
     get:
@@ -1211,9 +1209,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
+      - Authority:
+        - uam.conformance_monitoring_sa
+      - Authority:
+        - uam.resource_processing
     put:
       tags:
       - Subscriptions
@@ -1283,9 +1285,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
+      - Authority:
+        - uam.conformance_monitoring_sa
+      - Authority:
+        - uam.resource_processing
   /dss/v1/subscriptions/{subscriptionid}/{version}:
     summary: Update/delete a specific subscription in the DSS.
     put:
@@ -1367,9 +1373,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
+      - Authority:
+        - uam.conformance_monitoring_sa
+      - Authority:
+        - uam.resource_processing
     delete:
       tags:
       - Subscriptions
@@ -1442,9 +1452,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
+      - Authority:
+        - uam.conformance_monitoring_sa
+      - Authority:
+        - uam.resource_processing
   /dss/v1/reports:
     summary: Error reports of potential operational issues relevant to DSSs.
     post:
@@ -1495,15 +1509,19 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_management
+        - uam.constraint_management
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
       - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.resource_management
       - Authority:
-        - utm.availability_arbitration
+        - uam.resource_processing
+      - Authority:
+        - uam.conformance_monitoring_sa
+      - Authority:
+        - uam.availability_arbitration
   /dss/v1/uss_availability/{uss_id}:
     summary: Availability status of a USS
     get:
@@ -1555,11 +1573,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.availability_arbitration
+        - uam.availability_arbitration
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
       - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.conformance_monitoring_sa
     put:
       tags:
       - Availability
@@ -1616,7 +1634,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.availability_arbitration
+        - uam.availability_arbitration
 components:
   schemas:
     UUIDv4Format:
@@ -2095,6 +2113,11 @@ components:
           description: The ID of the subscription that is ensuring the operational intent manager receives relevant airspace updates.
           anyOf:
           - $ref: '#/components/schemas/SubscriptionID'
+        occupied_resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceExtent'
+          description: List of resources which will be fully occupied during the duration of the intent. 
       description: "The high-level information of a planned or active operational intent with the URL of a USS to query for details.  Note: 'ovn' is returned ONLY to the USS that created the operational intent but NEVER to other USS instances."
     OperationalIntentUssBaseURL:
       description: "The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this operational intent, and telemetry during non-conformance or contingency, if applicable."
@@ -2479,47 +2502,6 @@ components:
             $ref: '#/components/schemas/ConstraintReference'
           default: []
       description: Data provided when an airspace conflict was encountered.
-    OperationalIntentDetails:
-      type: object
-      properties:
-        volumes:
-          type: array
-          description: |-
-            Volumes that wholly contain the operational intent while being as small as practical.
-            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
-            Required with at least one item when the operational intent is Accepted, Activated, or Nonconforming.
-            May not contain any items when the operational intent is Contingent.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-          default: []
-        off_nominal_volumes:
-          type: array
-          description: |-
-            Volumes that contain the anticipated area of non-conformance while the aircraft is in the Nonconforming or Contingent states.
-            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
-            Required with at least one item when the operational intent is Nonconforming or Contingent.
-            May not contain any items when the operational intent is Accepted or Activated.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-          default: []
-        priority:
-          $ref: '#/components/schemas/Priority'
-      description: Details of a UTM operational intent. Note that this data is not stored in the DSS; only with the clients.
-    Priority:
-      type: integer
-      description: "Ordinal priority of the operational intent, as defined by the regulator.  Operational intents with lesser values are lower priority than all operational intents with greater values.  A lower-priority operational intent may not create a conflict with a higher-priority operational intent.  A higher-priority operational intent may create a conflict with a lower-priority operational intent.  The regulator specifies whether an operational intent may create a conflict with other operational intents of the same priority."
-      default: 0
-    OperationalIntent:
-      required:
-      - details
-      - reference
-      type: object
-      properties:
-        reference:
-          $ref: '#/components/schemas/OperationalIntentReference'
-        details:
-          $ref: '#/components/schemas/OperationalIntentDetails'
-      description: Full description of a UTM operational intent.
     VolumeExtents:
       required:
         - extents
@@ -2540,6 +2522,22 @@ components:
             of extents without actual resource usage could occur. 
           items:
             $ref: '#/components/schemas/Volume4DExtent'
+    OffNominalVolumeExtents:
+      required:
+        - extents
+      type: object
+      properties: 
+        extents:
+          minItems: 1
+          type: array
+          description: |-
+            Spacetime extents that bound this operational intent. All volumes, both nominal and off-nominal, 
+            must be encompassed in these extents. However, these extents do not need to match the precise 
+            volumes of the operational intent; a single bounding extent may be provided instead, for instance.
+            Start and end times, as well as lower and upper altitudes, are required for each volume.
+            The end time may not be in the past. 
+          items:
+            $ref: '#/components/schemas/Volume4D'
     ResourceCrossing:
       required:
        - crossing_time
@@ -2612,35 +2610,7 @@ components:
           anyOf:
           - $ref: "#/components/schemas/ResourceExtents"
           - $ref: "#/components/schemas/VolumeExtents"
-    PutOperationalIntentDetailsParameters:
-      required:
-      - operational_intent_id
-      - subscriptions
-      type: object
-      properties:
-        operational_intent_id:
-          description: ID of operational intent that has changed.
-          anyOf:
-          - $ref: '#/components/schemas/EntityID'
-        operational_intent:
-          description: "Full information about the operational intent that has changed.  If this field is omitted, the operational intent was deleted.  The `ovn` field in the nested `reference` must be populated."
-          anyOf:
-          - $ref: '#/components/schemas/OperationalIntent'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '#/components/schemas/SubscriptionState'
-      description: "Parameters of a message informing of detailed information for a peer operational intent. Pushed (by a client, not the DSS) directly to clients with subscriptions when another client makes a change to airspace within a cell with a subscription."
-    GetOperationalIntentDetailsResponse:
-      required:
-      - operational_intent
-      type: object
-      properties:
-        operational_intent:
-          $ref: '#/components/schemas/OperationalIntent'
-      description: Response to peer request for the details of operational intent with the given ID.
+          - $ref: "#/components/schemas/OffNominalVolumeExtents"
     ConstraintDetails:
       required:
       - volumes

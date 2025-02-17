@@ -7,8 +7,13 @@ servers:
 - url: /
 security:
 - Authority:
-  - utm.strategic_coordination
-  - utm.conformance_monitoring_sa
+  - uam.strategic_coordination
+  - uam.constraint_management
+  - uam.constraint_processing
+  - uam.conformance_monitoring_sa
+  - uam.resource_management
+  - uam.resource_processing
+  - uam.availability_arbitration
 tags:
 - name: Operational intent details
   description: Endpoints exposed by PSU OIMs for interaction with details of operational intents.
@@ -17,6 +22,8 @@ tags:
   description: Endpoints exposed by PSUs for interaction with details of constraints.
 - name: Reports
   description: Endpoints exposed by the PSUs for reporting peer PSU issues.
+- name: Availability
+  description: Endpoints exposed by the DSS for declaring USS availability.
 - name: p2p_uam
   description: Endpoints exposed by PSUs for peer-peer communication.
 paths:
@@ -56,43 +63,55 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "404":
           description: The requested Entity could not be found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
-  /oim/v1/operational_intents:
-    summary: A PSU's representation of detailed information about operational intents.
-    post:
+        - uam.strategic_coordination
+      - Authority:
+        - uam.resource_management
+    put:
       tags:
       - Operational intent details
       - p2p_uam
-      summary: Notify a peer PSU of changed operational intent details.
-      description: Notify a peer PSU directly of changed operational intent details (usually as a requirement of previous interactions with the DSS).
+      summary: Update the specified operational intent details for another PSU.
+      description: |-
+        The PSU managing an operation uses this endpoint to updates the details (and reference) of an
+        operational intent it manages with the PSU that hosts the endpoint, typically in response to a 
+        subscription in the DSS.
       operationId: notifyOperationalIntentDetailsChanged
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for this operational intent.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/EntityID'
       requestBody:
         content:
           application/json:
@@ -109,13 +128,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -123,7 +142,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -132,85 +151,75 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
-  /oim/v1/operational_intents/{entityid}/telemetry:
-    summary: Detailed information on the position of an operational intent.
-    get:
+        - uam.strategic_coordination
+  /oim/v1/operational_intents:
+    # ToDo - Is this endpoint still needed if we have the PUT instead?
+    summary: A PSU's representation of detailed information about new operational intents.
+    post:
       tags:
-      - Telemetry
+      - Operational intent details
       - p2p_uam
-      summary: Query detailed information on the position of an operational intent from a PSU.
-      operationId: getOperationalIntentTelemetry
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID for this operational intent. The 'entityid' http request URL parameter is the ID of the Operation for which telemetry data is requested.
+      summary: Notify a peer PSU of new operational intent details.
+      description: Notify a peer PSU directly of new operational intent details (usually as a requirement of previous interactions with the DSS).
+      operationId: notifyOperationalIntentDetails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
         required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityID'
       responses:
-        "200":
-          description: OperationalIntent telemetry details were retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetOperationalIntentTelemetryResponse'
+        "204":
+          description: New or updated full operational intent information received successfully.
         "400":
-          description: One or more input parameters were missing or invalid.
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "404":
-          description: The requested Entity could not be found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "412":
-          description: No telemetry data is available.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "409":
-          description: Operational intent is not in a state that provides telemetry.
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.strategic_coordination
   /oim/v1/constraints/{entityid}:
     summary: Query detailed information of a constraint from a DCB.
     get:
@@ -247,34 +256,34 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "404":
           description: The requested Entity could not be found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
   /oim/v1/constraints:
     summary: A PSU OIM's representation of detailed information about constraints.
     post:
@@ -300,13 +309,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -314,23 +323,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "409":
           description: "The Entity version specified in this message is lower than a previously-received notification, or identical to a previously-received notification and the Entity is different."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_management
-  /psu/v1/reports:
+        - uam.constraint_management
+  /oim/v1/reports:
     summary: Error reports of issues communicating with a peer PSU.
     post:
       tags:
@@ -343,7 +352,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ErrorReport'
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         required: true
       responses:
         "201":
@@ -351,7 +360,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorReport'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
         "400":
           description: |-
             * One or more parameters were missing or invalid.
@@ -359,7 +368,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: |-
             Bearer access token was not provided in Authorization header,
@@ -367,30 +376,34 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: '* The access token was decoded successfully but did not include a scope appropriate to this endpoint.'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.strategic_coordination
+        - uam.strategic_coordination
       - Authority:
-        - utm.constraint_processing
+        - uam.constraint_processing
       - Authority:
-        - utm.constraint_management
+        - uam.constraint_management
       - Authority:
-        - utm.conformance_monitoring_sa
+        - uam.conformance_monitoring_sa
       - Authority:
-        - utm.availability_arbitration
+        - uam.availability_arbitration
+      - Authority:
+        - uam.resource_management
+      - Authority:
+        - uam.resource_processing
   /oim/v1/uss_availability:
     summary: Share USS availability with users of the airspace. 
     post:
@@ -399,7 +412,7 @@ paths:
       - p2p_uam
       summary: Notify a peer of USS availability change.
       description: Notify a peer of USS availability change which has been reported by 
-        a source with utm.availability_arbitration scope. 
+        a source with uam.availability_arbitration scope. 
       operationId: notifyAvailabilityArbitrationChange
       requestBody:
         content:
@@ -417,13 +430,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -431,7 +444,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -440,16 +453,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.availability_arbitration
+        - uam.availability_arbitration
   /oim/v1/imbalance:
     summary: Submit details about a detected resource demand capacity imbalance
       to the OIM which manages the operation. 
@@ -465,7 +478,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#../DCB/astm-uam-psu-dcb-0.0.0/components/schemas/ImbalanceResponse'
+              $ref: '../DCB/astm-uam-psu-dcb-0.0.0.yaml#/components/schemas/ImbalanceResponse'
         required: true
       responses:
         "204":
@@ -477,13 +490,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -491,7 +504,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -500,17 +513,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        # TODO: What authority is this under?
-        - utm.strategic_coordination
+        - uam.strategic_coordination
 components:
   schemas:
     UUIDv4Format:
@@ -717,6 +729,7 @@ components:
       - time_end
       - time_start
       - volume
+      - resource_usage
       type: object
       properties:
         volume:
@@ -729,17 +742,13 @@ components:
           description: End time of this volume. Must be after time_start.
           anyOf:
           - $ref: '#/components/schemas/Time'
+        resource_usage:
+          type: array
+          description: If this volume describes a resource crossing or entry/exit, the resource and the event type
+            must be included. 
+          items: 
+            $ref: '#/components/schemas/ResourceUsage'
       description: Contiguous block of geographic spacetime.
-    ErrorResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Human-readable message indicating what error occurred and/or why.
-          example: "The error occurred because [...]"
-      description: |-
-        Human-readable string returned when an error occurs
-        as a result of a PSU - DSS transaction.
     SubscriptionState:
       required:
       - notification_index
@@ -902,7 +911,7 @@ components:
       - $ref: '#/components/schemas/UssBaseURL'
     OperationalIntentDetails:
       required:
-      - trajectory
+      - intent
       type: object
       properties:
         aircraft_registration:
@@ -926,14 +935,41 @@ components:
           externalDocs:
             description: See FIXM 4.2.0 for further information.
             url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftOperatorType.html#Link1E3
-        trajectory:
-          maxItems: 1000
-          minItems: 2
+        intent:
+          oneOf:
+          - trajectory:
+            maxItems: 1000
+            minItems: 2
+            type: array
+            description: "The list of TrajectoryPoints for this operation.  This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on \npoints to be included, see the enumeration of property types in the \nTrajectoryPoint4D model."
+            items:
+              $ref: '#/components/schemas/TrajectoryPoint4D'
+          - volumes:
+            type: array
+            description: |-
+              Volumes that wholly contain the operational intent while being as small as practical.
+              Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
+              May not contain any items when the operational intent is Contingent.
+            items:
+              $ref: '#/components/schemas/Volume4D'
+            default: []
+        off_nominal_volumes:
           type: array
-          description: "The list of TrajectoryPoints for this operation.  This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on \npoints to be included, see the enumeration of property types in the \nTrajectoryPoint4D model."
+          description: |-
+            Volumes that contain the anticipated area of non-conformance while the aircraft is in the Nonconforming or Contingent states.
+            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
+            Required with at least one item when the operational intent is Nonconforming or Contingent.
+            May not contain any items when the operational intent is Proposed, Accepted, Activated or DCB-Noncompliant.
           items:
-            $ref: '#/components/schemas/TrajectoryPoint4D'
+            $ref: '#/components/schemas/Volume4D'
+          default: []
+        priority:
+          $ref: '#/components/schemas/Priority'
       description: Details of a UAM operational intent. Note that this data is not stored in the DSS; only with the clients.
+    Priority:
+      type: integer
+      description: "Ordinal priority of the operational intent, as defined by the regulator.  Operational intents with lesser values are lower priority than all operational intents with greater values.  A lower-priority operational intent may not create a conflict with a higher-priority operational intent.  A higher-priority operational intent may create a conflict with a lower-priority operational intent.  The regulator specifies whether an operational intent may create a conflict with other operational intents of the same priority."
+      default: 0
     OperationalIntent:
       required:
       - details
@@ -1141,6 +1177,7 @@ components:
       - speed
       - time
       - trajectory_property_array
+      - resource_usage
       type: object
       properties:  
         # TODO: Do we still need point_designator? Seems like this is replaced by the resource_id
@@ -1324,72 +1361,6 @@ components:
             $ref: '#/components/schemas/SubscriptionState'
       description: |-
         Updated uss availability details. 
-    ExchangeRecord:
-      required:
-      - method
-      - recorder_role
-      - request_source
-      - request_time
-      - url
-      type: object
-      properties:
-        url:
-          type: string
-          description: Full URL of request.
-        method:
-          type: string
-          description: "HTTP verb used by requestor (e.g., \"PUT,\" \"GET,\" etc.)."
-        headers:
-          type: array
-          description: Set of headers associated with request or response. Requires 'Authorization:' field (at a minimum)
-          items:
-            type: string
-          default: []
-        recorder_role:
-          type: string
-          description: "A coded value that indicates the role of the logging PSU: 'Client' (initiating a request to a remote PSU) or 'Server' (handling a request from a remote PSU)"
-          enum:
-          - Client
-          - Server
-        request_time:
-          description: The time at which the request was sent/received.
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-        request_body:
-          type: string
-          description: Base64-encoded body content sent/received as a request.
-          default: ""
-        response_time:
-          description: The time at which the response was sent/received.
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-        response_body:
-          type: string
-          description: Base64-encoded body content sent/received in response to request.
-          default: ""
-        response_code:
-          type: integer
-          description: HTTP response code sent/received in response to request.
-          format: int32
-          default: 0
-        problem:
-          type: string
-          description: "Human-readable description of the problem with the exchange, if any."
-      description: Details of a request/response data exchange.
-    ErrorReport:
-      required:
-      - exchange
-      type: object
-      properties:
-        report_id:
-          maxLength: 128
-          type: string
-          description: ID assigned by the server receiving the report.  Not populated when submitting a report.
-        exchange:
-          description: The request (by this PSU) and response associated with the error.
-          anyOf:
-          - $ref: '#/components/schemas/ExchangeRecord'
-      description: A report informing a server of a communication problem.
   securitySchemes:
     Authority:
       type: oauth2
@@ -1408,8 +1379,8 @@ components:
         clientCredentials:
           tokenUrl: https://auth.example.com/oauth/token
           scopes:
-            utm.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
-            utm.constraint_management: "Client may manage (create, edit, and delete) constraints according to the constraint management role."
-            utm.constraint_processing: Client may read constraint references from the DSS and details from the partner PSUs according to the constraint processing role.
-            utm.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
-            utm.availability_arbitration: Client may set the availability state of PSUs in the DSS.
+            uam.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
+            uam.constraint_management: "Client may manage (create, edit, and delete) constraints according to the constraint management role."
+            uam.constraint_processing: Client may read constraint references from the DSS and details from the partner PSUs according to the constraint processing role.
+            uam.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
+            uam.availability_arbitration: Client may set the availability state of PSUs in the DSS.

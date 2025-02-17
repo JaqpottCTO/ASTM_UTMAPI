@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   description: >-
     Interface definitions for the Demand Capacity Balancing function within the Providers of Services to UAM (PSU)
@@ -6,28 +6,28 @@ info:
     operation intent details from other PSU OIM functions.
   version: 0.0.0
   title: ASTM UAM PSU DCB API
-  contact: 
-    name: Rafal Kicinger
-    email: rafal.kicinger@metronaviation.com
-    url: https://www.metronaviation.com
-
 servers:
-#TODO: change this list of servers
-  - url: "/" 
-
+- url: /
 security:
-  - fimsAzAuth: []
-
+- Authority:
+  - uam.strategic_coordination
+  - uam.resource_management
+  - uam.availability_arbitration
+  - uam.dcb_check
 tags:
-  - name: Imbalance monitoring 
-    description: |-
-      Endpoints exposed by PSU DCBs to allow OIMs to request monitoring for specific operational intents
-      for demand and capacity issues. 
-  - name: Imbalance checks
-    description: Endpoints exposed by PSU DCBs to allow for on-demand imbalance checks. 
-  - name: Resource availability
-    description: Endpoints exposed by PSU DCBs to allow for query for intervals where a specified resource
-      has availability. 
+- name: Imbalance monitoring 
+  description: |-
+    Endpoints exposed by PSU DCBs to allow OIMs to request monitoring for specific operational intents
+    for demand and capacity issues. 
+- name: Imbalance checks
+  description: Endpoints exposed by PSU DCBs to allow for on-demand imbalance checks. 
+- name: Resource availability
+  description: Endpoints exposed by PSU DCBs to allow for query for intervals where a specified resource
+    has availability.
+- name: Reports
+  description: Endpoints exposed by the PSUs for reporting peer PSU issues.
+- name: Availability
+  description: Endpoints exposed by the DSS for declaring USS availability.
  
 paths:
   /dcb/v1/imbalance_subscriptions/{subscriptionid}:
@@ -86,9 +86,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
-      - Authority:
-        - utm.strategic_coordination
+        - utm.dcb_check
     put:
       tags:
       - Imbalance monitoring 
@@ -156,9 +154,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
-      - Authority:
-        - utm.strategic_coordination
+        - utm.dcb_check
   /dss/v1/imbalance_subscriptions/{subscriptionid}/{version}:
     summary: Update/delete a specific imbalance subscription in the DCB.
     put:
@@ -235,6 +231,9 @@ paths:
             application/json:
               schema:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.dcb_check
   /dcb/v1/imbalance/intent:
     post:
       description: >-
@@ -339,7 +338,10 @@ paths:
               schema:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
           description: |-
-            DCB service availability error triggered by unavailability of one or more required services such as DSS.         
+            DCB service availability error triggered by unavailability of one or more required services such as DSS.
+      security:
+      - Authority:
+        - utm.dcb_check        
   /dcb/v1/imbalance/query:
     post:
       description: >-
@@ -415,6 +417,9 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
           description: |-
             DCB service availability error triggered by unavailability of one or more required services such as DSS.
+      security:
+      - Authority:
+        - utm.dcb_check
   /dcb/v1/availability/{resourceId}:
     get:
       description: >-
@@ -492,6 +497,618 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
           description: |-
             DCB service availability error triggered by unavailability of one or more required services such as DSS.
+      security:
+      - Authority:
+        - utm.dcb_check
+  /dcb/v1/resource_details:
+    summary: RIS shares detailed information about a resource. 
+    post:
+      tags:
+      - Resource references
+      - Resource capacities
+      - Resource definition
+      - Resource status
+      - p2p_uam
+      summary: Notify a peer PSU of changed resource details.
+      description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
+      operationId: notifyResourceDetails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutResourceDetails'
+        required: true
+      responses:
+        "204":
+          description: New or updated full resource information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.resource_management
+  /dcb/v1/resource_details/{entityid}:
+    summary: |-
+      endpoint hosted by DCB to allow RIS to share detailed information about a resource in response to a 
+      subscription that the DCB has with the DSS. 
+    put:
+      tags:
+      - Resource references
+      - Resource capacities
+      - Resource definition
+      - Resource status
+      - p2p_uam
+      summary: Notify a peer PSU of changed resource details.
+      description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
+      operationId: notifyResourceDetailsChanged
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for this resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutResourceDetails'
+        required: true
+      responses:
+        "204":
+          description: New or updated full resource information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.resource_management
+  /dcb/v1/resource_details/{entityid}/capacities:
+    summary: |-
+      endpoint hosted by DCB to allow RIS to share capacity information about a resource in response to a 
+      subscription that the DCB has with the DSS.
+    put:
+      tags:
+      - Resource capacities
+      - p2p_uam 
+      summary: Receive a new or changed temporary resource capacity from an RIS role. 
+      operationId: updateFutureResourceCapacities
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the operational intent.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutFutureCapacities'
+        required: true
+      responses:
+        "204":
+          description: Future temporary capacities were successfully received.
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the operational intent in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * The provided key did not prove knowledge of all current and relevant airspace Entities
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
+        "412":
+          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "413":
+          description: The area of the operational intent is too large.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.resource_management
+  /dcb/v1/resource_details/{entityid}/status:
+    summary: |-
+      endpoint hosted by DCB to allow RIS to share status information about a resource in response to a 
+      subscription that the DCB has with the DSS.
+    put:
+      tags:
+      - Resource status
+      - p2p_uam 
+      summary: Receive a new or changed resource status from an RIS role. 
+      operationId: updateCurrentResourceStatus
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutCurrentResourceStatus'
+        required: true
+      responses:
+        "204":
+          description: Current resource status was successfully received.
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the operational intent in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * The provided key did not prove knowledge of all current and relevant airspace Entities
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
+        "412":
+          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "413":
+          description: The area of the operational intent is too large.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.resource_management
+  /dcb/v1/resource_details/{entityid}/definition:
+    summary: |-
+      endpoint hosted by DCB to allow RIS to share definition information about a resource in response to a 
+      subscription that the DCB has with the DSS.
+    put:
+      tags:
+      - Resource definition
+      - p2p_uam 
+      summary: Receive a resource definition change from an RIS role. 
+      operationId: updateResourceDefinition
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the resource.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutResourceDefinition'
+        required: true
+      responses:
+        "204":
+          description: Updated resource definition was successfully received.
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the operational intent in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * The provided key did not prove knowledge of all current and relevant airspace Entities
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
+        "412":
+          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "413":
+          description: The area of the operational intent is too large.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.resource_management
+  /dcb/v1/operational_intents:
+    summary: A PSU OIM's representation of detailed information about new operational intents.
+    post:
+      tags:
+      - Operational intent details
+      - p2p_uam
+      summary: Notify a peer PSU of new operational intent details.
+      description: Notify a peer PSU directly of new operational intent details (usually as a requirement of previous interactions with the DSS).
+      operationId: notifyOperationalIntentDetails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutOperationalIntentDetailsParameters'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+  /dcb/v1/operational_intents/{entityid}:
+    summary: Receive detailed information of an operational intent from a PSU OIM role because of a subscription with the DSS.
+    put:
+      tags:
+      - Operational intent details
+      - p2p_uam
+      summary: Update the specified operational intent details for another PSU.
+      description: |-
+        The PSU managing an operation uses this endpoint to updates the details (and reference) of an
+        operational intent it manages with the PSU that hosts the endpoint, typically in response to a 
+        subscription in the DSS.
+      operationId: notifyOperationalIntentDetailsChanged
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for this operational intent.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutOperationalIntentDetailsParameters'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+  /dcb/v1/reports:
+    summary: Error reports of issues communicating with a peer PSU.
+    post:
+      tags:
+      - Reports
+      - p2p_uam
+      summary: Notify PSU of an error encountered that might otherwise go unnoticed.
+      description: "Endpoint to provide feedback (errors, etc.) that might otherwise go unnoticed by this PSU.  This endpoint is used for all feedback related to operational intents and constraints."
+      operationId: makePsuReport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
+        required: true
+      responses:
+        "201":
+          description: Report received and successfully archived.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The report could not be parsed, or contains unrecognized data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: |-
+            Bearer access token was not provided in Authorization header,
+            token could not be decoded, or token was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: '* The access token was decoded successfully but did not include a scope appropriate to this endpoint.'
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - uam.strategic_coordination
+      - Authority:
+        - uam.availability_arbitration
+      - Authority:
+        - uam.resource_management
+      - Authority:
+        - uam.dcb_check
+  /dcb/v1/uss_availability:
+    summary: Share USS availability with users of the airspace. 
+    post:
+      tags:
+      - Availability
+      summary: Notify a peer of USS availability change.
+      description: Notify a peer of USS availability change which has been reported by 
+        a source with uam.availability_arbitration scope. 
+      operationId: notifyAvailabilityArbitrationChange
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutUssAvailabilityDetails'
+        required: true
+      responses:
+        "204":
+          description: New or updated full operational intent information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - uam.availability_arbitration
 components:
   securitySchemes:
     fimsAzAuth:
@@ -632,7 +1249,7 @@ components:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         operational_intent_details:
           description: The operational intent details shared with other stakeholders.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/OperationalIntentDetails'
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntentDetails'
     ImbalanceSubscription:
       required:
       - subscription_id
@@ -725,7 +1342,7 @@ components:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
           description: OVN of the operation
         operational_intent_id:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
           description: Operational intent ID of the operation
         resource_usage:
           description: |-
