@@ -1782,7 +1782,7 @@ components:
         extents:
           $ref: "#/components/schemas/OperationalExtents"
         key:
-          description: "Proof that the USS creating or mutating this operational intent was aware of the current state of the airspace, with the expectation that this operational intent is therefore deconflicted from all relevant features in the airspace.  This field is not required when declaring an operational intent Nonconforming or Contingent, or when there are no relevant Entities in the airspace, but is otherwise required. OVNs for resources are required if and only if the USS managing this operational intent is performing the resource processing role, which is indicated by whether the subscription associated with this operational intent triggers notifications for constraints.  The key does not need to contain the OVN for the operational intent being updated."
+          description: "Proof that the USS creating or mutating this operational intent was aware of the current state of the airspace, with the expectation that this operational intent is therefore deconflicted from all relevant features in the airspace.  This field is not required when declaring an operational intent Nonconforming or Contingent, or when there are no relevant Entities in the airspace, but is otherwise required. OVNs for resources are required for all operations utilizing a resource. The key does not need to contain the OVN for the operational intent being updated."
           anyOf:
           - $ref: '#/components/schemas/Key'
         state:
