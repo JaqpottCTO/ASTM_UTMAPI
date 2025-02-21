@@ -711,7 +711,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
       requestBody:
         content:
           application/json:
