@@ -8,8 +8,6 @@ servers:
 security:
 - Authority:
   - uam.strategic_coordination
-  - uam.constraint_management
-  - uam.constraint_processing
   - uam.conformance_monitoring_sa
   - uam.resource_management
   - uam.resource_processing
@@ -18,8 +16,6 @@ tags:
 - name: Operational intent details
   description: Endpoints exposed by PSU OIMs for interaction with details of operational intents.
 - name: Telemetry
-- name: Constraint details
-  description: Endpoints exposed by PSUs for interaction with details of constraints.
 - name: Reports
   description: Endpoints exposed by the PSUs for reporting peer PSU issues.
 - name: Availability
@@ -50,7 +46,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: Operational intent details were retrieved successfully.
@@ -93,252 +89,6 @@ paths:
         - uam.strategic_coordination
       - Authority:
         - uam.resource_management
-    put:
-      tags:
-      - Operational intent details
-      - p2p_uam
-      summary: Update the specified operational intent details for another PSU.
-      description: |-
-        The PSU managing an operation uses this endpoint to updates the details (and reference) of an
-        operational intent it manages with the PSU that hosts the endpoint, typically in response to a 
-        subscription in the DSS.
-      operationId: notifyOperationalIntentDetailsChanged
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID for this operational intent.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
-        required: true
-      responses:
-        "204":
-          description: New or updated full operational intent information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.strategic_coordination
-  /oim/v1/operational_intents:
-    # ToDo - Is this endpoint still needed if we have the PUT instead?
-    summary: A PSU's representation of detailed information about new operational intents.
-    post:
-      tags:
-      - Operational intent details
-      - p2p_uam
-      summary: Notify a peer PSU of new operational intent details.
-      description: Notify a peer PSU directly of new operational intent details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyOperationalIntentDetails
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
-        required: true
-      responses:
-        "204":
-          description: New or updated full operational intent information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.strategic_coordination
-  /oim/v1/constraints/{entityid}:
-    summary: Query detailed information of a constraint from a DCB.
-    get:
-      tags:
-      - Constraint details
-      - p2p_uam
-      summary: Retrieve the specified constraint details from a PSU.
-      description: |-
-        The PSU hosting this endpoint returns the details (and reference) of a
-        constraint it manages.  While the PSU has a pending request to change the
-        constraint in the DSS, the PSU should report the most recent version the
-        PSU knows was accepted by the DSS.  So, before a PSU receives a response
-        to create a constraint reference in the DSS, it should return 404 if
-        queried for that constraint at this endpoint.
-      operationId: getConstraintDetails
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID of the constraint.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '#/components/schemas/EntityID'
-      responses:
-        "200":
-          description: Constraint details were retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetConstraintDetailsResponse'
-        "400":
-          description: One or more input parameters were missing or invalid.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "404":
-          description: The requested Entity could not be found.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.constraint_processing
-  /oim/v1/constraints:
-    summary: A PSU OIM's representation of detailed information about constraints.
-    post:
-      tags:
-      - Constraint details
-      - p2p_uam
-      summary: Notify a peer PSU of changed constraint details.
-      description: Notify a peer PSU directly of changed constraint details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyConstraintDetailsChanged
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutConstraintDetailsParameters'
-        required: true
-      responses:
-        "204":
-          description: New or updated full constraint information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: "The Entity version specified in this message is lower than a previously-received notification, or identical to a previously-received notification and the Entity is different."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - uam.constraint_management
   /oim/v1/reports:
     summary: Error reports of issues communicating with a peer PSU.
     post:
@@ -525,390 +275,6 @@ paths:
         - uam.strategic_coordination
 components:
   schemas:
-    UUIDv4Format:
-      maxLength: 36
-      minLength: 36
-      pattern: "'^[0-9a-fA-F]{8}\\\\-[0-9a-fA-F]{4}\\\\-4[0-9a-fA-F]{3}\\\\-[8-b][0-9a-fA-F]{3}\\\\-[0-9a-fA-F]{12}$'"
-      type: string
-      description: String whose format matches a version-4 UUID according to RFC 4122.
-      format: uuid
-      example: 03e5572a-f733-49af-bc14-8a18bd53ee39
-    EntityID:
-      description: |-
-        Identifier for an Entity communicated through the DSS.  Formatted as
-        a UUIDv4.
-      example: 2f8343be-6482-4d1b-a474-16847e01af1e
-      anyOf:
-      - $ref: '#/components/schemas/UUIDv4Format'
-    EntityOVN:
-      title: EntityOVN
-      maxLength: 128
-      minLength: 16
-      type: string
-      description: |-
-        A token associated with a particular UAM Entity+version created
-        by the DSS upon creation or modification of an Entity reference and provided
-        to the client creating or modifying the Entity reference.  The EntityOVN
-        is stored privately by the DSS and then compared against entries in a Key
-        provided to mutate the airspace.  The EntityOVN is also provided by
-        the client whenever that client transmits the full information of the Entity
-        (either via GET, or via a subscription notification).
-      example: 9d158f59-80b7-4c11-9c0c-8a2b4d936b2d
-    SubscriptionID:
-      description: |-
-        Identifier for a subscription communicated through the DSS.  Formatted
-        as a UUIDv4.
-      example: 78ea3fe8-71c2-4f5c-9b44-9c02f5563c6f
-      anyOf:
-      - $ref: '#/components/schemas/UUIDv4Format'
-    Key:
-      type: array
-      description: |
-        Proof that a client has obtained the latest airspace content, used to ensure that write
-        operations to the DSS occur only when the latest content is known (i.e. has been read). The
-        client is required to pass a current Key constructed from information obtained with
-        previous read operations and subsequent requests for full information, and optionally,
-        subscription updates for deconflicted write operations to the DSS.  The contents of this
-        data structure are generated by the client.
-      items:
-        $ref: '#/components/schemas/EntityOVN'
-      default: []
-    Time:
-      required:
-      - format
-      - value
-      type: object
-      properties:
-        value:
-          type: string
-          description: RFC3339-formatted time/date string.  The time zone must be 'Z'.
-          format: date-time
-          example: 1985-04-12T23:20:50.52Z
-        format:
-          type: string
-          enum:
-          - RFC3339
-    Radius:
-      required:
-      - units
-      - value
-      type: object
-      properties:
-        value:
-          minimum: 0
-          exclusiveMinimum: true
-          type: number
-          description: "Distance from the centerpoint of a circular area, along the WGS84 ellipsoid."
-          format: float
-          example: 300.183
-        units:
-          type: string
-          description: FIXM-compatible units.  Only meters ("M") are acceptable for UAM.
-          enum:
-          - M
-    Altitude:
-      required:
-      - reference
-      - units
-      - value
-      type: object
-      properties:
-        value:
-          maximum: 100000
-          exclusiveMaximum: false
-          minimum: -8000
-          exclusiveMinimum: false
-          type: number
-          description: |-
-            The numeric value of the altitude. Note that min and max values are
-            added as a sanity check. As use cases evolve and more options are
-            made available in terms of units of measure or reference systems,
-            these bounds may be re-evaluated.
-          format: double
-        reference:
-          type: string
-          description: |-
-            A code indicating the reference for a vertical distance. See AIXM 5.1
-            and FIXM 4.2.0. Currently, UAM only allows WGS84 with no immediate
-            plans to allow other options. FIXM and AIXM allow for 'SFC' which is
-            equivalent to AGL.
-          enum:
-          - W84
-        units:
-          type: string
-          description: |-
-            The reference quantities used to express the value of altitude. See
-            FIXM 4.2. Currently, UAM only allows meters with no immediate plans
-            to allow other options.
-          enum:
-          - M
-    Latitude:
-      maximum: 90
-      exclusiveMaximum: false
-      minimum: -90
-      exclusiveMinimum: false
-      type: number
-      description: "Degrees of latitude north of the equator, with reference to the WGS84 ellipsoid."
-      format: double
-      example: 34.123
-    Longitude:
-      maximum: 180
-      exclusiveMaximum: false
-      minimum: -180
-      exclusiveMinimum: false
-      type: number
-      description: "Degrees of longitude east of the Prime Meridian, with reference to the WGS84 ellipsoid."
-      format: double
-      example: -118.456
-    Polygon:
-      required:
-      - vertices
-      type: object
-      properties:
-        vertices:
-          minItems: 3
-          type: array
-          items:
-            $ref: '#/components/schemas/LatLngPoint'
-      description: |-
-        An enclosed area on the earth.
-        The bounding edges of this polygon are defined to be the shortest paths between connected vertices.  This means, for instance, that the edge between two points both defined at a particular latitude is not generally contained at that latitude.
-        The winding order must be interpreted as the order which produces the smaller area.
-        The path between two vertices is defined to be the shortest possible path between those vertices.
-        Edges may not cross.
-        Vertices may not be duplicated.  In particular, the final polygon vertex must not be identical to the first vertex.
-    LatLngPoint:
-      required:
-      - lat
-      - lng
-      type: object
-      properties:
-        lng:
-          $ref: '#/components/schemas/Longitude'
-        lat:
-          $ref: '#/components/schemas/Latitude'
-      description: Point on the earth's surface.
-    Circle:
-      required:
-      - center
-      - radius
-      type: object
-      properties:
-        center:
-          $ref: '#/components/schemas/LatLngPoint'
-        radius:
-          $ref: '#/components/schemas/Radius'
-      description: A circular area on the surface of the earth.
-    Volume3D:
-      required:
-      - altitude_lower
-      - altitude_upper
-      type: object
-      properties:
-        outline_circle:
-          description: A circular geographic shape on the surface of the earth.
-          anyOf:
-          - $ref: '#/components/schemas/Circle'
-        outline_polygon:
-          description: A polygonal geographic shape on the surface of the earth.
-          anyOf:
-          - $ref: '#/components/schemas/Polygon'
-        altitude_lower:
-          description: "Minimum bounding altitude of this volume. Must be less than altitude_upper, if specified."
-          anyOf:
-          - $ref: '#/components/schemas/Altitude'
-        altitude_upper:
-          description: "Maximum bounding altitude of this volume. Must be greater than altitude_lower, if specified."
-          anyOf:
-          - $ref: '#/components/schemas/Altitude'
-      description: |-
-        A three-dimensional geographic volume consisting of a vertically-extruded shape.
-        Exactly one outline must be specified.
-    Volume4D:
-      required:
-      - time_end
-      - time_start
-      - volume
-      - resource_usage
-      type: object
-      properties:
-        volume:
-          $ref: '#/components/schemas/Volume3D'
-        time_start:
-          description: Beginning time of this volume. Must be before time_end.
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-        time_end:
-          description: End time of this volume. Must be after time_start.
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-        resource_usage:
-          type: array
-          description: If this volume describes a resource crossing or entry/exit, the resource and the event type
-            must be included. 
-          items: 
-            $ref: '#/components/schemas/ResourceUsage'
-      description: Contiguous block of geographic spacetime.
-    SubscriptionState:
-      required:
-      - notification_index
-      - subscription_id
-      type: object
-      properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
-        notification_index:
-          $ref: '#/components/schemas/SubscriptionNotificationIndex'
-      description: State of subscription which is causing a notification to be sent.
-    SubscriptionNotificationIndex:
-      minimum: 0
-      exclusiveMinimum: false
-      type: integer
-      description: Tracks the notifications sent for a subscription so the subscriber can detect missed notifications more easily.
-      format: int32
-      default: 0
-    UssBaseURL:
-      type: string
-      description: |-
-        The base URL of a PSU implementation of part or all of the PSU API. Per the PSU API, the full URL
-        of a particular resource can be constructed by appending, e.g., `/psu/v1/{resource}/{id}` to this base URL.
-        Accordingly, this URL may not have a trailing '/' character.
-      example: https://uam_psu.com/uam
-    OperationalIntentState:
-      type: string
-      description: "State of an operational intent.\n'Proposed': Operational intent is created and shared, but not yet in use; see standard text for more details.\n'Accepted': The operational intent has been strategically coordinated at its Acceptance Horizon. The latest \nairspace information has been received and evaluated and a DCB check has been completed.\n'Activated': Operational intent is in active use; see standard text for more details.\nThe create or update request for this operational intent reference must include a Key containing all OVNs for\nall relevant Entities.\n'DCB-Noncompliant': This state indicates that the aircraft is not currently in conformance or is predicted not \nto be in conformance with the DCB compliant operational intent that is being or has been shared with the PSU \nnetwork, as per the conformance bounds specified for each resource\n'Contingent': the operation has entered a circumstance in which the PSU CM role no longer has situational \nawareness of the aircraft position and/or operational intent. Specifically, this state is used to indicate \nsituations in which positional information is no longer being received by the PSU CM role to a degree that \nis necessary to meet identified conformance monitoring conformance requirements.\n'Cancalled': The operation has never been in Activated State and will not use the operational intent.\n'Completed': The operation is no longer using the operational intent because it has landed.\nThe create or update request for this operational intent may omit a Key in this case because the operational \nintent is being adjusted as flown and cannot necessarily deconflict."
-      enum:
-      - Proposed
-      - Accepted
-      - Activated
-      - DCB-noncompliant
-      - Contingent
-      - Canceled
-      - Completed
-    OperationalIntentReference:
-      required:
-      - id
-      - manager
-      - state
-      - subscription_id
-      - time_end
-      - time_start
-      - uss_availability
-      - uss_base_url
-      - version
-      type: object
-      properties:
-        id:
-          $ref: '#/components/schemas/EntityID'
-        manager:
-          type: string
-          description: |-
-            Created by the DSS based on creating client's ID (via access token).  Used internal
-            to the DSS for restricting mutation and deletion operations to manager.  Used by PSUs
-            to reject operational intent update notifications originating from a PSU that does not manage
-            the operational intent.
-          example: psu1
-        uss_availability:
-          $ref: '#/components/schemas/UssAvailabilityState'
-        version:
-          type: integer
-          description: |-
-            Numeric version of this operational intent which increments upon each change in the operational intent,
-            regardless of whether any field of the operational intent reference changes.  A PSU with the
-            details of this operational intent when it was at a particular version does not need to retrieve
-            the details again until the version changes.
-          format: int32
-          example: 1
-        state:
-          $ref: '#/components/schemas/OperationalIntentState'
-        ovn:
-          description: |-
-            Opaque version number of this operational intent.  Populated only when the OperationalIntentReference
-            is managed by the PSU retrieving or providing it.  Not populated when the
-            OperationalIntentReference is not managed by the PSU retrieving or providing it (instead, the
-            PSU must obtain the OVN from the details retrieved from the managing PSU).
-          anyOf:
-          - $ref: '#/components/schemas/EntityOVN'
-        time_start:
-          description: Beginning time of operational intent. The estimated time at which the aircraft will commence movement associated with departure​ (ETD).
-          externalDocs:
-            description: See FIXM 4.2.0 for further information.
-            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_DepartureType.html#Link243
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-        time_end:
-          description: End time of operational intent. The estimated time at which the aircraft will arrive at the destination vertiport (ETA).
-          anyOf:
-          - $ref: '#/components/schemas/Time'
-        uss_base_url:
-          $ref: '#/components/schemas/OperationalIntentUssBaseURL'
-        subscription_id:
-          description: |-
-            The ID of the subscription that is ensuring the operational intent manager receives relevant
-            airspace updates.
-          anyOf:
-          - $ref: '#/components/schemas/SubscriptionID'
-      description: "The high-level information of a planned or active operational intent with the URL\nof a PSU to query for details.  \nThis information is sourced from the exchange between the PSU and the DSS"
-    OperationalIntentUssBaseURL:
-      description: |-
-        The base URL of a PSU implementation that implements the parts of the PSU API necessary for
-        providing the details of this operational intent, and telemetry during non-conformance or contingency,
-        if applicable.
-      anyOf:
-      - $ref: '#/components/schemas/UssBaseURL'
-    ConstraintReference:
-      required:
-      - id
-      - manager
-      - time_end
-      - time_start
-      - uss_availability
-      - uss_base_url
-      - version
-      type: object
-      properties:
-        id:
-          $ref: '#/components/schemas/EntityID'
-        manager:
-          type: string
-          description: |-
-            Created by the DSS based on creating client's ID (via access token).  Used internal
-            to the DSS for restricting mutation and deletion operations to manager.  Used by PSUs
-            to reject constraint update notifications originating from a PSU that does not manage
-            the constraint.
-          example: psu1
-        uss_availability:
-          $ref: '#/components/schemas/UssAvailabilityState'
-        version:
-          type: integer
-          description: |-
-            Numeric version of this constraint which increments upon each change in the constraint,
-            regardless of whether any field of the constraint reference changes.  A PSU with the
-            details of this constraint when it was at a particular version does not need to retrieve
-            the details again until the version changes.
-          format: int32
-          example: 1
-        ovn:
-          description: |-
-            Opaque version number of this constraint.  Populated only when the ConstraintReference
-            is managed by the PSU retrieving or providing it.  Not populated when the
-            ConstraintReference is not managed by the PSU retrieving or providing it (instead, the
-            PSU must obtain the OVN from the details retrieved from the managing PSU).
-          anyOf:
-          - $ref: '#/components/schemas/EntityOVN'
-        time_start:
-          $ref: '#/components/schemas/Time'
-        time_end:
-          $ref: '#/components/schemas/Time'
-        uss_base_url:
-          $ref: '#/components/schemas/ConstraintUssBaseURL'
-      description: "A ConstraintReference (area in which a constraint is present, along with other high-level information, but no details). This information is based on the exchanges of the PSU with the DSS"
-    ConstraintUssBaseURL:
-      description: |-
-        The base URL of a PSU implementation that implements the parts of the PSU API necessary for
-        providing the details of this constraint.
-      anyOf:
-      - $ref: '#/components/schemas/UssBaseURL'
     OperationalIntentDetails:
       required:
       - intent
@@ -951,7 +317,7 @@ components:
               Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
               May not contain any items when the operational intent is Contingent.
             items:
-              $ref: '#/components/schemas/Volume4D'
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume4D'
             default: []
         off_nominal_volumes:
           type: array
@@ -961,7 +327,7 @@ components:
             Required with at least one item when the operational intent is Nonconforming or Contingent.
             May not contain any items when the operational intent is Proposed, Accepted, Activated or DCB-Noncompliant.
           items:
-            $ref: '#/components/schemas/Volume4D'
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume4D'
           default: []
         priority:
           $ref: '#/components/schemas/Priority'
@@ -977,37 +343,10 @@ components:
       type: object
       properties:
         reference:
-          $ref: '#/components/schemas/OperationalIntentReference'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/OperationalIntentReference'
         details:
           $ref: '#/components/schemas/OperationalIntentDetails'
       description: Full description of a UAM operational intent.
-    PutOperationalIntentDetailsParameters:
-      required:
-      - operational_intent_id
-      - subscriptions
-      type: object
-      properties:
-        operational_intent_id:
-          description: ID of operational intent that has changed.
-          anyOf:
-          - $ref: '#/components/schemas/EntityID'
-        operational_intent:
-          description: |-
-            Full information about the operational intent that has changed.  If this field is omitted,
-            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
-          anyOf:
-          - $ref: '#/components/schemas/OperationalIntent'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '#/components/schemas/SubscriptionState'
-      description: |-
-        Parameters of a message informing of detailed information for a peer operational intent.
-        Pushed (by a client, not the DSS) directly to clients with subscriptions when
-        another client makes a change to airspace within a cell with a subscription.
     GetOperationalIntentDetailsResponse:
       required:
       - operational_intent
@@ -1016,67 +355,6 @@ components:
         operational_intent:
           $ref: '#/components/schemas/OperationalIntent'
       description: Response to peer request for the details of operational intent with the given ID.
-    ConstraintDetails:
-      required:
-      - volumes
-      type: object
-      properties:
-        volumes:
-          minItems: 1
-          type: array
-          description: |-
-            Volumes that wholly contain the constraint while being as small as practical.
-            The end time may not be in the past.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-        type:
-          type: string
-          description: Type of airspace feature this constraint represents.
-          example: com.example.non_utm_aircraft_operations
-      description: Details of a UAM constraint. Note that this data is not stored in the DSS; only with the clients.
-    Constraint:
-      required:
-      - details
-      - reference
-      type: object
-      properties:
-        reference:
-          $ref: '#/components/schemas/ConstraintReference'
-        details:
-          $ref: '#/components/schemas/ConstraintDetails'
-      description: Full specification of a UAM constraint.
-    PutConstraintDetailsParameters:
-      required:
-      - constraint_id
-      - subscriptions
-      type: object
-      properties:
-        constraint_id:
-          description: ID of constraint that has changed.
-          anyOf:
-          - $ref: '#/components/schemas/EntityID'
-        constraint:
-          description: |-
-            Full information about the constraint that has changed.  If this field is omitted,
-            the constraint was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
-          anyOf:
-          - $ref: '#/components/schemas/Constraint'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '#/components/schemas/SubscriptionState'
-      description: "Parameters of a message informing of new full information for a constraint.  Pushed (by a client, not the DSS) directly to clients with subscriptions when another client makes a change to airspace within a cell with a subscription."
-    GetConstraintDetailsResponse:
-      required:
-      - constraint
-      type: object
-      properties:
-        constraint:
-          $ref: '#/components/schemas/Constraint'
-      description: Response to peer request for the details of constraint with the given ID.
     GetOperationalIntentTelemetryResponse:
       required:
       - operational_intent_id
@@ -1086,9 +364,9 @@ components:
         operational_intent_id:
           description: ID of the operational intent which the vehicle reporting telemetry is flying.
           anyOf:
-          - $ref: '#/components/schemas/EntityID'
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         telemetry:
-          $ref: '#/components/schemas/VehicleTelemetry'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/VehicleTelemetry'
         next_telemetry_opportunity:
           description: |-
             The next telemetry similar to this telemetry is not expected to be
@@ -1097,56 +375,8 @@ components:
             until at or after that time.  If this field is omitted, then there
             is no current expectation of new telemetry becoming available.
           anyOf:
-          - $ref: '#/components/schemas/Time'
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
       description: Response to a peer request for telemetry of an operational intent.
-    VehicleTelemetry:
-      required:
-      - position
-      - time_measured
-      - velocity
-      type: object
-      properties:
-        time_measured:
-          $ref: '#/components/schemas/Time'
-        position:
-          $ref: '#/components/schemas/Position'
-        velocity:
-          $ref: '#/components/schemas/Velocity'
-      description: "Vehicle position, altitude, and velocity."
-    PositionAccuracyVertical:
-      type: string
-      description: |-
-        Vertical error that is likely to be present in this reported position.
-        This is the GVA enumeration from ADS-B, plus some finer values for UAM vehicles.
-      enum:
-      - VAUnknown
-      - VA150mPlus
-      - VA150m
-      - VA45m
-      - VA25m
-      - VA10m
-      - VA3m
-      - VA1m
-    PositionAccuracyHorizontal:
-      type: string
-      description: |-
-        Horizontal error that is likely to be present in this reported position.
-        This is the NACp enumeration from ADS-B, plus 1m for a more complete range for UAM vehicles.
-      enum:
-      - HAUnknown
-      - HA10NMPlus
-      - HA10NM
-      - HA4NM
-      - HA2NM
-      - HA1NM
-      - HA05NM
-      - HA03NM
-      - HA01NM
-      - HA005NM
-      - HA30m
-      - HA10m
-      - HA3m
-      - HA1m
     ResourceEventType:
       type: string
       description: Describes if the trajectory point is a resource crossing or the beginning or end
@@ -1165,7 +395,7 @@ components:
             The ID of the resource being referenced by the trajectory property array.
             Required when crossing a waypoint-based resource or entering/exiting a 
             volume-based resource. 
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         resource_event:
           description: Describes if the trajectory point is a resource crossing or the beginning or end
             of resource usage. 
@@ -1188,21 +418,21 @@ components:
         lat_lng_point:
           description: "Latitude and Longitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
           anyOf:
-          - $ref: '#/components/schemas/LatLngPoint'
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
         altitude:
           description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
           anyOf:
-          - $ref: '#/components/schemas/Altitude'
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
         time:
           description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
           anyOf:
-          - $ref: '#/components/schemas/Time'
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         speed:
           description: |-
             Speed of the vehicle at this TrajectoryPoint.
             FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
           anyOf:
-          - $ref: '#/components/schemas/Velocity'
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
         trajectory_property_array:
           maxItems: 4
           minItems: 1
@@ -1257,92 +487,6 @@ components:
           - WHEELS_ON
           - AIRPORT_REFERENCE_LOCATION
       description: Describes any applicable properties of the trajectory point.
-    Position:
-      required:
-      - altitude
-      - latitude
-      - longitude
-      type: object
-      properties:
-        longitude:
-          $ref: '#/components/schemas/Longitude'
-        latitude:
-          $ref: '#/components/schemas/Latitude'
-        accuracy_h:
-          $ref: '#/components/schemas/PositionAccuracyHorizontal'
-        accuracy_v:
-          $ref: '#/components/schemas/PositionAccuracyVertical'
-        extrapolated:
-          type: boolean
-          description: |-
-            True if this position was generated primarily by computation
-            rather than primarily from a direct instrument measurement.
-          default: false
-        altitude:
-          $ref: '#/components/schemas/Altitude'
-      description: |-
-        Location of the UAM vehicle as reported for UAM.
-        Note: 'accuracy' values are required when extrapolated field is true.
-    Velocity:
-      required:
-      - speed
-      - units_speed
-      type: object
-      properties:
-        speed:
-          type: number
-          description: Speed numerical value.
-          format: float
-          example: 200.1
-        units_speed:
-          type: string
-          enum:
-          - MetersPerSecond
-          - Knots
-        track:
-          type: number
-          description: |-
-            Direction of flight expressed as a "True North-based" ground track angle.
-            This value is provided in degrees East of North with a minimum resolution of 1 degree.
-            A value of 360 indicates invalid, no value, or unknown.
-          format: float
-          example: 120
-          default: 0
-        speed_type:
-          type: string
-          description: Air speed or ground speed
-          default: GROUND
-          enum:
-          - GROUND
-          - AIR
-      description: Velocity of the associated vehicle at the time_measured.
-    UssAvailabilityStatus:
-      required:
-      - availability
-      - uss
-      type: object
-      properties:
-        uss:
-          type: string
-          description: Client ID (matching their `sub` in access tokens) of the USS to which this availability applies.
-        availability:
-          $ref: '#/components/schemas/UssAvailabilityState'
-    UssAvailabilityState:
-      type: string
-      description: |-
-        A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with
-        availability arbitration scope.  Upon determination via availability arbitration, a PSU is
-        Down when it does not respond appropriately, and a Down PSU may not perform the following
-        operations in the DSS:
-          * Create an operational intent in the Accepted or Activated states
-          * Modify an operational intent whose new or unchanged state is Accepted or Activated
-          * Delete an operational intent
-        A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the
-        Normal state.
-      enum:
-      - Unknown
-      - Normal
-      - Down
     PutUssAvailabilityDetails:
       required:
       - uss_availability_status
@@ -1358,7 +502,7 @@ components:
           type: array
           description: Subscription(s) prompting this notification.
           items:
-            $ref: '#/components/schemas/SubscriptionState'
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
       description: |-
         Updated uss availability details. 
   securitySchemes:
@@ -1380,7 +524,5 @@ components:
           tokenUrl: https://auth.example.com/oauth/token
           scopes:
             uam.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
-            uam.constraint_management: "Client may manage (create, edit, and delete) constraints according to the constraint management role."
-            uam.constraint_processing: Client may read constraint references from the DSS and details from the partner PSUs according to the constraint processing role.
             uam.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
             uam.availability_arbitration: Client may set the availability state of PSUs in the DSS.

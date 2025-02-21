@@ -411,7 +411,7 @@ components:
           anyOf:
           - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/EntityID'
         telemetry:
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/VehicleTelemetry'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/VehicleTelemetry'
       description: provide detailed information on the position of an aircraft associated with an operational intent.
   securitySchemes:
     Authority:
@@ -432,7 +432,5 @@ components:
           tokenUrl: https://auth.example.com/oauth/token
           scopes:
             utm.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
-            utm.constraint_management: "Client may manage (create, edit, and delete) constraints according to the constraint management role."
-            utm.constraint_processing: Client may read constraint references from the DSS and details from the partner PSUs according to the constraint processing role.
             utm.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
             utm.availability_arbitration: Client may set the availability state of PSUs in the DSS.

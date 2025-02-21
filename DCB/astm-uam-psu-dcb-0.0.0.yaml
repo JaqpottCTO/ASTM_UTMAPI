@@ -516,7 +516,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutResourceDetails'
+              $ref: '#/components/schemas/PutResourceDetails'
         required: true
       responses:
         "204":
@@ -588,7 +588,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutResourceDetails'
+              $ref: '#/components/schemas/PutResourceDetails'
         required: true
       responses:
         "204":
@@ -633,237 +633,6 @@ paths:
       security:
       - Authority:
         - utm.resource_management
-  /dcb/v1/resource_details/{entityid}/capacities:
-    summary: |-
-      endpoint hosted by DCB to allow RIS to share capacity information about a resource in response to a 
-      subscription that the DCB has with the DSS.
-    put:
-      tags:
-      - Resource capacities
-      - p2p_uam 
-      summary: Receive a new or changed temporary resource capacity from an RIS role. 
-      operationId: updateFutureResourceCapacities
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID of the operational intent.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutFutureCapacities'
-        required: true
-      responses:
-        "204":
-          description: Future temporary capacities were successfully received.
-        "400":
-          description: |-
-            * One or more input parameters were missing or invalid.
-            * The request attempted to mutate the operational intent in a disallowed way.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            * The provided key did not prove knowledge of all current and relevant airspace Entities
-            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
-        "412":
-          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "413":
-          description: The area of the operational intent is too large.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.resource_management
-  /dcb/v1/resource_details/{entityid}/status:
-    summary: |-
-      endpoint hosted by DCB to allow RIS to share status information about a resource in response to a 
-      subscription that the DCB has with the DSS.
-    put:
-      tags:
-      - Resource status
-      - p2p_uam 
-      summary: Receive a new or changed resource status from an RIS role. 
-      operationId: updateCurrentResourceStatus
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID of the resource.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutCurrentResourceStatus'
-        required: true
-      responses:
-        "204":
-          description: Current resource status was successfully received.
-        "400":
-          description: |-
-            * One or more input parameters were missing or invalid.
-            * The request attempted to mutate the operational intent in a disallowed way.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            * The provided key did not prove knowledge of all current and relevant airspace Entities
-            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
-        "412":
-          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "413":
-          description: The area of the operational intent is too large.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.resource_management
-  /dcb/v1/resource_details/{entityid}/definition:
-    summary: |-
-      endpoint hosted by DCB to allow RIS to share definition information about a resource in response to a 
-      subscription that the DCB has with the DSS.
-    put:
-      tags:
-      - Resource definition
-      - p2p_uam 
-      summary: Receive a resource definition change from an RIS role. 
-      operationId: updateResourceDefinition
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID of the resource.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/PutResourceDefinition'
-        required: true
-      responses:
-        "204":
-          description: Updated resource definition was successfully received.
-        "400":
-          description: |-
-            * One or more input parameters were missing or invalid.
-            * The request attempted to mutate the operational intent in a disallowed way.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            * The provided key did not prove knowledge of all current and relevant airspace Entities
-            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/AirspaceConflictResponse'
-        "412":
-          description: The client attempted to transition the operational intent to Accepted or Activated while marked as Down in the DSS.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "413":
-          description: The area of the operational intent is too large.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.resource_management
   /dcb/v1/operational_intents:
     summary: A PSU OIM's representation of detailed information about new operational intents.
     post:
@@ -877,7 +646,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutOperationalIntentDetailsParameters'
+              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
         required: true
       responses:
         "204":
@@ -947,7 +716,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutOperationalIntentDetailsParameters'
+              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
         required: true
       responses:
         "204":
@@ -1064,7 +833,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutUssAvailabilityDetails'
+              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutUssAvailabilityDetails'
         required: true
       responses:
         "204":
@@ -1445,5 +1214,52 @@ components:
           description: End time of this availability time interval. Must be after time_start.
           anyOf:
             - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+    PutOperationalIntentDetailsParameters:
+      required:
+      - operational_intent_id
+      - subscriptions
+      type: object
+      properties:
+        operational_intent_id:
+          description: ID of operational intent that has changed.
+          anyOf:
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+        operational_intent:
+          description: |-
+            Full information about the operational intent that has changed.  If this field is omitted,
+            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
+            populated.
+          anyOf:
+          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '#/components/schemas/SubscriptionState'
+      description: |-
+        Parameters of a message informing of detailed information for a peer operational intent.
+        Pushed (by a client, not the DSS) directly to clients with subscriptions when
+        another client makes a change to airspace within a cell with a subscription.
+    PutResourceDetails:
+      required:
+        - resource_id
+        - subscriptions
+        - resource_details
+      type: object
+      properties:
+        resource_id:
+          description: ID of resource.
+          anyOf:
+          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
+        resource_details:
+          $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/ResourceDetails'
+    
              
 
