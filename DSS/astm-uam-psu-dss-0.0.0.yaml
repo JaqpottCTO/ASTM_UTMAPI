@@ -742,7 +742,7 @@ paths:
       security:
       - Authority:
         - uam.resource_management
-/dss/v1/subscriptions/query:
+  /dss/v1/subscriptions/query:
     summary: Subscriptions for airspace updates to a volume of interest.
     post:
       tags:

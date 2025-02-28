@@ -89,6 +89,77 @@ paths:
         - uam.strategic_coordination
       - Authority:
         - uam.resource_management
+  /oim/v1/conformance_alert/{entityid}:
+    summary: |-
+      endpoint hosted by OIM to allow CM to provide conformance monitoring alerts including for
+      when an operation is detected to be taking off, when it is detected to be non conformant
+      and when it is detected to be conformant after a nonconformance. This will usually required
+      a change of state for teh operation by the OIM in the DSS
+    put:
+      tags:
+      - Telemetry
+      - p2p_uam
+      summary: Alert a peer PSU by conformance monitoring.
+      description: Notify a peer PSU directly with a conformance monitoring alert (usually requiring a change of state by the OIM in the DSS).
+      operationId: notifyConformanceAlert
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for the impacted operation.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PutConformanceAlert'
+        required: true
+      responses:
+        "204":
+          description: New or updated full resource information received successfully.
+        "400":
+          description: |-
+            * One or more parameters were missing or invalid.
+            * The Entity could not be parsed, or contains illegal data.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            The Entity version specified in this message is lower than
+            a previously-received notification, or identical to a previously-received
+            notification and the Entity is different.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.conformance_monitoring_sa
   /oim/v1/reports:
     summary: Error reports of issues communicating with a peer PSU.
     post:
@@ -450,7 +521,7 @@ components:
         resource_usage:
           type: array
           description: If this trajectory point describes a resource crossing or entry/exit, the resource and the event type
-            must be included. 
+            must be included. If no resource is used this array is empty.
           items: 
             $ref: '#/components/schemas/ResourceUsage'
       description: |
@@ -505,6 +576,25 @@ components:
             $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
       description: |-
         Updated uss availability details. 
+    PutConformanceAlert:
+      description: |-
+        Parameters for an alert about an operation from the CM role. 
+      required:
+      - alert
+      type: object
+      properties:
+        alert:
+          type: string
+          description: |-
+            Alert about an operation from the CM role.
+            'Takeoff': Tracking information has been received indicating that the aircraft has taken off
+            'Nonconforming': Tracking information has been received indicating that the aircraft is no longer in conformance with its coordinated (activated or DCB-Noncompliant) operational intent
+            'Reconforming': Tracking information has been received indicating that the aircraft is in conformance with its coordinated (activated or DCB-Noncompliant) operational intent after being nonconforming. 
+              Reconformance may be because the operation has regained conformance with its previously coordinated operational intent or because the intent has been updated.
+          enum:
+          - Takeoff
+          - Nonconforming
+          - Reconforming
   securitySchemes:
     Authority:
       type: oauth2
