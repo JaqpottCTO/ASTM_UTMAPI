@@ -120,36 +120,77 @@ CM -> RIS: GET /ris/v1/resource-details/{resource-id} (includes OVN)
 CM <-- RIS: resource details (everything)
 OIM -> CM: POST /cm/v1/operational_intents
 
-op -> CM: Tracking info for CM
-alt If tracking info for operation in Accepted state
-    CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
-    note over OIM: OIM does a DCB check
-    OIM -> DCB: POST /dcb/v1/imbalance/intent
-    OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
+op -> OIM: Operation ready to activate
+note over OIM: OIM does a DCB check
+OIM -> DCB: POST /dcb/v1/imbalance/intent
+OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
 
-    alt If imbalance detected
-        note over OIM: Do not update the operation
-    else If no imbalance detected
+alt If imbalance detected
+    note over OIM: Do not update the operation
+    OIM -> op: Op cannot activate
+else If no imbalance detected
+    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+    DSS -> DSS: Confirms OVNs are correct
+    OIM <-- DSS: operation intent reference with subscribers
+    loop For all subscribers
+        OIM -> DCB2: POST /dcb/v1/operational_intents
+        OIM -> DCB: POST /dcb/v1/operational_intents
+    end
+    OIM -> op: Op can activate
+end 
+
+op -> CM: Tracking info for CM
+CM -> CM: Conformance monitoring
+alt If operation in conformance
+    note over CM: Do nothing
+else If operation not in conformance
+    CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Nonconforming)
+    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming)
+    OIM <-- DSS: operation intent reference with subscribers
+    loop For all subscribers
+        OIM -> DCB2: POST /dcb/v1/operational_intents
+        OIM -> DCB: POST /dcb/v1/operational_intents
+    end
+    OIM -> op: Op nonconformant
+    alt If operator can return to conformance
+        op -> CM: Tracking info for CM conformant
+        CM -> CM: Conformance monitoring
+        CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Reconforming)
         OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
-        DSS -> DSS: Confirms OVNs are correct
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
             OIM -> DCB2: POST /dcb/v1/operational_intents
             OIM -> DCB: POST /dcb/v1/operational_intents
         end
-    end 
-else If tracking info for operation in Activated state
-    CM -> CM: Conformance monitoring
-    alt If operation in conformance
-        note over CM: Do nothing
-    else If operation not in conformance
-        CM -> OIM: POST /oim/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming)
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming)
+        OIM -> op: Op activated
+    else If operator can replan intent
+        op -> op: Replan intent
+        op -> OIM: Updated op request
+        note over OIM: OIM does a DCB check
+        OIM -> DCB: POST /dcb/v1/imbalance/intent
+        OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
+
+        alt If imbalance detected
+            note over OIM: Do not update the operation
+            OIM -> op: Op cannot activate
+        else If no imbalance detected
+            OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+            DSS -> DSS: Confirms OVNs are correct
+            OIM <-- DSS: operation intent reference with subscribers
+            loop For all subscribers
+                OIM -> DCB2: POST /dcb/v1/operational_intents
+                OIM -> DCB: POST /dcb/v1/operational_intents
+            end
+            OIM -> op: Op activated
+        end 
+    else If op cannot become conformant in time limit
+        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Contingent)
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
             OIM -> DCB2: POST /dcb/v1/operational_intents
             OIM -> DCB: POST /dcb/v1/operational_intents
         end
+        OIM -> op: Op Contingent
     end
 end
 
@@ -178,6 +219,6 @@ end
 ==Position Sharing==
 loop 
     CM2 -> CM: GET /cm/v1/operational_intents/{entityid}/telemetry
-    CM2 <-- CM: telemetry
+    CM2 <-- CM: Tracking info for CM
 end
 @enduml
