@@ -892,9 +892,11 @@ components:
     IntentTrajectoryPoint:
       type: object
       required:
-        - lat_lng_point
         - altitude
+        - lat_lng_point
+        - speed
         - time
+        - trajectory_property_array
       properties:
         lat_lng_point:
           description: "Latitude and Longitude of the point."
@@ -908,11 +910,26 @@ components:
           description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
           anyOf:
           - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
-        groundspeed:
+        speed:
           description: |-
-            Speed of the vehicle at this TrajectoryPoint. Not required. 
+            Speed of the vehicle at this TrajectoryPoint.
+            FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
           anyOf:
           - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
+        trajectory_property_array:
+          maxItems: 4
+          minItems: 1
+          type: array
+          description: |-
+            Describes any applicable properties of the trajectory point.
+            May include multiple properties per point. FIXM allows up to 2000 properties per
+            trajectory point. For X4 we are allowing up to 4.
+            The first point of initial plan must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
+            The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
+          externalDocs:
+            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
+          items:
+            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryProperty'
     IntentTrajectory:
       type: object
       required:

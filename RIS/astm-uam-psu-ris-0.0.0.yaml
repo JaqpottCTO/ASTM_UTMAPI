@@ -428,6 +428,7 @@ components:
         type:
           $ref: '#/components/schemas/ResourceType' 
     ResourceStatus:
+      description: The current status of the resource. This status is independent of the resource capacity. No end time to the status is specified.
       required: 
         - status
       properties:
@@ -599,22 +600,13 @@ components:
             If not provided, the current capacity continues indefinitely. 
           anyOf:
           - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
-    FutureCapacities:
-      required:
-        - future_capacities
-      description: |-
-        List of upcoming capacity changes for the resource.  Should be ordered by time and progress
-        from earliest to latest. 
-      type: array
-      items:
-        $ref: "#/components/schemas/TemporaryResourceCapacity"
     CurrentResourceStatus:
       required:
         - status
         - active_capacity
         - performance_bound
       description: |-
-        Returns the current resource status and active capacity rule in place. 
+        Returns the current resource status, active capacity and resource performance bound. 
       properties:
         status: 
           $ref: '#/components/schemas/ResourceStatus'
@@ -646,7 +638,7 @@ components:
             An array of future resource capacities, excluding the current active capacity and its end/transition back to the default capacity.
             The current active capacity and its end/transition back to the default capacity is defined by the CurrentResourceStatus ActiveResourceCapacity.
           items: 
-            $ref: '#/components/schemas/FutureCapacities'
+            $ref: '#/components/schemas/TemporaryResourceCapacity'
           default: []
     QueryResourceDetailsResponse:
       required:
@@ -692,9 +684,11 @@ components:
         - future_capacities
       properties:
         future_capacities:
+          description: An array of future resource capacities, excluding the current active capacity and its end/transition back to the default capacity.
+            The current active capacity and its end/transition back to the default capacity is defined by the CurrentResourceStatus ActiveResourceCapacity.
           type: array
           items: 
-            $ref: '#/components/schemas/FutureCapacities'
+            $ref: '#/components/schemas/TemporaryResourceCapacity'
           default: []
 
 
