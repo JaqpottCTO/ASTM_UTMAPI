@@ -342,6 +342,91 @@ paths:
       security:
       - Authority:
         - utm.dcb_check        
+  /dcb/v1/imbalance/recheck:
+    post:
+      description: >-
+        Demand-capacity imbalance detection recheck endpoint that allows users to 
+        detect whether the resources intersected by this operational intent are below, at, or 
+        above available capacity. The OIM must already have subscribed to the
+        DCB and provided the latest operational intent trajectory for this operation.  The returned 
+        demand-capacity imbalance responses do NOT include contributions from the planned 
+        operational intent but only consider operational intents known to DSS. This endpoint
+        is intended to return details sufficient for submitting the operational intent
+        to the DSS and other OIMs with ONLY the returned information. 
+      tags:
+        - Imbalance checks
+      summary: >-
+        Demand-capacity imbalance detection recheck endpoint that allows users to 
+        detect whether the resources intersected by this operational intent are below, at, or 
+        above available capacity. The OIM must already have subscribed to the
+        DCB and provided the latest operational intent trajectory for this operation.  The returned 
+        demand-capacity imbalance responses do NOT include contributions from the planned 
+        operational intent but only consider operational intents known to DSS. This endpoint
+        is intended to return details sufficient for submitting the operational intent
+        to the DSS and other OIMs with ONLY the returned information. 
+      operationId: postImbalanceRecheck
+      parameters:
+        - name: existingOperationalIntentId
+          in: query
+          required: true
+          description: The operational intent to recheck.  This operational intent must already
+            be included within an existing imbalance subscription with this DCB. 
+          schema:
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+      responses:
+        '200':
+          description: >-
+            Demand-capacity imbalance status for the resources included in the planned operational intent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentBasedImbalanceRecheckResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+          description: >-
+            One or more parameters were missing or invalid.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+          description: |-
+            Bearer access token was not provided in Authorization header,
+            token could not be decoded, or token was invalid.
+        '415':
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+          description: |-
+            Request Content-type header was different from the required application/json.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+          description: |-
+            The number of requests exceeded DCB processing capabilities. The client should wait and then retry sending the request.
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+          description: |-
+            DCB service error.
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+          description: |-
+            DCB service availability error triggered by unavailability of one or more required services such as DSS.
+      security:
+      - Authority:
+        - utm.dcb_check
   /dcb/v1/imbalance/query:
     post:
       description: >-
@@ -952,6 +1037,30 @@ components:
             imbalances need to be checked. The 'ovn' attribute in the operational intent reference 
             is not required/processed since it is assumed that this DCB endpoint is checked first 
             before communicating with DSS. 
+    IntentBasedImbalanceRecheckResponse:
+      type: object
+      required:
+        - resource_extents
+        - is_dcb_compliant
+      properties:
+        is_dcb_compliant:
+          type: boolean
+          description: Returns true if the trajectory is DCB compliant (no imbalances). 
+            Returns false if any imbalances exist (trajectory non-DCB compliant). 
+        resource_extents:
+          required:
+          - extents
+          type: object
+          properties: 
+            extents:
+              minItems: 1
+              type: array
+              description: |-
+                List of resources and crossing OR entry/exit times when the resource
+                will be occupied by the  Operational Intent.  These extents are intended to be
+                shared with the DSS when the Operation Intent is submitted/updated. 
+              items:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtent'
     IntentBasedImbalanceResponse:
       type: object
       required:
@@ -1027,12 +1136,16 @@ components:
     OperationalIntentForMonitoring:
       required:
         - operational_intent_id
+        - operational_intent_reference
         - operational_intent_details
       type: object
       properties:
         operational_intent_id:
           description: The ID of the operational intent (as shared with the DSS and other entities). 
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+        operational_intent_reference:
+          description: The operational intent reference (as shared with the DSS and other entities)
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/OperationalIntentReference'
         operational_intent_details:
           description: The operational intent details shared with other stakeholders.
           $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntentDetails'
@@ -1119,14 +1232,13 @@ components:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
     ContributingOperation:
       type: object
-      description: Id and OVN of an operation contributing to demand or imbalance. 
+      description: Basic details of an operation contributing to demand or imbalance. 
       required:
         - operational_intent_id
-        - operation_ovn
+        - resource_usage
+        - priority_rank
+        - is_dcb_compliant
       properties:
-        operation_ovn:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
-          description: OVN of the operation
         operational_intent_id:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
           description: Operational intent ID of the operation
@@ -1136,7 +1248,21 @@ components:
             for a waypoint based resource. 
           anyOf:
             - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceCrossing"
-            - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceOccupationDuration"  
+            - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceOccupationDuration" 
+        priority_rank: 
+          description: The absolute priority rank of this flight compared to other flights utilizing the resource
+            within this time bin or within the applicable time range of this bin. Each flight must have
+            a unique priority rank. 
+          type: integer
+          minimum: 0
+          default: 0
+        is_dcb_compliant:
+          description: |-
+            True if this flight is DCB compliant.  False if this flight is DCB non-compliant within
+            this time bin or within the applicable time range of this bin.  Used to indicate which flights 
+            should be changed and which flights can remain. 
+          type: boolean
+          default: true
     DemandCapacityImbalanceInterval:
       type: object
       description: >-
@@ -1178,7 +1304,7 @@ components:
             $ref: '#/components/schemas/ContributingOperation'
           minItems: 0
           description: >-
-            IDs and OVNs for all operations contributing to the reported demand at this resource at this time bin
+            Summary of all operations contributing to the reported demand at this resource at this time bin
     ResourceDemandCapacityImbalances:
       type: object
       description: >-
@@ -1216,8 +1342,7 @@ components:
           items:
             $ref: '#/components/schemas/ResourceAvailabilityInterval'
     ResourceAvailabilityInterval:
-      description: An interval of time when the resource is UNDER_CAPACITY. Includes the OVNs
-        for all operations contributing to the demand within that interval. 
+      description: An interval of time when the resource is UNDER_CAPACITY.
       type: object
       required:
         - time_start

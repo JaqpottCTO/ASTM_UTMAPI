@@ -2100,6 +2100,42 @@ components:
           $ref: "#/components/schemas/Time"
         exit_time:
           $ref: "#/components/schemas/Time"
+    PastResourceExtent:
+      description: Describes a resource crossing or occupation which has occurred
+        in the past for this flight.  The operation and resource OVNs do not need
+        to be shared because the operation has already (and is no longer) utilizing
+        these resources. The intent of this schema is to allow the DSS to maintain
+        past occupation to support DCB. 
+      required:
+        - resource_id
+        - resource_usage
+      type: object
+      properties:
+        resource_usage:
+          description: |-
+            Duration of time for a volume based resource, or crossing Time
+            for a waypoint based resource. 
+          anyOf:
+            - $ref: "#/components/schemas/ResourceCrossing"
+            - $ref: "#/components/schemas/ResourceOccupationDuration"  
+        resource_id:
+          description: |-
+            The ID of a resources being occupied or crossed by the operational intent. 
+            Details of the crossing times and durations are also shared peer-to-peer when the
+            operational intent trajectory is shared. 
+          $ref: '#/components/schemas/EntityID'
+        resource_ovn:
+          description: |-
+            The OVN of the resource being occupied or crossed by the operational intent. 
+            This proves the operation considers the latest status and capacity of the resource. 
+          $ref: '#/components/schemas/EntityOVN'
+        operation_ovns:
+          description: |-
+            The OVNs of all operations contributing to demand at this resource during the
+            relevant times based upon resource demand & capacity requirements. 
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityOVN'
     ResourceExtent:
       required:
         - resource_id
@@ -2146,6 +2182,18 @@ components:
             will be occupied by the Flight Intent. 
           items:
             $ref: '#/components/schemas/ResourceExtent'
+    PastResourceExtents:
+      required:
+        - past_extents
+      type: object
+      properties:
+        past_extents:
+          type: array
+          description: |-
+            List of resources and OR entry/exit times when the resource was occupied
+            by the Flight Intent. 
+          items:
+            $ref: '#/components/schemas/PastResourceExtent'
     OperationalExtents:
       type: object
       required:
@@ -2156,6 +2204,13 @@ components:
           - $ref: "#/components/schemas/ResourceExtents"
           - $ref: "#/components/schemas/VolumeExtents"
           - $ref: "#/components/schemas/OffNominalVolumeExtents"
+        past_extents:
+          description: Describes a resource crossing or occupation which has occurred
+            in the past for this flight.  The operation and resource OVNs do not need
+            to be shared because the operation has already (and is no longer) utilizing
+            these resources. The intent of this schema is to allow the DSS to maintain
+            past occupation to support DCB. 
+          $ref: "#/components/schemas/PastResourceExtents"
     VehicleTelemetry:
       required:
       - time_measured
