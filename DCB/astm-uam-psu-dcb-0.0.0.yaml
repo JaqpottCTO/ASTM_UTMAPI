@@ -155,7 +155,7 @@ paths:
       security:
       - Authority:
         - utm.dcb_check
-  /dss/v1/imbalance_subscriptions/{subscriptionid}/{version}:
+  /dcb/v1/imbalance_subscriptions/{subscriptionid}/{version}:
     summary: Update/delete a specific imbalance subscription in the DCB.
     put:
       tags:
@@ -273,11 +273,21 @@ paths:
           schema:
             type: boolean
             default: false
-        - name: timeBuffer
+        - name: timeBufferBefore
           in: query
           required: false
-          description: Parameter defining a time buffer in minutes around resource ETAs 
-            (ETA-timeBuffer, ETA+timeBuffer) for which availability time ranges are requested
+          description: Parameter defining a time buffer in minutes before the resource ETA
+            for which availability time ranges are requested. 
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 120
+            default: 0
+        - name: timeBufferAfter
+          in: query
+          required: false
+          description: Parameter defining a time buffer in minutes after the resource ETA
+            for which availability time ranges are requested. 
           schema:
             type: integer
             minimum: 0
@@ -505,7 +515,7 @@ paths:
       security:
       - Authority:
         - utm.dcb_check
-  /dcb/v1/availability/{resourceId}:
+  /dcb/v1/availability:
     get:
       description: >-
         Resource availability endpoint that provides information on available time intervals 
@@ -517,10 +527,14 @@ paths:
         time intervals during which demand is below available capacity. 
       operationId: getAvailabilityByResource
       parameters:
-        - name: resourceId
-          in: path
-          description: Id of the resource
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+        - name: resourceIds
+          in: query
+          required: true
+          description: List of resources to check availability during the time range specified. 
+          schema:
+            type: array
+            items: 
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         - name: time_start
           in: query
           required: true
@@ -538,7 +552,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ResourceAvailability'
+                $ref: '#/components/schemas/ResourceAvailabilityList'
         '400':
           content:
             application/json:
@@ -1327,6 +1341,17 @@ components:
           items:
             $ref: '#/components/schemas/DemandCapacityImbalanceInterval'
           description: List of imbalance time ranges and determinations for the resource. 
+    ResourceAvailabilityList:
+      description: A list of resources and associated time intervals within the provided start/end 
+        duration during which the demand is under the capacity of the resource.  
+      type: object
+      required:
+        - resource_availability
+      properties:
+        resource_availability:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceAvailability'
     ResourceAvailability:
       description: Returns a list of time intervals within the provided start/end duration during which
         the demand is under the capacity of the resource.  
@@ -1378,7 +1403,7 @@ components:
           type: array
           description: Subscription(s) prompting this notification.
           items:
-            $ref: '#/components/schemas/SubscriptionState'
+            $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionState'
       description: |-
         Parameters of a message informing of detailed information for a peer operational intent.
         Pushed (by a client, not the DSS) directly to clients with subscriptions when

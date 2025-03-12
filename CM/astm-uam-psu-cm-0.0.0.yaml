@@ -405,7 +405,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutUssAvailabilityDetails'
+              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutUssAvailabilityDetails'
         required: true
       responses:
         "204":
