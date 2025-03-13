@@ -7,11 +7,11 @@ servers:
 - url: /
 security:
 - Authority:
-  - uam.strategic_coordination
-  - uam.conformance_monitoring_sa
-  - uam.resource_management
-  - uam.resource_processing
-  - uam.availability_arbitration
+  - utm.strategic_coordination
+  - utm.conformance_monitoring_sa
+  - utm.resource_management
+  - utm.resource_processing
+  - utm.availability_arbitration
 tags:
 - name: Operational intent details
   description: Endpoints exposed by PSU OIMs for interaction with details of operational intents.
@@ -86,9 +86,9 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
   /oim/v1/conformance_alert/{entityid}:
     summary: |-
       endpoint hosted by OIM to allow CM to provide conformance monitoring alerts including for
@@ -212,19 +212,19 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.constraint_processing
+        - utm.constraint_processing
       - Authority:
-        - uam.constraint_management
+        - utm.constraint_management
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
       - Authority:
-        - uam.availability_arbitration
+        - utm.availability_arbitration
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
   /oim/v1/uss_availability:
     summary: Share USS availability with users of the airspace. 
     post:
@@ -233,7 +233,7 @@ paths:
       - p2p_uam
       summary: Notify a peer of USS availability change.
       description: Notify a peer of USS availability change which has been reported by 
-        a source with uam.availability_arbitration scope. 
+        a source with utm.availability_arbitration scope. 
       operationId: notifyAvailabilityArbitrationChange
       requestBody:
         content:
@@ -283,7 +283,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.availability_arbitration
+        - utm.availability_arbitration
   /oim/v1/imbalance:
     summary: Submit details about a detected resource demand capacity imbalance
       to the OIM which manages the operation. 
@@ -343,7 +343,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
 components:
   schemas:
     Trajectory:
@@ -620,6 +620,6 @@ components:
         clientCredentials:
           tokenUrl: https://auth.example.com/oauth/token
           scopes:
-            uam.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
-            uam.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
-            uam.availability_arbitration: Client may set the availability state of PSUs in the DSS.
+            utm.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
+            utm.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
+            utm.availability_arbitration: Client may set the availability state of PSUs in the DSS.

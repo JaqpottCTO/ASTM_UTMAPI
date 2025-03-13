@@ -78,6 +78,8 @@ loop For all subscribers
     OIM -> DCB: POST /dcb/v1/operational_intents (includes OVN)
     DCB -> DCB: Adjust demand/capacity values
 end
+note over OIM: create subscription with DCB
+OIM -> DCB: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}
 
 == A new subscriber joins == 
 DCB2 -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
@@ -98,8 +100,8 @@ loop For each operation reference received
 end
 
 == OIM does DCB check and transitions operation to Accepted state (OVNs required) ==
-OIM -> DCB: POST /dcb/v1/imbalance/intent
-OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
+OIM -> DCB: POST /dcb/v1/imbalance/recheck
+OIM <-- DCB: Yes/no, OVNs for all resources
 
 alt If imbalance detected
     note over OIM: Do not update the operation
@@ -122,8 +124,8 @@ OIM -> CM: POST /cm/v1/operational_intents
 
 op -> OIM: Operation ready to activate
 note over OIM: OIM does a DCB check
-OIM -> DCB: POST /dcb/v1/imbalance/intent
-OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
+OIM -> DCB: POST /dcb/v1/imbalance/recheck
+OIM <-- DCB: Yes/no, OVNs for all resources
 
 alt If imbalance detected
     note over OIM: Do not update the operation

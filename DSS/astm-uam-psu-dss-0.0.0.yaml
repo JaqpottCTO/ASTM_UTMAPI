@@ -12,11 +12,11 @@ servers:
 - url: /
 security:
 - Authority:
-  - uam.strategic_coordination
-  - uam.conformance_monitoring_sa
-  - uam.resource_management
-  - uam.resource_processing
-  - uam.availability_arbitration
+  - utm.strategic_coordination
+  - utm.conformance_monitoring_sa
+  - utm.resource_management
+  - utm.resource_processing
+  - utm.availability_arbitration
 tags:
 - name: Operational intent references
   description: Endpoints exposed by the DSS for interaction with references to operational intents.
@@ -89,9 +89,9 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
   /dss/v1/operational_intent_references/{entityid}:
     summary: Create/read endpoint for a specified operational intent reference in the DSS.
     get:
@@ -148,11 +148,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
     put:
       tags:
       - Operational intent references
@@ -229,7 +229,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
   /dss/v1/operational_intent_references/{entityid}/{ovn}:
     summary: Update endpoint for a specified operational intent reference in the DSS.
     put:
@@ -317,7 +317,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
     delete:
       tags:
       - Operational intent references
@@ -396,7 +396,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
   /dss/v1/resource_references/query:
     summary: Query all resource references in the DSS that intersect with a specified area/volume/time.
     post:
@@ -451,11 +451,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
   /dss/v1/resource_references/{entityid}:
     summary: Create/read endpoint for a specified resource reference in the DSS.
     get:
@@ -512,11 +512,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
     put:
       tags:
       - Resource references
@@ -587,7 +587,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
   /dss/v1/resource_references/{entityid}/{ovn}:
     summary: Update/delete endpoint for a specified resource reference in the DSS.
     put:
@@ -668,7 +668,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
     delete:
       tags:
       - Resource references
@@ -741,7 +741,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
   /dss/v1/subscriptions/query:
     summary: Subscriptions for airspace updates to a volume of interest.
     post:
@@ -800,13 +800,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.constraint_processing
+        - utm.constraint_processing
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
   /dss/v1/subscriptions/{subscriptionid}:
     summary: Create/read endpoint for a specific subscription in the DSS.
     get:
@@ -864,13 +864,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.constraint_processing
+        - utm.constraint_processing
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
     put:
       tags:
       - Subscriptions
@@ -940,13 +940,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.constraint_processing
+        - utm.constraint_processing
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
   /dss/v1/subscriptions/{subscriptionid}/{version}:
     summary: Update/delete a specific subscription in the DSS.
     put:
@@ -1028,13 +1028,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.constraint_processing
+        - utm.constraint_processing
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
     delete:
       tags:
       - Subscriptions
@@ -1107,13 +1107,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.constraint_processing
+        - utm.constraint_processing
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
   /dss/v1/reports:
     summary: Error reports of potential operational issues relevant to DSSs.
     post:
@@ -1164,19 +1164,19 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.constraint_management
+        - utm.constraint_management
       - Authority:
-        - uam.constraint_processing
+        - utm.constraint_processing
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
       - Authority:
-        - uam.availability_arbitration
+        - utm.availability_arbitration
   /dss/v1/uss_availability/{uss_id}:
     summary: Availability status of a USS
     get:
@@ -1228,11 +1228,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.availability_arbitration
+        - utm.availability_arbitration
       - Authority:
-        - uam.strategic_coordination
+        - utm.strategic_coordination
       - Authority:
-        - uam.conformance_monitoring_sa
+        - utm.conformance_monitoring_sa
     put:
       tags:
       - Availability
@@ -1289,7 +1289,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.availability_arbitration
+        - utm.availability_arbitration
 components:
   schemas:
     UUIDv4Format:

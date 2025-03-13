@@ -9,7 +9,7 @@ security:
 - Authority:
   - utm.strategic_coordination
   - utm.conformance_monitoring_sa
-  - uam.availability_arbitration
+  - utm.availability_arbitration
 tags:
 - name: Operational intent details
   description: Endpoints exposed by PSU OIMs for interaction with details of operational intents.
@@ -140,63 +140,6 @@ paths:
         - utm.strategic_coordination
   /cm/v1/operational_intents/{entityid}/telemetry:
     summary: Detailed information on the aircraft position associated with an operational intent.
-    post:
-      tags:
-      - Telemetry
-      - p2p_uam
-      summary: Notify the PSU CM role of detailed information on the position of an aircraft associated with an operational intent.
-      operationId: notifyOperationalIntentTelemetry
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID for this operational intent. The 'entityid' http request URL parameter is the ID of the Operation for which telemetry data is requested.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutOperationalIntentTelemetry'
-        required: true
-      responses:
-        "204":
-          description: New or updated telemetry associated with an operational intent received successfully.
-        "400":
-          description: One or more input parameters were missing or invalid.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "404":
-          description: The requested Entity could not be found.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.conformance_monitoring_sa
     get:
       tags:
       - Telemetry
@@ -387,11 +330,11 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.availability_arbitration
+        - utm.availability_arbitration
       - Authority:
-        - uam.resource_management
+        - utm.resource_management
       - Authority:
-        - uam.resource_processing
+        - utm.resource_processing
   /cm/v1/uss_availability:
     summary: Share USS availability with users of the airspace. 
     post:
@@ -399,7 +342,7 @@ paths:
       - Availability
       summary: Notify a peer of USS availability change.
       description: Notify a peer of USS availability change which has been reported by 
-        a source with uam.availability_arbitration scope. 
+        a source with utm.availability_arbitration scope. 
       operationId: notifyAvailabilityArbitrationChange
       requestBody:
         content:
@@ -449,7 +392,7 @@ paths:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - uam.availability_arbitration
+        - utm.availability_arbitration
 components:
   schemas:
     PutOperationalIntentDetails:
