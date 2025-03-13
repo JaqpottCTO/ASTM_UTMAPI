@@ -240,7 +240,7 @@ paths:
       summary: Delete the specified imbalance subscription in the DCB.
       description: |-
         Delete a subscription.
-      operationId: updateImbalanceSubscription
+      operationId: deleteImbalanceSubscription
       parameters:
       - name: subscriptionid
         in: path
@@ -259,12 +259,8 @@ paths:
         schema:
           type: string
       responses:
-        "200":
+        "204":
           description: A subscription was successfully removed from the DCB.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ImbalanceSubscription'
         "400":
           description: |-
             * One or more input parameters were missing or invalid.
