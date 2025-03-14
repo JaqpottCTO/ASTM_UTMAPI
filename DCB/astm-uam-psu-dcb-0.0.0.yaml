@@ -1393,15 +1393,10 @@ components:
         the imbalance status, and a potentially empty set of OVNs for all operations contributing to the reported demand at this resource at this time bin
       required:
         - resource_id
-        - resource_ovn
         - resource_imbalances
       properties:
         resource_id:
             $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-        resource_ovn:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
-          description: >-
-            OVN proving knowledge of the latest status & capacity info for the resource. 
         resource_imbalances:
           type: array
           items:
