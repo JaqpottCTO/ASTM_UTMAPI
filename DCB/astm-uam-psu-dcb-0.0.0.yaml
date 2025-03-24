@@ -1141,6 +1141,60 @@ components:
                 shared with the DSS when the Operation Intent is submitted/updated. 
               items:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtent'
+    ExtentUpdateRequest:
+      type: object
+      required: 
+        - operational_intent_id
+        - trajectory
+        - resource_extents
+        - resource_imbalances
+        - is_dcb_compliant
+      properties: 
+        operational_intent_id:
+          description: The ID of the operational intent (as shared with the DSS and other entities)
+            which must be updated. 
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+        is_dcb_compliant:
+          type: boolean
+          description: Returns true if the trajectory is DCB compliant (no imbalances). 
+            Returns false if any imbalances exist (trajectory non-DCB compliant). 
+        trajectory:
+          maxItems: 1000
+          minItems: 2
+          type: array
+          description: The list of TrajectoryPoints for this operation which are to be shared
+            with other stakeholders as part of the OperationalIntentDetails.  
+            This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on 
+            points to be included, see the enumeration of property types in the TrajectoryPoint4D model.
+            In addition, each trajectory point includes details of any resource(s) which are being utilized
+            by the trajectory and an indication if this is a crossing for waypoint-based resources or an 
+            entry/exit for volume-based resources. 
+          items:
+            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPoint4D'
+        resource_extents:
+          required:
+          - extents
+          type: object
+          properties: 
+            extents:
+              minItems: 1
+              type: array
+              description: |-
+                List of resources and crossing OR entry/exit times when the resource
+                will be occupied by the  Operational Intent.  These extents are intended to be
+                shared with the DSS when the Operation Intent is submitted/updated. 
+              items:
+                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtent'
+        resource_imbalances:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
+          default: []
+      description: >- 
+        Request from DCB to OIM indicating that the resource extents and trajectory previously shared with
+        the DSS and other OIMs for this flight instance is out of date.  This can happen if a new resource is added to the system or
+        an existing resource is modified in a way which would cause updates to how an existing trajectory is interacting with
+        the resource (ex. change to physical definition including altitude, location, or size or shape changes).
     IntentBasedImbalanceResponse:
       type: object
       required:

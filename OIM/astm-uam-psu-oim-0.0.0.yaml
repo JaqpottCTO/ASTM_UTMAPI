@@ -364,7 +364,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../DCB/astm-uam-psu-dcb-0.0.0.yaml#/components/schemas/IntentBasedImbalanceResponse'
+              $ref: '../DCB/astm-uam-psu-dcb-0.0.0.yaml#/components/schemas/ExtentUpdateRequest'
         required: true
       responses:
         "204":
