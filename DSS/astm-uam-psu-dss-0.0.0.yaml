@@ -2118,7 +2118,7 @@ components:
           description: |-
             Duration of time for a volume based resource, or crossing Time
             for a waypoint based resource. 
-          anyOf:
+          oneOf:
             - $ref: "#/components/schemas/ResourceCrossing"
             - $ref: "#/components/schemas/ResourceOccupationDuration"  
         resource_id:
@@ -2151,7 +2151,7 @@ components:
           description: |-
             Duration of time for a volume based resource, or crossing Time
             for a waypoint based resource. 
-          anyOf:
+          oneOf:
             - $ref: "#/components/schemas/ResourceCrossing"
             - $ref: "#/components/schemas/ResourceOccupationDuration"  
         resource_id:
@@ -2203,7 +2203,7 @@ components:
         - extents
       properties:
         extents:
-          anyOf:
+          oneOf:
           - $ref: "#/components/schemas/ResourceExtents"
           - $ref: "#/components/schemas/VolumeExtents"
           - $ref: "#/components/schemas/OffNominalVolumeExtents"
