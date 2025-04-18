@@ -1380,7 +1380,7 @@ components:
           description: |-
             Duration of time for a volume based resource, or crossing Time
             for a waypoint based resource. 
-          anyOf:
+          oneOf:
             - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceCrossing"
             - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceOccupationDuration" 
         priority_rank: 

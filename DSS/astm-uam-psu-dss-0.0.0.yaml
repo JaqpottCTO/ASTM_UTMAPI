@@ -1697,7 +1697,7 @@ components:
       description: Response for a successful request to delete a subscription.
     UssBaseURL:
       type: string
-      description: "The base URL of a USS implementation of part or all of the USS-USS API. Per the USS-USS API, the full URL of a particular resource can be constructed by appending, e.g., `/uss/v1/{resource}/{id}` to this base URL. Accordingly, this URL may not have a trailing '/' character."
+      description: "The base URL of a PSU RIS, OIM or other PSU role implementation of part or all of the PSU-PSU API. "
       example: https://uss.example.com/utm
     OperationalIntentState:
       type: string
@@ -1917,6 +1917,9 @@ components:
         time_end:
           description: "Ending time of the Resource, if applicable. Indefinite if not set."
           $ref: '#/components/schemas/Time'
+        bin_duration:
+          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
+          $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/CapacityPropertyType'
         ris_base_url:
           $ref: '#/components/schemas/ResourceUssBaseURL'
       description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
@@ -2206,10 +2209,11 @@ components:
           - $ref: "#/components/schemas/OffNominalVolumeExtents"
         past_extents:
           description: Describes a resource crossing or occupation which has occurred
-            in the past for this flight.  The operation and resource OVNs do not need
-            to be shared because the operation has already (and is no longer) utilizing
-            these resources. The intent of this schema is to allow the DSS to maintain
-            past occupation to support DCB. 
+            in the past for this flight. Required for resources with FLOW_RATE_FIXED_BIN 
+            capacity type, but only for currently active time bins. Not required for 
+            time bins that have already completed. Not required for resources with 
+            INSTANTEOUS capacity type. The intent of this schema is to allow the DSS to 
+            maintain past occupation to support DCB. 
           $ref: "#/components/schemas/PastResourceExtents"
     VehicleTelemetry:
       required:
@@ -2306,11 +2310,14 @@ components:
     UssAvailabilityState:
       type: string
       description: |-
-        A USS is presumed to be in the Unknown state absent indication otherwise by a USS with availability arbitration scope.  Upon determination via availability arbitration, a USS is Down when it does not respond appropriately, and a Down USS may not perform the following operations in the DSS:
-        * Create an operational intent in the Accepted or Activated states
-        * Modify an operational intent whose new or unchanged state is Accepted or Activated
+        A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with availability arbitration scope.  Upon determination via availability arbitration, a PSU is Down when it does not respond appropriately, and a Down PSU may not perform the following operations in the DSS:
+        * Create an operational intent in the Proposed, Accepted, Activated or DCB-Noncompliant states
+        * Modify an operational intent whose new or unchanged state is Proposed, Accepted, Activated or DCB-Noncompliant
         * Delete an operational intent
-        A USS in the Unknown state possesses all the capabilities, within the DSS, of a USS in the Normal state.
+        * Create a resource reference in the Active state
+        * Modify a resource reference in the Active state
+        * Delete a resource reference
+        A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the Normal state.
       enum:
       - Unknown
       - Normal

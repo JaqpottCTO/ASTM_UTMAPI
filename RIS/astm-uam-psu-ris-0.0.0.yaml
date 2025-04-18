@@ -403,7 +403,7 @@ components:
   schemas:
     ResourceShape:
       description: The physical shape of the resource.  This is not the same as the resource extent saved in the DSS. 
-      anyOf:
+      oneOf:
         - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Circle'
         - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
         - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Polygon'
