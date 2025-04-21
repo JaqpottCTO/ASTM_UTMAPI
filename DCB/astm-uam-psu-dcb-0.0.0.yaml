@@ -606,12 +606,14 @@ paths:
           in: query
           required: true
           description: Parameter defining the start time for querying resource availability
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          schema:
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         - name: time_end
           in: query
           required: true
           description: Parameter defining the end time for querying resource availability
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          schema:
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
       responses:
         '200':
           description: >-
@@ -1518,7 +1520,7 @@ components:
           type: array
           description: Subscription(s) prompting this notification.
           items:
-            $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionState'
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
       description: |-
         Parameters of a message informing of detailed information for a peer operational intent.
         Pushed (by a client, not the DSS) directly to clients with subscriptions when

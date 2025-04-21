@@ -117,7 +117,8 @@ paths:
         required: false
         style: simple
         explode: false
-        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
       - name: end_query_time
         in: query
         description: |-
@@ -126,7 +127,8 @@ paths:
         required: false
         style: simple
         explode: false
-        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
       responses:
         "200":
           description: List of future capacity details was retrieved successfully. 
@@ -515,7 +517,8 @@ components:
           type: array
           description: |-
             Describes the properties of the capacity requirements defined for the resource.
-          $ref: "#/components/schemas/CapacityPropertyType"
+          items:            
+             $ref: "#/components/schemas/CapacityPropertyType"
     PerformanceBound:
       description: Performance bounds for a resource indicate lateral, vertical, and time 
         bounds which must be met for an operational intent to remain conforming. 

@@ -88,6 +88,15 @@ paths:
       - p2p_uam
       summary: Notify a PSU CM role of changes to operational intent details for conformance monitoring.
       description: Notify a PSU CM role directly of changes to operational intent details for conformance monitoring.
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for this operational intent. The 'entityid' http request URL parameter is the ID of the Operation for which telemetry data is requested.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'  
       operationId: putOperationalIntentDetails
       requestBody:
         content:
