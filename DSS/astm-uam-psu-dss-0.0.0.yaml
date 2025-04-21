@@ -1703,19 +1703,32 @@ components:
       type: string
       description: |-
         State of an operational intent.
-        'Accepted': Operational intent is created and shared, but not yet in use; see standard text for more details.
-        The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
+        'Proposed': Operational intent is created and made available to other PSUs, but the operation is not yet strategically coordinated or approved for takeoff. See standard text for more details.
+        'Accepted': Operational intent is strategically coordinated with an assigned departure time.  
+          The PSU OIM must perform a DCB check before transitioning to this state.  
+          Operations in this state are on the ground and must enter this state before activation.  
+          The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
         'Activated': Operational intent is in active use; see standard text for more details.
-        The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
+          The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
         'Nonconforming': UA is temporarily outside its volumes, but the situation is expected to be recoverable; see standard text for more details.
-        In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+          In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+        'DCB-Noncompliant': Operational intent conforms to its trajectory but does not meet DCB constraints due to replanning or capacity changes.  
+          Remaining in this state may require approval from the competent authority.
         'Contingent': UA is considered unrecoverably unable to conform with its coordinate operational intent; see standard text for more details.
-        This state must transition to Ended.  In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+          This state must transition to Ended.  In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+        'Completed': Operation has landed and is no longer using the operational intent; see standard text for more details.  
+          Details may still be communicated between PSUs as these operations may affect demand models.         
+        'Canceled': Operation never transitioned to Activated and will not use the operational intent; see standard text for more details.  
+          The PSU OIM role must delete the operational intent from the network. Details in this state are not shared between PSUs.          
       enum:
+      - Proposed
       - Accepted
       - Activated
       - Nonconforming
+      - DCB-Noncompliant
       - Contingent
+      - Completed
+      - Canceled
     OperationalIntentReference:
       required:
       - id
