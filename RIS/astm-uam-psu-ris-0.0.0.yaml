@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.2
+openapi: 3.1.1
 info:
   title: ASTM UAM PSU RIS API
   description: |-
@@ -558,13 +558,11 @@ components:
           format: integer 
         performance_bound_start_time:
           description: The time at which the performance bound start, if known. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         performance_bound_end_time:
           description: The time at which the performance bound ends, if known. 
             If not provided, the performance bound continues indefinitely. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
     TemporaryResourceCapacity:
       required: 
         - id
@@ -582,13 +580,11 @@ components:
           $ref: "#/components/schemas/ResourceCapacity"
         capacity_start_time:
           description: The time at which the updated resource capacity begins. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         capacity_end_time:
           description: The time at which the updated resource capacity ends, if known. 
             If not provided, the temporary capacity continues indefinitely. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
     ActiveResourceCapacity:
       required: 
         - resource_capacity
@@ -601,8 +597,7 @@ components:
         capacity_end_time:
           description: The time at which the updated resource capacity ends, if known. 
             If not provided, the current capacity continues indefinitely. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
     CurrentResourceStatus:
       required:
         - status
@@ -629,8 +624,7 @@ components:
             Full information about the resource reference that has changed.  If this field is omitted,
             the resource was deleted.  The `ovn` field in the nested `reference` must be
             populated.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceReference'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceReference'
         definition:
           $ref: '#/components/schemas/ResourceDefinition'
         current_resource_status:

@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.1
 info:
   description: >-
     Interface definitions for the Demand Capacity Balancing function within the Providers of Services to UAM (PSU)
@@ -1067,22 +1067,18 @@ components:
       properties:
         lat_lng_point:
           description: "Latitude and Longitude of the point."
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
         altitude:
           description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
         time:
           description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         speed:
           description: |-
             Speed of the vehicle at this TrajectoryPoint.
             FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
         trajectory_property_array:
           maxItems: 4
           minItems: 1
@@ -1135,14 +1131,11 @@ components:
           type: object
           properties: 
             extents:
-              minItems: 1
-              type: array
               description: |-
                 List of resources and crossing OR entry/exit times when the resource
                 will be occupied by the  Operational Intent.  These extents are intended to be
                 shared with the DSS when the Operation Intent is submitted/updated. 
-              items:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtent'
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
     ExtentUpdateRequest:
       type: object
       required: 
@@ -1261,8 +1254,7 @@ components:
       properties:
         uss_base_url:
           description: "The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications that the operational intent must be aware of.  This includes, at least, notifications for relevant changes in operational intents."
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
         add_operational_intents:
           type: array
           description: Operational intents to add for monitoring. 
@@ -1340,8 +1332,7 @@ components:
         area_of_interest:
           description: |-
             Volume of airspace to query for resource imbalance details. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume3D'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume3D'
         resource_ids:
           description: List of resources for which to query. 
           type: array
@@ -1350,13 +1341,11 @@ components:
         time_start:
           description: Start time for resource availability query.  If start time is not specified, 
             it will default to the time the request is processed. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         time_end:
           description: End time of resource availability query. If end time is not specified, the 
             value will be chosen automatically by the DSS. The end time may not be in the past.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
     ImbalanceResponse:
       type: object
       required:
@@ -1414,13 +1403,11 @@ components:
         time_start:
           description: Beginning time of the time bin for computing this demand capacity imbalance status. If the capacity requirements
             are based on rate or an instantaneous limit, this value will be the time when that capacity rule began. Must be before time_end.
-          anyOf:
-            - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         time_end:
           description: End time of the time bin for computing this demand capacity imbalance status. Can be empty if the capacity rule
             in place is an instantaneous or rate limit.  If included, must be after time_start.
-          anyOf:
-            - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'     
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'     
         imbalance_magnitude:
           type: number
           format: double
@@ -1492,12 +1479,10 @@ components:
       properties:
         time_start:
           description: Beginning time of this availability time interval. Must be before time_end.
-          anyOf:
-            - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         time_end:
           description: End time of this availability time interval. Must be after time_start.
-          anyOf:
-            - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
     PutOperationalIntentDetailsParameters:
       required:
       - operational_intent_id
@@ -1506,15 +1491,13 @@ components:
       properties:
         operational_intent_id:
           description: ID of operational intent that has changed.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         operational_intent:
           description: |-
             Full information about the operational intent that has changed.  If this field is omitted,
             the operational intent was deleted.  The `ovn` field in the nested `reference` must be
             populated.
-          anyOf:
-          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
         subscriptions:
           minItems: 1
           type: array
@@ -1534,8 +1517,7 @@ components:
       properties:
         resource_id:
           description: ID of resource.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         subscriptions:
           minItems: 1
           type: array
