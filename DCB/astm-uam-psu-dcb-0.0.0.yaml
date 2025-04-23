@@ -1265,7 +1265,6 @@ components:
       required:
         - operational_intent_id
         - operational_intent_reference
-        - operational_intent_details
       type: object
       properties:
         operational_intent_id:
