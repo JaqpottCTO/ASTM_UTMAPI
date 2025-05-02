@@ -1744,7 +1744,7 @@ components:
         state:
           $ref: '#/components/schemas/OperationalIntentState'
         ovn:
-          description: "Opaque version number of this operational intent.  Populated only when the OperationalIntentReference is managed by the USS retrieving or providing it.  Not populated when the OperationalIntentReference is not managed by the USS retrieving or providing it (instead, the USS must obtain the OVN from the details retrieved from the managing USS)."
+          description: "Opaque version number of this operational intent."
           $ref: '#/components/schemas/EntityOVN'
         time_start:
           description: Beginning time of operational intent.
@@ -2092,10 +2092,10 @@ components:
         past occupation to support DCB. 
       required:
         - resource_id
-        - resource_usage
+        - resource_temporal_usage
       type: object
       properties:
-        resource_usage:
+        resource_temporal_usage:
           description: |-
             Duration of time for a volume based resource, or crossing Time
             for a waypoint based resource. 
@@ -2123,12 +2123,12 @@ components:
     ResourceExtent:
       required:
         - resource_id
-        - resource_usage
+        - resource_temporal_usage
         - resource_ovn
         - operation_ovns
       type: object
       properties:
-        resource_usage:
+        resource_temporal_usage:
           description: |-
             Duration of time for a volume based resource, or crossing Time
             for a waypoint based resource. 
@@ -2199,6 +2199,7 @@ components:
     VehicleTelemetry:
       required:
       - time_measured
+      - position
       type: object
       properties:
         time_measured:
