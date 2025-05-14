@@ -1685,6 +1685,36 @@ components:
       type: string
       description: "The base URL of a PSU RIS, OIM or other PSU role implementation of part or all of the PSU-PSU API. "
       example: https://uss.example.com/utm
+    OperationalIntentAccessInfo:
+      type: object
+      description: >
+        Minimal information required to locate, retrieve, and validate an operational intent.
+        This includes the operation's identity, managing PSU endpoint, and optional versioning
+        information used to determine whether the current operation data is up-to-date or
+        must be retrieved from the managing system.
+      required:
+        - id
+        - uss_base_url
+      properties:
+        id:
+          $ref: '#/components/schemas/EntityID'
+        uss_base_url:
+          type: string
+          format: uri
+          description: Base URL of the PSU OIM managing this operational intent.
+        ovn:
+          $ref: '#/components/schemas/EntityOVN'
+          description: >
+            Opaque Version Number of the referenced operational intent, representing a specific
+            version of its state. When provided, systems can use this value to determine whether
+            a cached or locally known instance matches the intended version. This helps ensure
+            consistency and avoid unnecessary data retrieval.
+        version:
+          type: integer
+          description: >
+            Numeric version of the referenced operational intent, reflecting the known state
+            at the time this information was generated. Used to determine whether the current
+            data is up-to-date or whether a fresh copy must be retrieved from the managing PSU.    
     OperationalIntentState:
       type: string
       description: |-
@@ -1717,15 +1747,14 @@ components:
       - Canceled
     OperationalIntentReference:
       required:
-      - id
-      - manager
-      - state
-      - subscription_id
-      - time_end
-      - time_start
-      - uss_availability
-      - uss_base_url
-      - version
+        - id
+        - access_info
+        - manager
+        - state
+        - subscription_id
+        - time_start
+        - time_end
+        - uss_availability
       type: object
       properties:
         id:
@@ -1736,24 +1765,17 @@ components:
           example: uss1
         uss_availability:
           $ref: '#/components/schemas/UssAvailabilityState'
-        version:
-          type: integer
-          description: "Numeric version of this operational intent which increments upon each change in the operational intent, regardless of whether any field of the operational intent reference changes.  A USS with the details of this operational intent when it was at a particular version does not need to retrieve the details again until the version changes."
-          format: int32
-          example: 1
+        access_info:
+          $ref: '#/components/schemas/OperationalIntentAccessInfo'
+          description: Metadata needed to retrieve and validate the operational intent from its managing PSU.
         state:
           $ref: '#/components/schemas/OperationalIntentState'
-        ovn:
-          description: "Opaque version number of this operational intent."
-          $ref: '#/components/schemas/EntityOVN'
         time_start:
           description: Beginning time of operational intent.
           $ref: '#/components/schemas/Time'
         time_end:
           description: End time of operational intent.
           $ref: '#/components/schemas/Time'
-        uss_base_url:
-          $ref: '#/components/schemas/OperationalIntentUssBaseURL'
         subscription_id:
           description: The ID of the subscription that is ensuring the operational intent manager receives relevant airspace updates.
           $ref: '#/components/schemas/SubscriptionID'

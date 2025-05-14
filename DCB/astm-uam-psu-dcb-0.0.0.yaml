@@ -1543,36 +1543,6 @@ components:
             $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
         resource_details:
           $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/ResourceDetails'
-    OperationalIntentAccessInfo:
-      type: object
-      description: >
-        Minimal information required for a DCB to locate and evaluate an operational intent. This 
-        includes the operation's identity, managing PSU endpoint, and optional versioning metadata 
-        to ensure consistency and correctness during evaluation.
-      required:
-        - id
-        - uss_base_url
-      properties:
-        id:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-        uss_base_url:
-          type: string
-          format: uri
-          description: Base URL of the PSU OIM managing this operational intent.
-        ovn:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
-          description: >
-            Opaque Version Number of the referenced operational intent, corresponding to a specific
-            instance of its state. When provided, DCB may use this OVN to validate that the retrieved
-            or cached operational intent matches the intended state. This ensures consistency when
-            evaluating an operation in relation to others.
-        version:
-          type: integer
-          description: >
-            Numeric version of the referenced operational intent, representing its known state at the
-            time this information was generated. DCB uses this version to determine whether it holds
-            a current copy of the operation. If the version differs or the operation is missing,
-            DCB must retrieve it from the managing PSU to ensure evaluation is based on up-to-date data.
     RequiredAdditionalOperations:
       type: array
       description: >
@@ -1585,4 +1555,4 @@ components:
         are not already cached or are outdated, DCB must retrieve their details from the
         managing PSU in its OIM role using the provided access information.
       items:
-        $ref: '#/components/schemas/OperationalIntentAccessInfo'            
+        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/OperationalIntentAccessInfo'            
