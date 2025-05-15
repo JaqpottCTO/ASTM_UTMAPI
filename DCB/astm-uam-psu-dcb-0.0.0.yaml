@@ -1122,11 +1122,15 @@ components:
             before communicating with DSS.
         required_additional_operations:
           $ref: '#/components/schemas/RequiredAdditionalOperations'
+        required_additional_resources:
+          $ref: '#/components/schemas/RequiredAdditionalResources'
     IntentBasedImbalanceRecheckRequest:
       type: object
       properties:
         required_additional_operations:
-          $ref: '#/components/schemas/RequiredAdditionalOperations'         
+          $ref: '#/components/schemas/RequiredAdditionalOperations'
+        required_additional_resources:
+          $ref: '#/components/schemas/RequiredAdditionalResources'
     IntentBasedImbalanceRecheckResponse:
       type: object
       required:
@@ -1362,7 +1366,9 @@ components:
             value will be chosen automatically by the DSS. The end time may not be in the past.
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         required_additional_operations:
-          $ref: '#/components/schemas/RequiredAdditionalOperations'          
+          $ref: '#/components/schemas/RequiredAdditionalOperations'
+        required_additional_resources:
+          $ref: '#/components/schemas/RequiredAdditionalResources'
     ImbalanceResponse:
       type: object
       required:
@@ -1555,4 +1561,18 @@ components:
         are not already cached or are outdated, DCB must retrieve their details from the
         managing PSU in its OIM role using the provided access information.
       items:
-        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/OperationalIntentAccessInfo'            
+        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityAccessInfo'     
+    RequiredAdditionalResources:
+      type: array
+      description: >
+        Resources that must be evaluated by DCB for potential relevance in the
+        demand-capacity check. If these resources intersect with the operational intent’s
+        relevant spatial or temporal extents, they must be included in the evaluation.
+
+        These resources may originate from the DSS (e.g., after a failed validation due to
+        missing dependencies) or other coordination mechanisms. If any of the referenced
+        resources are not already cached or are outdated, the DCB must retrieve their
+        details from the managing PSU in its RIS role using the provided access information.
+      items:
+        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityAccessInfo'            
+               

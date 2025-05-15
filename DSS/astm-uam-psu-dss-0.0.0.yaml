@@ -1685,13 +1685,12 @@ components:
       type: string
       description: "The base URL of a PSU RIS, OIM or other PSU role implementation of part or all of the PSU-PSU API. "
       example: https://uss.example.com/utm
-    OperationalIntentAccessInfo:
+    EntityAccessInfo:
       type: object
       description: >
-        Minimal information required to locate, retrieve, and validate an operational intent.
-        This includes the operation's identity, managing PSU endpoint, and optional versioning
-        information used to determine whether the current operation data is up-to-date or
-        must be retrieved from the managing system.
+        Minimal information required to locate, retrieve, and optionally validate the state of an entity, such as an operational 
+        intent or resource. This includes the entity's identity, managing PSU endpoint, and versioning information to determine
+        whether the data is current or must be refreshed.
       required:
         - id
         - uss_base_url
@@ -1701,18 +1700,18 @@ components:
         uss_base_url:
           type: string
           format: uri
-          description: Base URL of the PSU OIM managing this operational intent.
+          description: Base URL of the PSU OIM managing this operational intent or resource.
         ovn:
           $ref: '#/components/schemas/EntityOVN'
           description: >
-            Opaque Version Number of the referenced operational intent, representing a specific
+            Opaque Version Number of the referenced operational intent or resource, representing a specific
             version of its state. When provided, systems can use this value to determine whether
             a cached or locally known instance matches the intended version. This helps ensure
             consistency and avoid unnecessary data retrieval.
         version:
           type: integer
           description: >
-            Numeric version of the referenced operational intent, reflecting the known state
+            Numeric version of the referenced operational intent or resource, reflecting the known state
             at the time this information was generated. Used to determine whether the current
             data is up-to-date or whether a fresh copy must be retrieved from the managing PSU.    
     OperationalIntentState:
@@ -1758,7 +1757,8 @@ components:
       type: object
       properties:
         id:
-          $ref: '#/components/schemas/EntityID'
+          description: Unique identifier for the operational intent. This duplicates the `id` in `access_info` to support easy access.
+          $ref: '#/components/schemas/EntityID'          
         manager:
           type: string
           description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USSs to reject operational intent update notifications originating from a USS that does not manage the operational intent.
@@ -1766,7 +1766,7 @@ components:
         uss_availability:
           $ref: '#/components/schemas/UssAvailabilityState'
         access_info:
-          $ref: '#/components/schemas/OperationalIntentAccessInfo'
+          $ref: '#/components/schemas/EntityAccessInfo'
           description: Metadata needed to retrieve and validate the operational intent from its managing PSU.
         state:
           $ref: '#/components/schemas/OperationalIntentState'
@@ -1903,21 +1903,16 @@ components:
       type: object
       properties:
         id:
+          description: Unique identifier for the resource. This duplicates the `id` in `access_info` to support easy access.
           $ref: '#/components/schemas/EntityID'
         manager:
           type: string
           description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USS to reject resource update notifications originating from a USS that does not manage the resource.
           example: uss1
+        access_info:
+          $ref: '#/components/schemas/EntityAccessInfo'          
         ris_availability:
           $ref: '#/components/schemas/UssAvailabilityState'
-        version:
-          type: integer
-          description: "Numeric version of this resource which increments upon each change in the resource, regardless of whether any field of the resource reference changes.  A USS with the details of this resource when it was at a particular version does not need to retrieve the details again until the version changes."
-          format: int32
-          example: 1
-        ovn:
-          description: "Opaque version number of this resource.  Populated only when the ResourceReference is managed by the USS retrieving or providing it.  Not populated when the ResourceReference is not managed by the USS retrieving or providing it (instead, the USS must obtain the OVN from the details retrieved from the managing USS)."
-          $ref: '#/components/schemas/EntityOVN'
         # Start/end time for resource
         time_start:
           description: "Date/time when the resource should begin being considered for DCB."
@@ -2052,6 +2047,12 @@ components:
           items:
             $ref: '#/components/schemas/OperationalIntentReference'
           default: []
+        missing_resources:
+          type: array
+          description: "List of operational intent references for which current proof of knowledge was not provided.  If this field is present and contains elements, the calling USS should query the details URLs for these operational intents to obtain their details and correct OVNs.  The OVNs can be used to update the key, at which point the USS may retry this call."
+          items:
+            $ref: '#/components/schemas/OperationalIntentReference'
+          default: []          
       description: Data provided when an airspace conflict was encountered.
     VolumeExtents:
       required:
