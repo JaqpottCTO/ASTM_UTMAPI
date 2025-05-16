@@ -145,7 +145,7 @@ else If no imbalance detected
     OIM -> op: Op can activate
 end 
 
-op -> CM: Tracking info for CM
+op -> CM: Info for CM
 CM -> CM: Conformance monitoring
 alt If operation in conformance
     note over CM: Do nothing
