@@ -2043,15 +2043,24 @@ components:
           description: Human-readable message indicating what error occurred and/or why.
         missing_operational_intents:
           type: array
-          description: "List of operational intent references for which current proof of knowledge was not provided.  If this field is present and contains elements, the calling USS should query the details URLs for these operational intents to obtain their details and correct OVNs.  The OVNs can be used to update the key, at which point the USS may retry this call."
+          description: >
+            List of operational intent references for which current proof of knowledge was not
+            provided.  If this field is present and contains elements, the responsible USS (e.g., DCB) 
+            should query the details URLs for these operational intents to obtain their details and 
+            correct OVNs.  The OVNs can be used to update the key, at which point the USS may retry 
+            this call.
           items:
             $ref: '#/components/schemas/OperationalIntentReference'
           default: []
         missing_resources:
           type: array
-          description: "List of operational intent references for which current proof of knowledge was not provided.  If this field is present and contains elements, the calling USS should query the details URLs for these operational intents to obtain their details and correct OVNs.  The OVNs can be used to update the key, at which point the USS may retry this call."
+          description: >
+            List of resource references for which current proof of knowledge was not provided.  If 
+            this field is present and contains elements, the responsible USS (e.g., DCB) should 
+            query the details URLs for these resources to obtain their details and correct OVNs. The 
+            OVNs can be used to update the key, after which the request may be retried.
           items:
-            $ref: '#/components/schemas/OperationalIntentReference'
+            $ref: "#/components/schemas/ResourceReference"
           default: []          
       description: Data provided when an airspace conflict was encountered.
     VolumeExtents:
@@ -2521,6 +2530,12 @@ components:
           items:
             $ref: '#/components/schemas/EntityID'
           default: []
+        missing_resources:
+          type: array
+          description: List of missing resources (for planning attempts that were denied by the DSS with code 409)
+          items:
+            $ref: '#/components/schemas/EntityID'
+          default: []          
         missing_constraints:
           type: array
           description: List of missing constraints (for planning attempts that were denied by the DSS with code 409)
