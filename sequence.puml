@@ -151,7 +151,8 @@ alt If operation in conformance
     note over CM: Do nothing
 else If operation not in conformance
     CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Nonconforming)
-    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming)
+    OIM -> OIM: Define off-nominal volumes
+    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming; extent = Off-nominal volumes)
     OIM <-- DSS: operation intent reference with subscribers
     loop For all subscribers
         OIM -> DCB2: POST /dcb/v1/operational_intents
@@ -190,7 +191,8 @@ else If operation not in conformance
             OIM -> op: Op activated
         end 
     else If op cannot become conformant in time limit
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Contingent)
+        OIM -> OIM: Define off-nominal volumes
+        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Contingent; extent = Off-nominal volumes)
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
             OIM -> DCB2: POST /dcb/v1/operational_intents
