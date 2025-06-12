@@ -1509,6 +1509,7 @@ components:
     PutOperationalIntentDetailsParameters:
       required:
       - operational_intent_id
+      - operational_intent
       - subscriptions
       type: object
       properties:
