@@ -108,7 +108,10 @@ OIM <-- DCB: Yes/no, OVNs for all resources
 
 alt If imbalance detected
     note over OIM: Do not update the operation
+    OIM -> op: Imbalance, available windows
 else If no imbalance detected
+    OIM -> op: No imbalances detected (optional)
+    op --> OIM: Confirmation of op request (optional)
     OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Accepted)
     DSS -> DSS: Confirms OVNs are correct
     OIM <-- DSS: operation intent reference with subscribers
