@@ -8,10 +8,15 @@ servers:
 security:
 - Authority:
   - utm.strategic_coordination
+- Authority:
   - utm.conformance_monitoring_sa
+- Authority:
   - utm.resource_management
+- Authority:
   - utm.resource_processing
+- Authority:
   - utm.availability_arbitration
+ 
 tags:
 - name: Operational intent details
   description: Endpoints exposed by PSU OIMs for interaction with details of operational intents.
@@ -59,31 +64,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "404":
           description: The requested Entity could not be found.
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.strategic_coordination
@@ -127,13 +132,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -141,7 +146,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -150,81 +155,22 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.conformance_monitoring_sa
+
   /oim/v1/reports:
     summary: Error reports of issues communicating with a peer PSU.
     post:
-      tags:
-      - Reports
-      - p2p_uam
-      summary: Notify PSU of an error encountered that might otherwise go unnoticed.
-      description: "Endpoint to provide feedback (errors, etc.) that might otherwise go unnoticed by this PSU.  This endpoint is used for all feedback related to operational intents and constraints."
-      operationId: makePsuReport
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
-        required: true
-      responses:
-        "201":
-          description: Report received and successfully archived.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorReport'
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The report could not be parsed, or contains unrecognized data.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: |-
-            Bearer access token was not provided in Authorization header,
-            token could not be decoded, or token was invalid.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: '* The access token was decoded successfully but did not include a scope appropriate to this endpoint.'
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.strategic_coordination
-      - Authority:
-        - utm.constraint_processing
-      - Authority:
-        - utm.constraint_management
-      - Authority:
-        - utm.conformance_monitoring_sa
-      - Authority:
-        - utm.availability_arbitration
-      - Authority:
-        - utm.resource_management
-      - Authority:
-        - utm.resource_processing
+      $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport/post'
+
   /oim/v1/uss_availability:
     summary: Share USS availability with users of the airspace. 
     post:
@@ -251,13 +197,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -265,7 +211,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -274,13 +220,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.availability_arbitration
@@ -311,13 +257,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -325,7 +271,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -334,13 +280,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.strategic_coordination
@@ -376,13 +322,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "401":
           description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "403":
           description: |-
             * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
@@ -390,7 +336,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "409":
           description: |-
             The Entity version specified in this message is lower than
@@ -399,17 +345,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "429":
           description: The client issued too many requests in a short period of time.
           content:
             application/json:
               schema:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ErrorResponse'
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
         - utm.strategic_coordination
+
 components:
+  securitySchemes:
+    $ref: '../shared-components/schemas.yaml#/components/securitySchemes'
+
   schemas:
     Trajectory:
       maxItems: 1000
@@ -515,7 +465,7 @@ components:
             generally not poll the endpoint providing this response data again
             until at or after that time.  If this field is omitted, then there
             is no current expectation of new telemetry becoming available.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
       description: Response to a peer request for telemetry of an operational intent.
     ResourceEventType:
       type: string
@@ -563,7 +513,7 @@ components:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
         time:
           description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         speed:
           description: |-
             Speed of the vehicle at this TrajectoryPoint.
@@ -660,24 +610,4 @@ components:
           - Takeoff
           - Nonconforming
           - Reconforming
-  securitySchemes:
-    Authority:
-      type: oauth2
-      description: |-
-        Authorization from, or on behalf of, an authorization authority.  This authority will issue access tokens that are JSON Web Tokens as defined in RFC 7519, using the `RS256` algorithm for the signature, publish to all providers the public key for verifying that signature, and implement standard OAuth server discovery mechanisms as described in RFC 8414.
-        The following fields must be included in the JWT claim for access tokens issued by this authority:
-        * `iss`, with the URL at which the token generation request was received.
-        * `exp`, with a time no further than 1 hour in the future.
-        * `sub`, with unique ID of the client requesting the access token.
-        * `scope`, with a string composed of a space-separated list of strings indicating the scopes granted, per RFC 6749.
-        * `jti`, according to RFC 7519.
-        Following the principle of least privilege, only one of the scopes enumerated in this document should be granted in a single token (though other scopes may accompany it).  The tokens granted by this authority must protect against reuse of received tokens to impersonate the sender to other recipients (via use of the `aud` claim or other means).
-        When using the `aud` claim to protect against the reuse of received tokens, and absent guidance on behalf of the competent authority to the contrary, the JWT `aud` claim requested by the client must be included in each access token and must contain the fully qualified domain name of the URL the access token will be used to access.  For example, if a PSU were querying the endpoint at https://dss.example.com:8888/rid/v2/dss/identification_service_areas, the access token included in the request should specify `"aud": "dss.example.com"`.
-        Clients must provide these access tokens in an `Authorization` header in the form `Bearer <token>` in accordance with RFC 6750.
-      flows:
-        clientCredentials:
-          tokenUrl: https://auth.example.com/oauth/token
-          scopes:
-            utm.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
-            utm.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
-            utm.availability_arbitration: Client may set the availability state of PSUs in the DSS.
+      

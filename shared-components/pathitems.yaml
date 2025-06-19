@@ -1,0 +1,57 @@
+
+# This file defines shared pathItems components for reuse in OpenAPI specifications.
+# It is NOT a complete OpenAPI document and must NOT include 'openapi', 'info', or 'paths' at the top level.
+# To use a pathItem from this file, reference it from your main OpenAPI file using $ref, for example:
+# 
+#   /dss/v1/reports:
+#     $ref: '../shared_components/pathitems.yaml#/components/pathItems/path_ErrorReport'
+#
+# The actual security requirements should be specified per-operation in the main document if they differ.
+  
+components:
+  pathItems:
+    path_ErrorReport:
+      summary: Error reports of issues communicating with a peer PSU.
+      post:
+        tags:
+        - Reports
+        summary: Notify PSU of an error encountered that might otherwise go unnoticed.
+        description: "Endpoint to provide feedback (errors, etc.) that might otherwise go unnoticed by this PSU. This endpoint is used for all feedback related to operational intents and constraints."
+        operationId: makePsuReport
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yaml#/components/schemas/ErrorReport'
+          required: true
+        responses:
+          "201":
+            description: Report received and successfully archived.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorReport'
+          "400":
+            description: "* One or more parameters were missing or invalid.\n* The report could not be parsed, or contains unrecognized data."
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "401":
+            description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "403":
+            description: '* The access token was decoded successfully but did not include a scope appropriate to this endpoint.'
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "429":
+            description: The client issued too many requests in a short period of time.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
