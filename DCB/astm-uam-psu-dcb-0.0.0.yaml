@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.1
 info:
   description: >-
     Interface definitions for the Demand Capacity Balancing function within the Providers of Services to UAM (PSU)
@@ -450,6 +450,11 @@ paths:
             be included within an existing imbalance subscription with this DCB. 
           schema:
             $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntentBasedImbalanceRecheckRequest'            
       responses:
         '200':
           description: >-
@@ -606,12 +611,14 @@ paths:
           in: query
           required: true
           description: Parameter defining the start time for querying resource availability
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          schema:
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         - name: time_end
           in: query
           required: true
           description: Parameter defining the end time for querying resource availability
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          schema:
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
       responses:
         '200':
           description: >-
@@ -1065,22 +1072,18 @@ components:
       properties:
         lat_lng_point:
           description: "Latitude and Longitude of the point."
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
         altitude:
           description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
         time:
           description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         speed:
           description: |-
             Speed of the vehicle at this TrajectoryPoint.
             FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
         trajectory_property_array:
           maxItems: 4
           minItems: 1
@@ -1112,11 +1115,22 @@ components:
       properties:
         intent_trajectory:
           $ref: '#/components/schemas/IntentTrajectory'
-      description: >- 
+          description: >-
             Operational intent that is being planned and for which resource demand capacity 
             imbalances need to be checked. The 'ovn' attribute in the operational intent reference 
             is not required/processed since it is assumed that this DCB endpoint is checked first 
-            before communicating with DSS. 
+            before communicating with DSS.
+        required_additional_operations:
+          $ref: '#/components/schemas/RequiredAdditionalOperations'
+        required_additional_resources:
+          $ref: '#/components/schemas/RequiredAdditionalResources'
+    IntentBasedImbalanceRecheckRequest:
+      type: object
+      properties:
+        required_additional_operations:
+          $ref: '#/components/schemas/RequiredAdditionalOperations'
+        required_additional_resources:
+          $ref: '#/components/schemas/RequiredAdditionalResources'
     IntentBasedImbalanceRecheckResponse:
       type: object
       required:
@@ -1133,6 +1147,51 @@ components:
           type: object
           properties: 
             extents:
+              description: |-
+                List of resources and crossing OR entry/exit times when the resource
+                will be occupied by the  Operational Intent.  These extents are intended to be
+                shared with the DSS when the Operation Intent is submitted/updated. Note that OVNs 
+                included in resource_extents cover all operational intents using the resource time
+                windows intersected by the submitted trajectory and all operational intents using 
+                any resource time windows that overlap the time buffers specified in the request.
+              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
+    ExtentUpdateRequest:
+      type: object
+      required: 
+        - operational_intent_id
+        - trajectory
+        - resource_extents
+        - resource_imbalances
+        - is_dcb_compliant
+      properties: 
+        operational_intent_id:
+          description: The ID of the operational intent (as shared with the DSS and other entities)
+            which must be updated. 
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+        is_dcb_compliant:
+          type: boolean
+          description: Returns true if the trajectory is DCB compliant (no imbalances). 
+            Returns false if any imbalances exist (trajectory non-DCB compliant). 
+        trajectory:
+          maxItems: 1000
+          minItems: 2
+          type: array
+          description: The list of TrajectoryPoints for this operation which are to be shared
+            with other stakeholders as part of the OperationalIntentDetails.  
+            This list must contain all significant TrajectoryPoints per the CBRs. Interpolation may be 
+            needed to identify these points. For additional insight on points to be included, see the 
+            enumeration of property types in the TrajectoryPoint4D model. In addition, each trajectory 
+            point includes details of any resource(s) which are being utilized by the trajectory and 
+            an indication if this is a crossing for waypoint-based resources or an entry/exit for 
+            volume-based resources.
+          items:
+            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPoint4D'
+        resource_extents:
+          required:
+          - extents
+          type: object
+          properties: 
+            extents:
               minItems: 1
               type: array
               description: |-
@@ -1141,6 +1200,16 @@ components:
                 shared with the DSS when the Operation Intent is submitted/updated. 
               items:
                 $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtent'
+        resource_imbalances:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
+          default: []
+      description: >- 
+        Request from DCB to OIM indicating that the resource extents and trajectory previously shared with
+        the DSS and other OIMs for this flight instance is out of date.  This can happen if a new resource is added to the system or
+        an existing resource is modified in a way which would cause updates to how an existing trajectory is interacting with
+        the resource (ex. change to physical definition including altitude, location, or size or shape changes).
     IntentBasedImbalanceResponse:
       type: object
       required:
@@ -1205,8 +1274,7 @@ components:
       properties:
         uss_base_url:
           description: "The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications that the operational intent must be aware of.  This includes, at least, notifications for relevant changes in operational intents."
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
         add_operational_intents:
           type: array
           description: Operational intents to add for monitoring. 
@@ -1217,7 +1285,6 @@ components:
       required:
         - operational_intent_id
         - operational_intent_reference
-        - operational_intent_details
       type: object
       properties:
         operational_intent_id:
@@ -1284,8 +1351,7 @@ components:
         area_of_interest:
           description: |-
             Volume of airspace to query for resource imbalance details. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume3D'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume3D'
         resource_ids:
           description: List of resources for which to query. 
           type: array
@@ -1294,13 +1360,15 @@ components:
         time_start:
           description: Start time for resource availability query.  If start time is not specified, 
             it will default to the time the request is processed. 
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         time_end:
           description: End time of resource availability query. If end time is not specified, the 
             value will be chosen automatically by the DSS. The end time may not be in the past.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+        required_additional_operations:
+          $ref: '#/components/schemas/RequiredAdditionalOperations'
+        required_additional_resources:
+          $ref: '#/components/schemas/RequiredAdditionalResources'
     ImbalanceResponse:
       type: object
       required:
@@ -1315,18 +1383,18 @@ components:
       description: Basic details of an operation contributing to demand or imbalance. 
       required:
         - operational_intent_id
-        - resource_usage
+        - resource_temporal_usage
         - priority_rank
         - is_dcb_compliant
       properties:
         operational_intent_id:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
           description: Operational intent ID of the operation
-        resource_usage:
+        resource_temporal_usage:
           description: |-
             Duration of time for a volume based resource, or crossing Time
             for a waypoint based resource. 
-          anyOf:
+          oneOf:
             - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceCrossing"
             - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceOccupationDuration" 
         priority_rank: 
@@ -1358,13 +1426,11 @@ components:
         time_start:
           description: Beginning time of the time bin for computing this demand capacity imbalance status. If the capacity requirements
             are based on rate or an instantaneous limit, this value will be the time when that capacity rule began. Must be before time_end.
-          anyOf:
-            - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         time_end:
           description: End time of the time bin for computing this demand capacity imbalance status. Can be empty if the capacity rule
             in place is an instantaneous or rate limit.  If included, must be after time_start.
-          anyOf:
-            - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'     
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'     
         imbalance_magnitude:
           type: number
           format: double
@@ -1393,15 +1459,10 @@ components:
         the imbalance status, and a potentially empty set of OVNs for all operations contributing to the reported demand at this resource at this time bin
       required:
         - resource_id
-        - resource_ovn
         - resource_imbalances
       properties:
         resource_id:
             $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-        resource_ovn:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
-          description: >-
-            OVN proving knowledge of the latest status & capacity info for the resource. 
         resource_imbalances:
           type: array
           items:
@@ -1441,35 +1502,32 @@ components:
       properties:
         time_start:
           description: Beginning time of this availability time interval. Must be before time_end.
-          anyOf:
-            - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
         time_end:
           description: End time of this availability time interval. Must be after time_start.
-          anyOf:
-            - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Time'
     PutOperationalIntentDetailsParameters:
       required:
       - operational_intent_id
+      - operational_intent
       - subscriptions
       type: object
       properties:
         operational_intent_id:
           description: ID of operational intent that has changed.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         operational_intent:
           description: |-
             Full information about the operational intent that has changed.  If this field is omitted,
             the operational intent was deleted.  The `ovn` field in the nested `reference` must be
             populated.
-          anyOf:
-          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
         subscriptions:
           minItems: 1
           type: array
           description: Subscription(s) prompting this notification.
           items:
-            $ref: '#../DSS/astm-uam-psu-dss-0.0.0.yaml/components/schemas/SubscriptionState'
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
       description: |-
         Parameters of a message informing of detailed information for a peer operational intent.
         Pushed (by a client, not the DSS) directly to clients with subscriptions when
@@ -1483,8 +1541,7 @@ components:
       properties:
         resource_id:
           description: ID of resource.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         subscriptions:
           minItems: 1
           type: array
@@ -1493,6 +1550,30 @@ components:
             $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
         resource_details:
           $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/ResourceDetails'
-    
-             
+    RequiredAdditionalOperations:
+      type: array
+      description: >
+        Operational intents that must be evaluated by DCB for potential relevance.
+        If they intersect relevant resources and time windows, DCB must include them
+        in the demand-capacity check.
 
+        These operations may originate from DSS (e.g., following a rejection due to missing
+        dependencies) or other coordination mechanisms. If any of the referenced operations
+        are not already cached or are outdated, DCB must retrieve their details from the
+        managing PSU in its OIM role using the provided access information.
+      items:
+        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityAccessInfo'     
+    RequiredAdditionalResources:
+      type: array
+      description: >
+        Resources that must be evaluated by DCB for potential relevance in the
+        demand-capacity check. If these resources intersect with the operational intent’s
+        relevant spatial or temporal extents, they must be included in the evaluation.
+
+        These resources may originate from the DSS (e.g., after a failed validation due to
+        missing dependencies) or other coordination mechanisms. If any of the referenced
+        resources are not already cached or are outdated, the DCB must retrieve their
+        details from the managing PSU in its RIS role using the provided access information.
+      items:
+        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityAccessInfo'            
+               

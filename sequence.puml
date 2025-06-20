@@ -1,4 +1,7 @@
 @startuml
+
+title ASTM UAM PSU Interoperability Standard Sequence
+
 participant "Resource operator" as RO
 participant "Vehicle operator" as op
 participant "Resource Information Service (RIS)" as RIS
@@ -105,7 +108,10 @@ OIM <-- DCB: Yes/no, OVNs for all resources
 
 alt If imbalance detected
     note over OIM: Do not update the operation
+    OIM -> op: Imbalance, available windows
 else If no imbalance detected
+    OIM -> op: No imbalances detected (optional)
+    op --> OIM: Confirmation of op request (optional)
     OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Accepted)
     DSS -> DSS: Confirms OVNs are correct
     OIM <-- DSS: operation intent reference with subscribers
@@ -114,7 +120,8 @@ else If no imbalance detected
         OIM -> DCB: POST /dcb/v1/operational_intents
     end
 end
-
+==Conformance Monitoring==
+newpage
 ==Conformance Monitoring==
 CM -> DSS: PUT /dss/v1/subscriptions/
 CM <-- DSS: resource references
@@ -141,13 +148,14 @@ else If no imbalance detected
     OIM -> op: Op can activate
 end 
 
-op -> CM: Tracking info for CM
+op -> CM: Info for CM
 CM -> CM: Conformance monitoring
 alt If operation in conformance
     note over CM: Do nothing
 else If operation not in conformance
     CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Nonconforming)
-    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming)
+    OIM -> OIM: Define off-nominal volumes
+    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming; extent = Off-nominal volumes)
     OIM <-- DSS: operation intent reference with subscribers
     loop For all subscribers
         OIM -> DCB2: POST /dcb/v1/operational_intents
@@ -186,7 +194,8 @@ else If operation not in conformance
             OIM -> op: Op activated
         end 
     else If op cannot become conformant in time limit
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Contingent)
+        OIM -> OIM: Define off-nominal volumes
+        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Contingent; extent = Off-nominal volumes)
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
             OIM -> DCB2: POST /dcb/v1/operational_intents

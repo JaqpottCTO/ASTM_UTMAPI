@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.1
 info:
   title: ASTM UAM PSU CM API
   description: "Interface definitions for the Conformance Monitoring function within the Providers of Services to UAM (PSU)\ninteroperability network. Functionality includes sharing details of flight operational intents.\n "
@@ -88,6 +88,15 @@ paths:
       - p2p_uam
       summary: Notify a PSU CM role of changes to operational intent details for conformance monitoring.
       description: Notify a PSU CM role directly of changes to operational intent details for conformance monitoring.
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID for this operational intent. The 'entityid' http request URL parameter is the ID of the Operation for which telemetry data is requested.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'  
       operationId: putOperationalIntentDetails
       requestBody:
         content:
@@ -403,15 +412,13 @@ components:
       properties:
         operational_intent_id:
           description: ID of operational intent that has changed.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         operational_intent:
           description: |-
             Full information about the operational intent that has changed.  If this field is omitted,
             the operational intent was deleted.  The `ovn` field in the nested `reference` must be
             populated.
-          anyOf:
-          - $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
+          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
       description: |-
         Parameters of a message informing of detailed information for an operational intent that requirements conformance monitoring.
         Pushed (by an OIM role) directly to CM roles when an operational intent is authorized, or changes are made.
@@ -423,8 +430,7 @@ components:
       properties:
         operational_intent_id:
           description: ID of the operational intent which the vehicle reporting telemetry is flying.
-          anyOf:
-          - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
         telemetry:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/VehicleTelemetry'
       description: provide detailed information on the position of an aircraft associated with an operational intent.
