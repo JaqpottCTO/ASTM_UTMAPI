@@ -53,7 +53,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: Operational intent details were retrieved successfully.
@@ -111,7 +111,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       - name: begin_query_time
         in: query
         description: |-
@@ -188,7 +188,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: The current status of the resource. 
@@ -246,7 +246,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: The definition of the resource
@@ -362,9 +362,9 @@ components:
     ResourceShape:
       description: The physical shape of the resource.  This is not the same as the resource extent saved in the DSS. 
       oneOf:
-        - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Circle'
-        - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
-        - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Polygon'
+        - $ref: '../shared-components/schemas.yaml#/components/schemas/Circle'
+        - $ref: '../shared-components/schemas.yaml#/components/schemas/LatLngPoint'
+        - $ref: '../shared-components/schemas.yaml#/components/schemas/Polygon'
     ResourcePhysicalDefinition:
       required:
         - name
@@ -379,10 +379,10 @@ components:
           $ref: '#/components/schemas/ResourceShape'
         altitude_lower:
           description: Lower altitude limit of the resource, if any. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Altitude'
         altitude_upper:
           description: Upper altitude limit of the resource, if any. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Altitude'
         type:
           $ref: '#/components/schemas/ResourceType' 
     ResourceState:
@@ -486,19 +486,19 @@ components:
           type: number
         min_altitude:
           description: The minimum allowed altitude for usage of this resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Altitude'
         max_altitude:
           description: The maximum allowed altitude for usage of this resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Altitude'
         min_speed:
           description: The minimum allowed speed for usage of this resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Velocity'
         max_speed:
           description: The maximum allowed speed for usage of this resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Velocity'
         radius:
           description: The maximum allowed radius for usage of this waypoint-based resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Radius'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Radius'
         trajectory_interval_required:
           description: Specifies how frequently trajectory points are required to be
             provided when describing use of this resource, in seconds. 
@@ -523,7 +523,7 @@ components:
           description: |- 
             A unique identifier for this temporary change to the default resource capacity.  Included
             to allow for future updates (ex. adding an end time) to an existing temporary capacity change. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         resource_capacity:
           $ref: "#/components/schemas/ResourceCapacity"
         capacity_start_time:
