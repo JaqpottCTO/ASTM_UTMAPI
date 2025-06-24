@@ -202,6 +202,7 @@ else If operation not in conformance
             OIM -> DCB: POST /dcb/v1/operational_intents
         end
         OIM -> op: Op Contingent
+        note over OIM: If reason for contingency resolved and \nmeets requirements may transition \nstate back to Activated/DCB-Noncompliant
     end
 end
 
