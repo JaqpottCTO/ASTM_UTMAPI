@@ -49,7 +49,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionID'
       responses:
         "200":
           description: Subscription information was retrieved successfully.
@@ -105,7 +105,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionID'
       requestBody:
         content:
           application/json:
@@ -175,7 +175,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionID'
       - name: version
         in: path
         description: Version of the subscription to be modified.
@@ -252,7 +252,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionID'
       - name: version
         in: path
         description: Version of the subscription to be modified.
@@ -946,61 +946,7 @@ paths:
   /dcb/v1/uss_availability:
     summary: Share USS availability with users of the airspace. 
     post:
-      tags:
-      - Availability
-      summary: Notify a peer of USS availability change.
-      description: Notify a peer of USS availability change which has been reported by 
-        a source with utm.availability_arbitration scope. 
-      operationId: notifyAvailabilityArbitrationChange
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/PutUssAvailabilityDetails'
-        required: true
-      responses:
-        "204":
-          description: New or updated full operational intent information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.availability_arbitration
+      $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_Availability/post'
 
 components:
   securitySchemes:
@@ -1251,7 +1197,7 @@ components:
       type: object
       properties:
         subscription_id:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionID'
           description: ID of the DCB monitoring subscription. 
         uss_base_url:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
@@ -1473,7 +1419,7 @@ components:
           type: array
           description: Subscription(s) prompting this notification.
           items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionState'
       description: |-
         Parameters of a message informing of detailed information for a peer operational intent.
         Pushed (by a client, not the DSS) directly to clients with subscriptions when
@@ -1493,7 +1439,7 @@ components:
           type: array
           description: Subscription(s) prompting this notification.
           items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionState'
         resource_details:
           $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/ResourceDetails'
     RequiredAdditionalOperations:

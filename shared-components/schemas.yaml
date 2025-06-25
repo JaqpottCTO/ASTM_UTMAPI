@@ -125,4 +125,83 @@ components:
           enum:
           - RFC3339
 
+    PutUssAvailabilityDetails:
+      required:
+      - uss_availability_status
+      - subscriptions
+      type: object
+      properties:
+        uss_availability_status:
+          description: ID of operational intent that has changed.
+          $ref: '#/components/schemas/UssAvailabilityStatus'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '#/components/schemas/SubscriptionState'
+      description: |-
+        Updated uss availability details. 
 
+    UssAvailabilityStatus:
+      required:
+      - availability
+      - uss
+      type: object
+      properties:
+        uss:
+          type: string
+          description: Client ID (matching their `sub` in access tokens) of the USS to which this availability applies.
+        availability:
+          $ref: '#/components/schemas/UssAvailabilityState'
+            
+    UssAvailabilityState:
+      type: string
+      description: |-
+        A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with availability arbitration scope.  Upon determination via availability arbitration, a PSU is Down when it does not respond appropriately, and a Down PSU may not perform the following operations in the DSS:
+        * Create an operational intent in the Proposed, Accepted, Activated or DCB-Noncompliant states
+        * Modify an operational intent whose new or unchanged state is Proposed, Accepted, Activated or DCB-Noncompliant
+        * Delete an operational intent
+        * Create a resource reference in the Active state
+        * Modify a resource reference in the Active state
+        * Delete a resource reference
+        A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the Normal state.
+      enum:
+      - Unknown
+      - Normal
+      - Down
+
+    SubscriptionState:
+      required:
+      - notification_index
+      - subscription_id
+      type: object
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        notification_index:
+          $ref: '#/components/schemas/SubscriptionNotificationIndex'
+      description: State of subscription which is causing a notification to be sent.
+              
+    SubscriptionNotificationIndex:
+      minimum: 0
+      exclusiveMinimum: false
+      type: integer
+      description: Tracks the notifications sent for a subscription so the subscriber can detect missed notifications more easily.
+      format: int32
+      default: 0
+
+    SubscriptionID:
+      description: Identifier for a subscription communicated through the DSS.  Formatted as a UUIDv4.
+      example: 78ea3fe8-71c2-4f5c-9b44-9c02f5563c6f
+      $ref: '#/components/schemas/UUIDv4Format'      
+      
+    UUIDv4Format:
+      maxLength: 36
+      minLength: 36
+      pattern: "^[0-9a-fA-F]{8}\\\\-[0-9a-fA-F]{4}\\\\-4[0-9a-fA-F]{3}\\\\-[8-b][0-9a-fA-F]{3}\\\\-[0-9a-fA-F]{12}$"
+      type: string
+      description: String whose format matches a version-4 UUID according to RFC 4122.
+      format: uuid
+      example: 03e5572a-f733-49af-bc14-8a18bd53ee39
+        

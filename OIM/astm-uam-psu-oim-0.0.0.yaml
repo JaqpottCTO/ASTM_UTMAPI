@@ -174,62 +174,8 @@ paths:
   /oim/v1/uss_availability:
     summary: Share USS availability with users of the airspace. 
     post:
-      tags:
-      - Availability
-      - p2p_uam
-      summary: Notify a peer of USS availability change.
-      description: Notify a peer of USS availability change which has been reported by 
-        a source with utm.availability_arbitration scope. 
-      operationId: notifyAvailabilityArbitrationChange
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutUssAvailabilityDetails'
-        required: true
-      responses:
-        "204":
-          description: New or updated full operational intent information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.availability_arbitration
+      $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_Availability/post'
+
   /oim/v1/imbalance:
     summary: Submit details about a detected resource demand capacity imbalance
       to the OIM which manages the operation. 
@@ -574,23 +520,6 @@ components:
           - WHEELS_ON
           - AIRPORT_REFERENCE_LOCATION
       description: Describes any applicable properties of the trajectory point.
-    PutUssAvailabilityDetails:
-      required:
-      - uss_availability_status
-      - subscriptions
-      type: object
-      properties:
-        uss_availability_status:
-          description: ID of operational intent that has changed.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/UssAvailabilityStatus'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionState'
-      description: |-
-        Updated uss availability details. 
     PutConformanceAlert:
       description: |-
         Parameters for an alert about an operation from the CM role. 
