@@ -2023,7 +2023,7 @@ components:
       type: object
       properties:
         crossing_time:
-          $ref: "#/components/schemas/Time"
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
     ResourceOccupationDuration:
       required:
        - entry_time
@@ -2031,9 +2031,9 @@ components:
       type: object
       properties:
         entry_time:
-          $ref: "#/components/schemas/Time"
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         exit_time:
-          $ref: "#/components/schemas/Time"
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
     PastResourceExtent:
       description: Describes a resource crossing or occupation which has occurred
         in the past for this flight.  The operation and resource OVNs do not need
