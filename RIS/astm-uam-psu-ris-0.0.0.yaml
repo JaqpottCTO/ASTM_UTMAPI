@@ -39,7 +39,7 @@ paths:
       - Resource references
       - Resource capacities
       - Resource definition
-      - Resource statusS
+      - Resource status
       summary: Retrieve the specified resource details from an RIS.
       description: |-
         The RIS hosting this endpoint returns the details (and reference) of an
