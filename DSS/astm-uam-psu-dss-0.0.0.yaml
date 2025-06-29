@@ -1990,15 +1990,16 @@ components:
           minItems: 1
           type: array
           description: |-
-            Spacetime extents that bound this operational intent. All volumes, both nominal and off-nominal, 
-            must be encompassed in these extents. However, these extents do not need to match the precise 
-            volumes of the operational intent; a single bounding extent may be provided instead, for instance.
-            Start and end times, as well as lower and upper altitudes, are required for each volume.
-            The end time may not be in the past. Each VolumeExtent includes a list of resources which will 
-            be fully occupied for the time duration of the volume. Each VolumeExtent also includes a list of 
-            resources which will not be occupied by the operation.  This list is included because the extents 
-            of the operations and resources will not perfectly match the actual geography exactly and overlaps 
-            of extents without actual resource usage could occur. 
+            Spacetime extents that bound this operational intent. This object is used exclusively for the 
+            nominal state of the operation and does not include off-nominal volumes (Nonconforming or Contingent).
+            However, these extents do not need to match the precise volumes of the operational intent; a single 
+            bounding extent may be provided instead, for instance. Start and end times, as well as lower and 
+            upper altitudes, are required for each volume. The end time may not be in the past. Each 
+            VolumeExtent includes a list of resources which will be fully occupied for the time duration of the 
+            volume. Each VolumeExtent also includes a list of resources which will not be occupied by the 
+            operation.  This list is included because the extents of the operations and resources will not 
+            perfectly match the actual geography exactly and overlaps of extents without actual resource usage 
+            could occur. 
           items:
             $ref: '#/components/schemas/Volume4DExtent'
     OffNominalVolumeExtents:
@@ -2010,11 +2011,11 @@ components:
           minItems: 1
           type: array
           description: |-
-            Spacetime extents that bound this operational intent. All volumes, both nominal and off-nominal, 
-            must be encompassed in these extents. However, these extents do not need to match the precise 
-            volumes of the operational intent; a single bounding extent may be provided instead, for instance.
-            Start and end times, as well as lower and upper altitudes, are required for each volume.
-            The end time may not be in the past. 
+            Spacetime extents that bound this operational intent. This object is used exclusively for 
+            off-nominal states, specifically Nonconforming and Contingent. However, these extents do not 
+            need to match the precise volumes of the operational intent; a single bounding extent may 
+            be provided instead, for instance. Start and end times, as well as lower and upper altitudes, 
+            are required for each volume. The end time may not be in the past. 
           items:
             $ref: '#/components/schemas/Volume4D'
     ResourceCrossing:
