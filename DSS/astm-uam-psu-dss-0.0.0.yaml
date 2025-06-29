@@ -805,8 +805,6 @@ paths:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
-      - Authority:
         - utm.strategic_coordination
       - Authority:
         - utm.conformance_monitoring_sa
@@ -868,8 +866,6 @@ paths:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
-      - Authority:
-        - utm.constraint_processing
       - Authority:
         - utm.strategic_coordination
       - Authority:
@@ -944,8 +940,6 @@ paths:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
-      - Authority:
-        - utm.constraint_processing
       - Authority:
         - utm.strategic_coordination
       - Authority:
@@ -1033,8 +1027,6 @@ paths:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
       - Authority:
-        - utm.constraint_processing
-      - Authority:
         - utm.strategic_coordination
       - Authority:
         - utm.conformance_monitoring_sa
@@ -1111,8 +1103,6 @@ paths:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
       security:
-      - Authority:
-        - utm.constraint_processing
       - Authority:
         - utm.strategic_coordination
       - Authority:
@@ -1464,10 +1454,6 @@ components:
           type: boolean
           description: "If true, trigger notifications when operational intents are created, updated, or deleted.  Otherwise, changes in operational intents should not trigger notifications.  The scope utm.strategic_coordination is required to set this flag true."
           default: false
-        notify_for_constraints:
-          type: boolean
-          description: "If true, trigger notifications when constraints are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
-          default: false
         notify_for_resources:
           type: boolean
           description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
@@ -1537,10 +1523,6 @@ components:
         notify_for_operational_intents:
           type: boolean
           description: "If true, trigger notifications when operational intents are created, updated, or deleted.  Otherwise, changes in operational intents should not trigger notifications.  The scope utm.strategic_coordination is required to set this flag true."
-          default: false
-        notify_for_constraints:
-          type: boolean
-          description: "If true, trigger notifications when constraints are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
           default: false
         notify_for_resources:
           type: boolean
@@ -1746,10 +1728,6 @@ components:
         notify_for_operational_intents:
           type: boolean
           description: "If true, trigger notifications when operational intents are created, updated, or deleted.  Otherwise, changes in operational intents should not trigger notifications.  The scope utm.strategic_coordination is required to set this flag true."
-          default: false
-        notify_for_constraints:
-          type: boolean
-          description: "If true, trigger notifications when constraints are created, updated, or deleted.  Otherwise, changes in constraints should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
           default: false
         notify_for_resources:
           type: boolean
@@ -2379,12 +2357,6 @@ components:
           items:
             $ref: '#/components/schemas/EntityID'
           default: []          
-        missing_constraints:
-          type: array
-          description: List of missing constraints (for planning attempts that were denied by the DSS with code 409)
-          items:
-            $ref: '#/components/schemas/EntityID'
-          default: []
         operational_intent_id:
           description: ID of the operational intent being planned
           $ref: '#/components/schemas/EntityID'
