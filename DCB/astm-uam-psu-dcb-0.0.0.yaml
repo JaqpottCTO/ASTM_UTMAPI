@@ -1034,19 +1034,7 @@ components:
           description: Returns true if the trajectory is DCB compliant (no imbalances). 
             Returns false if any imbalances exist (trajectory non-DCB compliant). 
         resource_extents:
-          required:
-          - extents
-          type: object
-          properties: 
-            extents:
-              description: |-
-                List of resources and crossing OR entry/exit times when the resource
-                will be occupied by the  Operational Intent.  These extents are intended to be
-                shared with the DSS when the Operation Intent is submitted/updated. Note that OVNs 
-                included in resource_extents cover all operational intents using the resource time
-                windows intersected by the submitted trajectory and all operational intents using 
-                any resource time windows that overlap the time buffers specified in the request.
-              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
     ExtentUpdateRequest:
       type: object
       required: 
@@ -1079,19 +1067,7 @@ components:
           items:
             $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
-          required:
-          - extents
-          type: object
-          properties: 
-            extents:
-              minItems: 1
-              type: array
-              description: |-
-                List of resources and crossing OR entry/exit times when the resource
-                will be occupied by the  Operational Intent.  These extents are intended to be
-                shared with the DSS when the Operation Intent is submitted/updated. 
-              items:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtent'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
         resource_imbalances:
           type: array
           items:
@@ -1128,19 +1104,7 @@ components:
           items:
             $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
-          required:
-          - extents
-          type: object
-          properties: 
-            extents:
-              minItems: 1
-              type: array
-              description: |-
-                List of resources and crossing OR entry/exit times when the resource
-                will be occupied by the  Operational Intent.  These extents are intended to be
-                shared with the DSS when the Operation Intent is submitted/updated. 
-              items:
-                $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtent'
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
         resource_imbalances:
           type: array
           items:
