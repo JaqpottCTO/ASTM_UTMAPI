@@ -1713,10 +1713,22 @@ components:
         uss_base_url:
           $ref: '#/components/schemas/OperationalIntentUssBaseURL'
         subscription_id:
-          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
+          description: |- 
+            The ID of an existing subscription that the USS will use to keep the operator informed
+            about updates to relevant airspace information. If this field is not provided when the
+            operational intent is in the Accepted, Activated, DCB-Noncompliant, Nonconforming, or 
+            Contingent state, then the new_subscription` field must be provided in order to provide
+            notification capability for the operational intent.  The subscription specified by this 
+            ID must cover at least the area over which this operational intent is conducted, and it 
+            must provide notifications for operational intents.
           $ref: '#/components/schemas/EntityID'
         new_subscription:
-          description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
+          description: |- 
+            If an existing subscription is not specified in `subscription_id`, and the operational 
+            intent is in the Accepted, Activated, DCB-Noncompliant, Nonconforming, or Contingent 
+            state, then this field must be populated.  When this field is populated, an implicit 
+            subscription will be created and associated with this operational intent, and will 
+            generally be deleted automatically upon the deletion of this operational intent.
           $ref: '#/components/schemas/ImplicitSubscriptionParameters'
       description: |-
         Parameters for a request to create an OperationalIntentReference in the DSS. 
