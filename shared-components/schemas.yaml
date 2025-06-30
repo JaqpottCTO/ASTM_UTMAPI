@@ -1,0 +1,207 @@
+
+# This file defines shared schema components used across OpenAPI specifications.
+# It is NOT a complete OpenAPI document and must NOT include 'openapi', 'info', or 'paths' at the top level.
+# This file is intended to be referenced via $ref from other OpenAPI documents, for example:
+#
+#   $ref: '../shared_components/schemas.yaml#/components/schemas/ErrorReport'
+#
+# Each schema here should be defined under 'components.schemas'. Any additional security schemes or metadata
+# defined here are for reuse purposes only and must be referenced explicitly in the main OpenAPI spec.
+
+components:
+  securitySchemes:
+    Authority:
+      type: oauth2
+      description: |-
+        Authorization from, or on behalf of, an authorization authority.  This authority will issue access tokens that are JSON Web Tokens as defined in RFC 7519, using the `RS256` algorithm for the signature, publish to all providers the public key for verifying that signature, and implement standard OAuth server discovery mechanisms as described in RFC 8414.
+        The following fields must be included in the JWT claim for access tokens issued by this authority:
+        * `iss`, with the URL at which the token generation request was received.
+        * `exp`, with a time no further than 1 hour in the future.
+        * `sub`, with unique ID of the client requesting the access token.
+        * `scope`, with a string composed of a space-separated list of strings indicating the scopes granted, per RFC 6749.
+        * `jti`, according to RFC 7519.
+        Following the principle of least privilege, only one of the scopes enumerated in this document should be granted in a single token (though other scopes may accompany it).  The tokens granted by this authority must protect against reuse of received tokens to impersonate the sender to other recipients (via use of the `aud` claim or other means).
+        When using the `aud` claim to protect against the reuse of received tokens, and absent guidance on behalf of the competent authority to the contrary, the JWT `aud` claim requested by the client must be included in each access token and must contain the fully qualified domain name of the URL the access token will be used to access.  For example, if a PSU were querying the endpoint at https://dss.example.com:8888/rid/v2/dss/identification_service_areas, the access token included in the request should specify `"aud": "dss.example.com"`.
+        Clients must provide these access tokens in an `Authorization` header in the form `Bearer <token>` in accordance with RFC 6750.
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.example.com/oauth/token
+          scopes:
+            utm.strategic_coordination: Client may perform actions encompassed by the strategic coordination role including strategic conflict detection.
+            utm.conformance_monitoring_sa: Client may perform actions encompassed by the conformance monitoring for situational awareness role.
+            utm.availability_arbitration: Client may set the availability state of PSUs in the DSS.
+            utm.resource_management:        to be provided  ---- !!!!!!!!
+            utm.resource_processing:        to be provided  ---- !!!!!!!!
+            utm.dcb_check:                  to be provided  ---- !!!!!!!!
+            
+  schemas:
+    ErrorReport:
+      required:
+      - exchange
+      type: object
+      properties:
+        report_id:
+          maxLength: 128
+          type: string
+          description: ID assigned by the server receiving the report.  Not populated when submitting a report.
+        exchange:
+          description: The request (by this USS) and response associated with the error.
+          $ref: '#/components/schemas/ExchangeRecord'
+      description: A report informing a server of a communication problem.
+      
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Human-readable message indicating what error occurred and/or why.
+          example: "The error occurred because [...]"
+      description: Human-readable string returned when an error occurs as a result of a USS - DSS transaction.
+      
+    ExchangeRecord:
+      required:
+      - method
+      - recorder_role
+      - request_source
+      - request_time
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+          description: Full URL of request.
+        method:
+          type: string
+          description: "HTTP verb used by requestor (e.g., \"PUT,\" \"GET,\" etc.)"
+        headers:
+          type: array
+          description: Set of headers associated with request or response. Requires 'Authorization:' field (at a minimum)
+          items:
+            type: string
+          default: []
+        recorder_role:
+          type: string
+          description: "A coded value that indicates the role of the logging USS: 'Client' (initiating a request to a remote USS) or 'Server' (handling a request from a remote USS)"
+          enum:
+          - Client
+          - Server
+        request_time:
+          description: The time at which the request was sent/received.
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
+        request_body:
+          type: string
+          description: Base64-encoded body content sent/received as a request.
+          default: ""
+        response_time:
+          description: The time at which the response was sent/received.
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
+        response_body:
+          type: string
+          description: Base64-encoded body content sent/received in response to request.
+          default: ""
+        response_code:
+          type: integer
+          description: HTTP response code sent/received in response to request.
+          format: int32
+          default: 0
+        problem:
+          type: string
+          description: "'Human-readable description of the problem with the exchange, if any.'"
+      description: Details of a request/response data exchange.
+
+    Time:
+      required:
+      - format
+      - value
+      type: object
+      properties:
+        value:
+          type: string
+          description: RFC3339-formatted time/date string.  The time zone must be 'Z'.
+          format: date-time
+          example: 1985-04-12T23:20:50.52Z
+        format:
+          type: string
+          enum:
+          - RFC3339
+
+    PutUssAvailabilityDetails:
+      required:
+      - uss_availability_status
+      - subscriptions
+      type: object
+      properties:
+        uss_availability_status:
+          description: ID of operational intent that has changed.
+          $ref: '#/components/schemas/UssAvailabilityStatus'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '#/components/schemas/SubscriptionState'
+      description: |-
+        Updated uss availability details. 
+
+    UssAvailabilityStatus:
+      required:
+      - availability
+      - uss
+      type: object
+      properties:
+        uss:
+          type: string
+          description: Client ID (matching their `sub` in access tokens) of the USS to which this availability applies.
+        availability:
+          $ref: '#/components/schemas/UssAvailabilityState'
+            
+    UssAvailabilityState:
+      type: string
+      description: |-
+        A PSU is presumed to be in the Unknown state absent indication otherwise by a PSU with availability arbitration scope.  Upon determination via availability arbitration, a PSU is Down when it does not respond appropriately, and a Down PSU may not perform the following operations in the DSS:
+        * Create an operational intent in the Proposed, Accepted, Activated or DCB-Noncompliant states
+        * Modify an operational intent whose new or unchanged state is Proposed, Accepted, Activated or DCB-Noncompliant
+        * Delete an operational intent
+        * Create a resource reference in the Active state
+        * Modify a resource reference in the Active state
+        * Delete a resource reference
+        A PSU in the Unknown state possesses all the capabilities, within the DSS, of a PSU in the Normal state.
+      enum:
+      - Unknown
+      - Normal
+      - Down
+
+    SubscriptionState:
+      required:
+      - notification_index
+      - subscription_id
+      type: object
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        notification_index:
+          $ref: '#/components/schemas/SubscriptionNotificationIndex'
+      description: State of subscription which is causing a notification to be sent.
+              
+    SubscriptionNotificationIndex:
+      minimum: 0
+      exclusiveMinimum: false
+      type: integer
+      description: Tracks the notifications sent for a subscription so the subscriber can detect missed notifications more easily.
+      format: int32
+      default: 0
+
+    SubscriptionID:
+      description: Identifier for a subscription communicated through the DSS.  Formatted as a UUIDv4.
+      example: 78ea3fe8-71c2-4f5c-9b44-9c02f5563c6f
+      $ref: '#/components/schemas/UUIDv4Format'      
+      
+    UUIDv4Format:
+      maxLength: 36
+      minLength: 36
+      pattern: "^[0-9a-fA-F]{8}\\\\-[0-9a-fA-F]{4}\\\\-4[0-9a-fA-F]{3}\\\\-[8-b][0-9a-fA-F]{3}\\\\-[0-9a-fA-F]{12}$"
+      type: string
+      description: String whose format matches a version-4 UUID according to RFC 4122.
+      format: uuid
+      example: 03e5572a-f733-49af-bc14-8a18bd53ee39
+        
