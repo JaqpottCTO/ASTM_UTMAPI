@@ -2121,12 +2121,13 @@ components:
         - extents
       type: object
       properties: 
-        extents:
+        extents:        
           minItems: 1
           type: array
           description: |-
             List of resources and crossing OR entry/exit times when the resource
-            will be occupied by the Flight Intent. 
+            will be occupied by the Flight Intent. These extents are intended to be
+            shared with the DSS when the Operation Intent is submitted/updated. 
           items:
             $ref: '#/components/schemas/ResourceExtent'
     PastResourceExtents:
