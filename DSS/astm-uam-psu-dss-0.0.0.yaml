@@ -1471,6 +1471,8 @@ components:
       description: "Specification of a geographic area that a client is interested in on an ongoing basis (e.g., \"planning area\")."
     QuerySubscriptionParameters:
       type: object
+      required:
+        - area_of_interest
       properties:
         area_of_interest:
           $ref: '#/components/schemas/Volume4D'
@@ -1927,6 +1929,8 @@ components:
       description: "Response to a request to create, update, or delete a ResourceReference. in the DSS."
     QueryResourceReferenceParameters:
       type: object
+      required:
+        - area_of_interest
       properties:
         area_of_interest:
           $ref: '#/components/schemas/Volume4D'

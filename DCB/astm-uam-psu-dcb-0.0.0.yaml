@@ -1018,7 +1018,16 @@ components:
           $ref: '#/components/schemas/RequiredAdditionalResources'
     IntentBasedImbalanceRecheckRequest:
       type: object
+      required:
+        - ovn
       properties:
+        ovn:
+          description: >-
+            The OVN (Opaque Version Number) of the operational intent being rechecked.
+            This value ensures that both the client and the DCB are referring to the same
+            version of the operational intent during imbalance evaluation, preventing
+            mismatches due to stale or conflicting state.
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
         required_additional_operations:
           $ref: '#/components/schemas/RequiredAdditionalOperations'
         required_additional_resources:
