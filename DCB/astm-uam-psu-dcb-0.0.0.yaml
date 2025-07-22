@@ -939,14 +939,10 @@ paths:
         - utm.strategic_coordination
 
   /dcb/v1/reports:
-    summary: Error reports of issues communicating with a peer PSU.
-    post:
-      $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport/post' 
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport' 
 
   /dcb/v1/uss_availability:
-    summary: Share USS availability with users of the airspace. 
-    post:
-      $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_Availability/post'
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_Availability'
 
 components:
   securitySchemes:
@@ -1018,7 +1014,16 @@ components:
           $ref: '#/components/schemas/RequiredAdditionalResources'
     IntentBasedImbalanceRecheckRequest:
       type: object
+      required:
+        - ovn
       properties:
+        ovn:
+          description: >-
+            The OVN (Opaque Version Number) of the operational intent being rechecked.
+            This value ensures that both the client and the DCB are referring to the same
+            version of the operational intent during imbalance evaluation, preventing
+            mismatches due to stale or conflicting state.
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
         required_additional_operations:
           $ref: '#/components/schemas/RequiredAdditionalOperations'
         required_additional_resources:
