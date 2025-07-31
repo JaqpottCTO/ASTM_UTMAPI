@@ -291,14 +291,10 @@ paths:
         - utm.resource_management
 
   /ris/v1/reports:
-    summary: Error reports of issues communicating with a peer PSU.
-    post:
-      $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport/post'
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport'
 
   /ris/v1/uss_availability:
-    summary: Share USS availability with users of the airspace. 
-    post:
-      $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_Availability/post'
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_Availability'
 
 components:
   securitySchemes:

@@ -1111,9 +1111,7 @@ paths:
         - utm.resource_processing
 
   /dss/v1/reports:
-    summary: Error reports of issues communicating with a peer PSU.
-    post:
-      $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport/post'
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport'
 
   /dss/v1/uss_availability/{uss_id}:
     summary: Availability status of a USS
@@ -1471,6 +1469,8 @@ components:
       description: "Specification of a geographic area that a client is interested in on an ongoing basis (e.g., \"planning area\")."
     QuerySubscriptionParameters:
       type: object
+      required:
+        - area_of_interest
       properties:
         area_of_interest:
           $ref: '#/components/schemas/Volume4D'
@@ -1927,6 +1927,8 @@ components:
       description: "Response to a request to create, update, or delete a ResourceReference. in the DSS."
     QueryResourceReferenceParameters:
       type: object
+      required:
+        - area_of_interest
       properties:
         area_of_interest:
           $ref: '#/components/schemas/Volume4D'
