@@ -320,16 +320,4 @@ components:
       description: |-
         Parameters of a message informing of detailed information for an operational intent that requirements conformance monitoring.
         Pushed (by an OIM role) directly to CM roles when an operational intent is authorized, or changes are made.
-    PutOperationalIntentTelemetry:
-      required:
-      - operational_intent_id
-      - telemetry
-      type: object
-      properties:
-        operational_intent_id:
-          description: ID of the operational intent which the vehicle reporting telemetry is flying.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-        telemetry:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/VehicleTelemetry'
-      description: provide detailed information on the position of an aircraft associated with an operational intent.
       

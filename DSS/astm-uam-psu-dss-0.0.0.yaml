@@ -2266,40 +2266,6 @@ components:
           items:
             $ref: '#/components/schemas/SubscriberToNotify'
           default: []
-    PlanningRecord:
-      required:
-      - ovns
-      - time
-      type: object
-      properties:
-        time:
-          description: Time that this planning event occurred
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        ovns:
-          type: array
-          description: OVNs the planning USS was aware of when it was planning the operational intent
-          items:
-            $ref: '#/components/schemas/EntityOVN'
-          default: []
-        missing_operational_intents:
-          type: array
-          description: List of missing operational intents (for planning attempts that were denied by the DSS with code 409)
-          items:
-            $ref: '#/components/schemas/EntityID'
-          default: []
-        missing_resources:
-          type: array
-          description: List of missing resources (for planning attempts that were denied by the DSS with code 409)
-          items:
-            $ref: '#/components/schemas/EntityID'
-          default: []          
-        operational_intent_id:
-          description: ID of the operational intent being planned
-          $ref: '#/components/schemas/EntityID'
-        problem:
-          type: string
-          description: A free text description of the problem(s) encountered during this planning attempt.
-      description: A record of a single attempt to (successfully or unsuccessfully) create or modify an operational intent.
     Authority:
       type: object
       properties:
