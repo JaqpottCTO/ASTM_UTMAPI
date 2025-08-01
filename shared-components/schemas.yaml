@@ -125,24 +125,6 @@ components:
           enum:
           - RFC3339
 
-    PutUssAvailabilityDetails:
-      required:
-      - uss_availability_status
-      - subscriptions
-      type: object
-      properties:
-        uss_availability_status:
-          description: ID of operational intent that has changed.
-          $ref: '#/components/schemas/UssAvailabilityStatus'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '#/components/schemas/SubscriptionState'
-      description: |-
-        Updated uss availability details. 
-
     UssAvailabilityStatus:
       required:
       - availability
