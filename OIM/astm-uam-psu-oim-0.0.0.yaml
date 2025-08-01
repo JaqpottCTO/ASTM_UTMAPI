@@ -169,9 +169,6 @@ paths:
   /oim/v1/reports:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport'
 
-  /oim/v1/uss_availability:
-    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_Availability'
-
   /oim/v1/imbalance:
     summary: Submit details about a detected resource demand capacity imbalance
       to the OIM which manages the operation. 
