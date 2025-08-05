@@ -941,9 +941,6 @@ paths:
   /dcb/v1/reports:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport' 
 
-  /dcb/v1/uss_availability:
-    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_Availability'
-
 components:
   securitySchemes:
     $ref: '../shared-components/schemas.yaml#/components/securitySchemes'
