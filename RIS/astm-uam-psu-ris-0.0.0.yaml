@@ -504,17 +504,10 @@ components:
           $ref: '#/components/schemas/PerformanceBound'
     ResourceDetails:
       required:
-        - resource_reference
         - definition
         - current_resource_status
         - future_capacities
       properties:
-        resource_reference:
-          description: |-
-            Full information about the resource reference that has changed.  If this field is omitted,
-            the resource was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceReference'
         definition:
           $ref: '#/components/schemas/ResourceDefinition'
         current_resource_status:
@@ -527,13 +520,28 @@ components:
           items: 
             $ref: '#/components/schemas/TemporaryResourceCapacity'
           default: []
-    QueryResourceDetailsResponse:
+    Resource:
       required:
-      - resource_details
+        - reference
+        - details
       type: object
       properties:
-        resource_details:
+        reference:
+          description: |-
+            Full information about the resource reference.  If this field is omitted,
+            the resource was deleted.  The `ovn` field in the nested `reference` must be
+            populated.
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceReference'
+        details:
           $ref: '#/components/schemas/ResourceDetails'
+      description: Full information about the resource.
+    QueryResourceDetailsResponse:
+      required:
+      - resource
+      type: object
+      properties:
+        resource:
+          $ref: '#/components/schemas/Resource'
       description: Response to peer request for the details of resource with the given ID.
     QueryResourceDefinitionResponse:
       required:

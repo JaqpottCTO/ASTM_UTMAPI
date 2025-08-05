@@ -1397,7 +1397,7 @@ components:
       required:
         - resource_id
         - subscriptions
-        - resource_details
+        - resource
       type: object
       properties:
         resource_id:
@@ -1409,8 +1409,8 @@ components:
           description: Subscription(s) prompting this notification.
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionState'
-        resource_details:
-          $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/ResourceDetails'
+        resource:
+          $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/Resource'
     RequiredAdditionalOperations:
       type: array
       description: >
