@@ -1680,12 +1680,12 @@ components:
       $ref: '#/components/schemas/UssBaseURL'
     PutOperationalIntentReferenceParameters:
       required:
-      - extents
+      - operational_extents
       - state
       - uss_base_url
       type: object
       properties:
-        extents:
+        operational_extents:
           $ref: "#/components/schemas/OperationalExtents"
         key:
           description: "Proof that the USS creating or mutating this operational intent was aware of the current state of the airspace, with the expectation that this operational intent accounts for demand and capacity of all relevant resources. This field is not required when declaring an operational intent Nonconforming or Contingent, or when the operational intent does not intersect any capacity constrained resources, but is otherwise required. OVNs are required for intersected resources and all operations utilizing intersected resources. The key does not need to contain the OVN for the operational intent being updated."
@@ -1975,10 +1975,10 @@ components:
       description: Data provided when an airspace conflict was encountered.
     VolumeExtents:
       required:
-        - extents
+        - volume_extents
       type: object
       properties: 
-        extents:
+        volume_extents:
           minItems: 1
           type: array
           description: |-
@@ -1996,10 +1996,10 @@ components:
             $ref: '#/components/schemas/Volume4DExtent'
     OffNominalVolumeExtents:
       required:
-        - extents
+        - off_nominal_extents
       type: object
       properties: 
-        extents:
+        off_nominal_extents:
           minItems: 1
           type: array
           description: |-
@@ -2098,10 +2098,10 @@ components:
             $ref: '#/components/schemas/EntityOVN'
     ResourceExtents:
       required:
-        - extents
+        - resource_extents
       type: object
       properties: 
-        extents:        
+        resource_extents:        
           minItems: 1
           type: array
           description: |-
