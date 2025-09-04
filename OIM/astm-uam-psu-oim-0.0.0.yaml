@@ -23,8 +23,6 @@ tags:
 - name: Telemetry
 - name: Reports
   description: Endpoints exposed by the PSUs for reporting peer PSU issues.
-- name: Availability
-  description: Endpoints exposed by the DSS for declaring USS availability.
 - name: p2p_uam
   description: Endpoints exposed by PSUs for peer-peer communication.
 paths:
