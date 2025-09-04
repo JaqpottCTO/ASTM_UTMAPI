@@ -468,11 +468,8 @@ components:
       - resource_usage
       type: object
       properties:  
-        # TODO: Do we still need point_designator? Seems like this is replaced by the resource_id
-        # point_designator:
-        #   type: string
-        #   description: "The name of the designated point. This is required for all named airspace structure point from ASDS, including vertipads."
-        #   example: ee123
+        point_designator:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'        
         lat_lng_point:
           description: "Latitude and Longitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'

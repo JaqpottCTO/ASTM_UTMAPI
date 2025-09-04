@@ -955,6 +955,8 @@ components:
         - time
         - trajectory_property_array
       properties:
+        point_designator:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'
         lat_lng_point:
           description: "Latitude and Longitude of the point."
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
