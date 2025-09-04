@@ -328,25 +328,43 @@ components:
 
   schemas:
     Trajectory:
-      maxItems: 1000
-      minItems: 2
-      type: array
-      description: |- 
-        The list of TrajectoryPoints for this operation.  This list must contain all significant TrajectoryPoints per the CBRs. 
-        Pre-flight, this list must contain all trajectory flights.  If updated during the flight, only the current trajectory
-        point to the destination should be included. 
-        For additional insight on points to be included, see the enumeration of property types in the TrajectoryPoint4D model."
-      items:
-        $ref: '#/components/schemas/TrajectoryPoint4D' 
+      type: object
+      description: Wrapper object for trajectory points of this operational intent.
+      properties:
+        trajectory:
+          type: array
+          minItems: 2
+          maxItems: 1000
+          description: |-
+            The list of TrajectoryPoints for this operation.  This list must contain 
+            all significant TrajectoryPoints per the CBRs. Pre-flight, this list must 
+            contain all trajectory flights.  If updated during the flight, only the 
+            current trajectory point to the destination should be included. 
+            For additional insight on points to be included, see the enumeration of 
+            property types in the TrajectoryPoint4D model.
+          items:
+            $ref: '#/components/schemas/TrajectoryPoint4D'
+          default: []
+      required:
+        - trajectory
+
     Volumes:
-      type: array
-      description: |-
-        Volumes that wholly contain the operational intent while being as small as practical.
-        Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
-        May not contain any items when the operational intent is Contingent.
-      items:
-        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume4D'
-      default: []   
+      type: object
+      description: Wrapper object for volume definitions of this operational intent.
+      properties:
+        volumes:
+          type: array
+          description: |-
+            Volumes that wholly contain the operational intent while being as small as 
+            practical. Start and end times, as well as lower and upper altitudes, are 
+            required for each volume. The end time may not be in the past.
+            May not contain any items when the operational intent is Contingent.
+          items:
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume4D'
+          default: []
+      required:
+        - volumes
+
     OperationalIntentDetails:
       required:
       - intent
