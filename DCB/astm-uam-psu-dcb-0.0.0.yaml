@@ -951,7 +951,7 @@ components:
         - lat_lng_point
         - speed
         - time
-        - trajectory_property_array
+        - trajectory_point_property_array
       properties:
         point_designator:
           $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'
@@ -969,7 +969,7 @@ components:
             Speed of the vehicle at this TrajectoryPoint.
             FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
-        trajectory_property_array:
+        trajectory_point_property_array:
           maxItems: 4
           minItems: 1
           type: array
@@ -982,7 +982,7 @@ components:
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
-            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryProperty'
+            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPointProperty'
     IntentTrajectory:
       type: object
       required:

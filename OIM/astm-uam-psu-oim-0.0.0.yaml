@@ -462,7 +462,7 @@ components:
       - lat_lng_point
       - speed
       - time
-      - trajectory_property_array
+      - trajectory_point_property_array
       - resource_usage
       type: object
       properties:  
@@ -482,7 +482,7 @@ components:
             Speed of the vehicle at this TrajectoryPoint.
             FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
-        trajectory_property_array:
+        trajectory_point_property_array:
           maxItems: 4
           minItems: 1
           type: array
@@ -496,7 +496,7 @@ components:
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
-            $ref: '#/components/schemas/TrajectoryProperty'
+            $ref: '#/components/schemas/TrajectoryPointProperty'
         resource_usage:
           type: array
           description: If this trajectory point describes a resource crossing or entry/exit, the resource and the event type
@@ -514,7 +514,7 @@ components:
       externalDocs:
         description: See FIXM 4.2.0 for further information.
         url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link116
-    TrajectoryProperty:
+    TrajectoryPointProperty:
       required:
       - property_type
       type: object
