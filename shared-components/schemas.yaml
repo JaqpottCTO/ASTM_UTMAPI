@@ -188,6 +188,8 @@ components:
       example: 03e5572a-f733-49af-bc14-8a18bd53ee39
 
     PointDesignator:
+      maxLength: 30
+      minLength: 2
       description: Standardized identifier for this point (e.g., fix name or point-based resource code). 
         Optional for ad-hoc lat/long points; required when the point corresponds to a named fix or a point-based 
         resource. Use the published/canonical designator (e.g., DUNKK, DF100).
