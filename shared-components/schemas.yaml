@@ -190,9 +190,11 @@ components:
     PointDesignator:
       maxLength: 30
       minLength: 2
-      description: Standardized identifier for this point (e.g., fix name or point-based resource code). 
-        Optional for ad-hoc lat/long points; required when the point corresponds to a named fix or a point-based 
-        resource. Use the published/canonical designator (e.g., DUNKK, DF100).
+      description: |-
+        Standardized identifier for this point (e.g., fix name or point-based resource code).
+        Optional for ad-hoc lat/long points; required when the point corresponds to a named fix or a point-based resource.
+        Use the published/canonical designator (e.g., DUNKK, DF100).
+        When both `point_designator` and `lat_lng_point` are provided, **lat_lng_point is authoritative**.
       type: string
       example: DF100
-        
+      

@@ -953,6 +953,9 @@ components:
         - time
         - trajectory_point_property_array
       properties:
+        resource_id:
+          description: Identifier for the resource associated with this trajectory point.
+          $ref: '../shared-components/schemas.yaml#/components/schemas/UUIDv4Format'
         point_designator:
           $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'
         lat_lng_point:
