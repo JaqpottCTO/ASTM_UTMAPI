@@ -29,8 +29,6 @@ tags:
     has availability.
 - name: Reports
   description: Endpoints exposed by the PSUs for reporting peer PSU issues.
-- name: Availability
-  description: Endpoints exposed by the DSS for declaring USS availability.
  
 paths:
   /dcb/v1/imbalance_subscriptions/{subscriptionid}:
@@ -953,8 +951,13 @@ components:
         - lat_lng_point
         - speed
         - time
-        - trajectory_property_array
+        - trajectory_point_property_array
       properties:
+        resource_id:
+          description: Identifier for the resource associated with this trajectory point.
+          $ref: '../shared-components/schemas.yaml#/components/schemas/UUIDv4Format'
+        point_designator:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'
         lat_lng_point:
           description: "Latitude and Longitude of the point."
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
@@ -969,7 +972,7 @@ components:
             Speed of the vehicle at this TrajectoryPoint.
             FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
-        trajectory_property_array:
+        trajectory_point_property_array:
           maxItems: 4
           minItems: 1
           type: array
@@ -982,7 +985,7 @@ components:
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
-            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryProperty'
+            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPointProperty'
     IntentTrajectory:
       type: object
       required:
