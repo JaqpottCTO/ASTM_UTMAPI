@@ -1574,6 +1574,7 @@ components:
       required:
         - id
         - uss_base_url
+        - version
       properties:
         id:
           $ref: '#/components/schemas/EntityID'
@@ -1650,16 +1651,6 @@ components:
           description: Metadata needed to retrieve and validate the operational intent from its managing PSU.
         state:
           $ref: '#/components/schemas/OperationalIntentState'
-        ovn:
-          description: >-
-            Opaque version number of this operational intent.  Populated only
-            when the OperationalIntentReference is managed by the PSU retrieving
-            or providing it.  Not populated when the OperationalIntentReference
-            is not managed by the PSU retrieving or providing it (instead, the
-            PSU must obtain the OVN from the details retrieved from the managing
-            PSU).
-          anyOf:
-          - $ref: '#/components/schemas/EntityOVN'
         time_start:
           description: Beginning time of operational intent.
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
@@ -1796,8 +1787,6 @@ components:
       - manager
       - time_start
       - ris_availability
-      - ris_base_url
-      - version
       type: object
       properties:
         id:
@@ -1811,16 +1800,6 @@ components:
           $ref: '#/components/schemas/EntityAccessInfo'          
         ris_availability:
           $ref: '../shared-components/schemas.yaml#/components/schemas/UssAvailabilityState'
-        ovn:
-          description: >-
-            Opaque version number of this operational intent.  Populated only
-            when the ResourceReference is managed by the PSU retrieving
-            or providing it.  Not populated when the ResourceReference
-            is not managed by the PSU retrieving or providing it (instead, the
-            PSU must obtain the OVN from the details retrieved from the managing
-            PSU).
-          anyOf:
-          - $ref: '#/components/schemas/EntityOVN'
         # Start/end time for resource
         time_start:
           description: "Date/time when the resource should begin being considered for DCB."
@@ -1831,8 +1810,6 @@ components:
         bin_duration:
           description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
           $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/CapacityPropertyType'
-        ris_base_url:
-          $ref: '#/components/schemas/ResourceUssBaseURL'
       description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
     ResourceUssBaseURL:
       description: The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this resource.
