@@ -2,14 +2,14 @@
 
 title ASTM UAM PSU Interoperability Standard Sequence
 
-participant "Resource operator" as RO
-participant "Vehicle operator" as op
-participant "Resource Information Service (RIS)" as RIS
-participant "Discovery & Synchronization Service (DSS)" as DSS
-participant "Demand Capacity Balancing (DCB)" as DCB
+participant "Resource\noperator" as RO
+participant "Vehicle\noperator" as op
+participant "Resource Information\nService (RIS)" as RIS
+participant "Discovery & Synchronization\nService (DSS)" as DSS
+participant "Demand Capacity\nBalancing (DCB)" as DCB
 participant "DCB2" as DCB2
-participant "Operational Intent Management (OIM)" as OIM
-participant "Conformance Monitoring (CM)" as CM
+participant "Operational Intent\nManagement (OIM)" as OIM
+participant "Conformance\nMonitoring (CM)" as CM
 participant "CM2" as CM2
 
 ==DCB subscribe to resources==
@@ -221,22 +221,35 @@ else If operation not in conformance
     end
 end
 
-==Conformance monitoring when resource capacity changes==
-RO -> RIS: Update a future resource capacity
-RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=CAPACITY)
+==Conformance monitoring when resource capacity/status/definition changes==
+RO -> RIS: Update a future resource capacity/status/definition
+alt If capacity change
+    RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=CAPACITY)
+else If status change
+    RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=STATUS)
+else If definition change
+    RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=DEFINITION)
+end
 RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
     RIS -> DCB: PUT /dcb/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
-    DCB -> DCB: Adjust capacity values
+    DCB -> DCB: Adjust capacity/status/definition values
+    alt If resource definition change
+        loop For each operation impacted
+            DCB -> OIM: POST /oim/v1/extent_update
+        end
+    end
     alt If imbalance detected
         DCB -> OIM: POST /oim/v1/imbalance
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
-        OIM <-- DSS: operation intent reference with subscribers
-        loop For all subscribers
-            OIM -> DCB2: POST /dcb/v1/operational_intents
-            OIM -> DCB: POST /dcb/v1/operational_intents
-            DCB2 -> DCB2: Adjust demand values
-            DCB -> DCB: Adjust demand values
+        loop For each impacted operation
+            OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
+            OIM <-- DSS: operation intent reference with subscribers
+            loop For all subscribers
+                OIM -> DCB2: POST /dcb/v1/operational_intents
+                OIM -> DCB: POST /dcb/v1/operational_intents
+                DCB2 -> DCB2: Adjust demand values
+                DCB -> DCB: Adjust demand values
+            end
         end
     else If no imbalance detected
         note over DCB: do nothing
