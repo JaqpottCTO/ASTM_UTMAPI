@@ -1582,6 +1582,9 @@ components:
         time_end:
           description: "Ending time of the Resource, if applicable. Indefinite if not set."
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
+        bin_duration:
+          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
+          $ref: '../shared-components/schemas.yaml#/components/schemas/CapacityPropertyType'
       description: Parameters for a request to create a ResourceReference in the DSS.
     PutResourceReferenceParameters:
       type: object
@@ -1609,6 +1612,9 @@ components:
         time_end:
           description: "Ending time of the Resource, if applicable. Indefinite if not set."
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
+        bin_duration:
+          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
+          $ref: '../shared-components/schemas.yaml#/components/schemas/CapacityPropertyType'         
         update_type:
           type: string
           description: The change that warrants notification of peers for the resource. 
