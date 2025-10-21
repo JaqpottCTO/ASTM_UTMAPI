@@ -294,7 +294,8 @@ paths:
 
 components:
   securitySchemes:
-    $ref: '../shared-components/schemas.yaml#/components/securitySchemes'
+    Authority:
+      $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
 
   schemas:
     PutOperationalIntentDetails:

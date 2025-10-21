@@ -114,7 +114,6 @@ paths:
         description: |-
           The time to begin the capacity query. If not provided, endpoint should assume NOW. 
         required: false
-        style: simple
         explode: false
         schema:
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
@@ -124,7 +123,6 @@ paths:
           The time to end the capacity query. If not provided, all future
           capacities should be returned. 
         required: false
-        style: simple
         explode: false
         schema:
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
@@ -292,7 +290,8 @@ paths:
 
 components:
   securitySchemes:
-    $ref: '../shared-components/schemas.yaml#/components/securitySchemes'
+    Authority:
+      $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
 
   schemas:
     ResourceShape:

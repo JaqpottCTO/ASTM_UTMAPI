@@ -1228,7 +1228,8 @@ paths:
         - utm.availability_arbitration
 components:
   securitySchemes:
-    $ref: '../shared-components/schemas.yaml#/components/securitySchemes'
+    Authority:
+      $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
 
   schemas:
     EntityID:
