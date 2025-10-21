@@ -26,72 +26,18 @@ tags:
 - name: p2p_uam
   description: Endpoints exposed by PSUs for peer-peer communication.
 paths:
+  /oim/v1/operational_intents:
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_OperationalIntentNotifications_Create'
+
   /oim/v1/operational_intents/{entityid}:
-    summary: Query detailed information of an operational intent from a PSU.
-    get:
-      tags:
-      - Operational intent details
-      - p2p_uam
-      summary: Retrieve the specified operational intent details from a PSU.
-      description: |-
-        The PSU hosting this endpoint returns the details (and reference) of an
-        operational intent it manages.  While the PSU has a pending request to change the
-        operational intent in the DSS, the PSU should report the most recent version the
-        PSU knows was accepted by the DSS.  So, before a PSU receives a response
-        to create an operational intent reference in the DSS, it should return 404 if
-        queried for that operational intent at this endpoint.
-      operationId: getOperationalIntentDetails
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID for this operational intent.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-      responses:
-        "200":
-          description: Operational intent details were retrieved successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetOperationalIntentDetailsResponse'
-        "400":
-          description: One or more input parameters were missing or invalid.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "404":
-          description: The requested Entity could not be found.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.strategic_coordination
-      - Authority:
-        - utm.resource_management
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_OperationalIntentNotifications_GetAndUpdate'
+
+  /oim/v1/resource_details:
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Create'
+    
+  /oim/v1/resource_details/{entityid}:
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Update'
+        
   /oim/v1/conformance_alert/{entityid}:
     summary: |-
       endpoint hosted by OIM to allow CM to provide conformance monitoring alerts including for
@@ -113,7 +59,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       requestBody:
         content:
           application/json:
@@ -165,7 +111,7 @@ paths:
         - utm.conformance_monitoring_sa
 
   /oim/v1/reports:
-    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport'
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReports'
 
   /oim/v1/imbalance:
     summary: Submit details about a detected resource demand capacity imbalance
@@ -328,109 +274,13 @@ components:
       $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
 
   schemas:
-    Trajectory:
-      type: object
-      description: Wrapper object for trajectory points of this operational intent.
-      properties:
-        trajectory:
-          type: array
-          minItems: 2
-          maxItems: 1000
-          description: |-
-            The list of TrajectoryPoints for this operation.  This list must contain 
-            all significant TrajectoryPoints per the CBRs. Pre-flight, this list must 
-            contain all trajectory flights.  If updated during the flight, only the 
-            current trajectory point to the destination should be included. 
-            For additional insight on points to be included, see the enumeration of 
-            property types in the TrajectoryPoint4D model.
-          items:
-            $ref: '#/components/schemas/TrajectoryPoint4D'
-          default: []
-      required:
-        - trajectory
-
-    Volumes:
-      type: object
-      description: Wrapper object for volume definitions of this operational intent.
-      properties:
-        volumes:
-          type: array
-          description: |-
-            Volumes that wholly contain the operational intent while being as small as 
-            practical. Start and end times, as well as lower and upper altitudes, are 
-            required for each volume. The end time may not be in the past.
-            May not contain any items when the operational intent is Contingent.
-          items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume4D'
-          default: []
-      required:
-        - volumes
-
-    OperationalIntentDetails:
-      required:
-      - intent
-      type: object
-      properties:
-        aircraft_registration:
-          maxLength: 7
-          minLength: 1
-          pattern: "[A-Z0-9]{1,7}"
-          type: string
-          description: |
-            A unique, alphanumeric string that identifies a civil aircraft and consists of the Aircraft
-            Nationality or Common Mark and an additional alphanumeric string, the registration mark,
-            assigned by the state of registry or common mark registering authority. [FIXM]
-          externalDocs:
-            description: See FIXM 4.2.0 for further information.
-            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftRegistrationType.html#LinkBC
-          x-uam-data-accessibility: PUBLIC
-        operator_name:
-          pattern: "[A-Z]{3}"
-          type: string
-          description: "The identifier of the UAM Operator. Required if different than the PSU. For X4 this can be any code that meets the required pattern, and does not need to be an ICAO Airline Code.​"
-          example: AAL
-          externalDocs:
-            description: See FIXM 4.2.0 for further information.
-            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftOperatorType.html#Link1E3
-        intent:
-          oneOf:
-            - $ref: "#/components/schemas/Trajectory"
-            - $ref: "#/components/schemas/Volumes"
-        off_nominal_volumes:
-          type: array
-          description: |-
-            Volumes that contain the anticipated area of non-conformance while the aircraft is in the Nonconforming or Contingent states.
-            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
-            Required with at least one item when the operational intent is Nonconforming or Contingent.
-            May not contain any items when the operational intent is Proposed, Accepted, Activated or DCB-Noncompliant.
-          items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume4D'
-          default: []
-        priority:
-          $ref: '#/components/schemas/Priority'
-      description: Details of a UAM operational intent. Note that this data is not stored in the DSS; only with the clients.
-    Priority:
-      type: integer
-      description: "Ordinal priority of the operational intent, as defined by the regulator.  Operational intents with lesser values are lower priority than all operational intents with greater values.  A lower-priority operational intent may not create a conflict with a higher-priority operational intent.  A higher-priority operational intent may create a conflict with a lower-priority operational intent.  The regulator specifies whether an operational intent may create a conflict with other operational intents of the same priority."
-      default: 0
-    OperationalIntent:
-      required:
-      - details
-      - reference
-      type: object
-      properties:
-        reference:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/OperationalIntentReference'
-        details:
-          $ref: '#/components/schemas/OperationalIntentDetails'
-      description: Full description of a UAM operational intent.
     GetOperationalIntentDetailsResponse:
       required:
       - operational_intent
       type: object
       properties:
         operational_intent:
-          $ref: '#/components/schemas/OperationalIntent'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntent'
       description: Response to peer request for the details of operational intent with the given ID.
     GetOperationalIntentTelemetryResponse:
       required:
@@ -440,7 +290,7 @@ components:
       properties:
         operational_intent_id:
           description: ID of the operational intent which the vehicle reporting telemetry is flying.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         telemetry:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/VehicleTelemetry'
         next_telemetry_opportunity:
@@ -452,110 +302,6 @@ components:
             is no current expectation of new telemetry becoming available.
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
       description: Response to a peer request for telemetry of an operational intent.
-    ResourceEventType:
-      type: string
-      description: Describes if the trajectory point is a resource crossing or the beginning or end
-        of resource usage. 
-      enum:
-        - RESOURCE_ENTRY
-        - RESOURCE_EXIT
-        - RESOURCE_CROSSING
-    ResourceUsage:
-      required:
-        - resource_id
-        - resource_event
-      properties:
-        resource_id:
-          description: |-
-            The ID of the resource being referenced by the trajectory property array.
-            Required when crossing a waypoint-based resource or entering/exiting a 
-            volume-based resource. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-        resource_event:
-          description: Describes if the trajectory point is a resource crossing or the beginning or end
-            of resource usage. 
-          $ref: '#/components/schemas/ResourceEventType'
-    TrajectoryPoint4D:
-      required:
-      - altitude
-      - lat_lng_point
-      - speed
-      - time
-      - trajectory_point_property_array
-      - resource_usage
-      type: object
-      properties:  
-        point_designator:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'        
-        lat_lng_point:
-          description: "Latitude and Longitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
-        altitude:
-          description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
-        time:
-          description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        speed:
-          description: |-
-            Speed of the vehicle at this TrajectoryPoint.
-            FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
-        trajectory_point_property_array:
-          maxItems: 4
-          minItems: 1
-          type: array
-          description: |-
-            Describes any applicable properties of the trajectory point.
-            May include multiple properties per point. FIXM allows up to 2000 properties per trajectory point.
-            Pre-flight, the entire trajectory should be provided. If the trajectory is updated
-            during flight, only the current & future trajectory points should be provided. 
-            The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
-            The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
-          externalDocs:
-            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
-          items:
-            $ref: '#/components/schemas/TrajectoryPointProperty'
-        resource_usage:
-          type: array
-          description: If this trajectory point describes a resource crossing or entry/exit, the resource and the event type
-            must be included. If no resource is used this array is empty.
-          items: 
-            $ref: '#/components/schemas/ResourceUsage'
-      description: |
-        A point for use within a planned trajectory.
-        Tolerance around the point is standardized, and will be applicable
-        to all operations in a given area.
-
-        Currently Flight Rule is not expected to change during an operation. If it does, the
-        following may be added as a new property:
-          https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_RouteTrajectoryElementType.html#Link2A3
-      externalDocs:
-        description: See FIXM 4.2.0 for further information.
-        url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link116
-    TrajectoryPointProperty:
-      required:
-      - property_type
-      type: object
-      properties:
-        property_type:
-          type: string
-          description: |
-            Provides the type of trajectory point property. Enum list is based on the FIXM definition
-            of TrajectoryPointPropertyType.
-          externalDocs:
-            description: FIXM definition of TrajectoryPointPropertyType
-            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPointPropertyType.html#Link2B0
-          enum:
-          - TOP_OF_CLIMB
-          - TOP_OF_DESCENT
-          - TRAJECTORY_CHANGE_POINT_VERTICAL
-          - TRAJECTORY_CHANGE_POINT_SPEED
-          - TRAJECTORY_CHANGE_POINT_LATERAL
-          - WHEELS_OFF
-          - WHEELS_ON
-          - AIRPORT_REFERENCE_LOCATION
-      description: Describes any applicable properties of the trajectory point.
     PutConformanceAlert:
       description: |-
         Parameters for an alert about an operation from the CM role. 
@@ -655,7 +401,7 @@ components:
           default: []
         operational_intent_id:
           description: ID of the operational intent associated with `positions`
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       description: A record of position data gathered through the course of an operational intent
     PlanningRecord:
       required:
@@ -670,23 +416,23 @@ components:
           type: array
           description: OVNs the planning USS was aware of when it was planning the operational intent
           items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
           default: []
         missing_operational_intents:
           type: array
           description: List of missing operational intents (for planning attempts that were denied by the DSS with code 409)
           items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
           default: []
         missing_resources:
           type: array
           description: List of missing resources (for planning attempts that were denied by the DSS with code 409)
           items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
           default: []
         operational_intent_id:
           description: ID of the operational intent being planned
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         problem:
           type: string
           description: A free text description of the problem(s) encountered during this planning attempt.
@@ -728,7 +474,7 @@ components:
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         operational_intent_id:
           description: ID of the operational_intent ID pertaining to the user input
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         input_triggering_event:
           type: string
           description: Requirement ID that pertains to the given notification
@@ -749,7 +495,7 @@ components:
       properties:
         operational_intent_id:
           description: ID of operational intent to which this association pertains
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         operator_id:
           type: string
           description: Unique identifier of the operator responsible for the operational intent

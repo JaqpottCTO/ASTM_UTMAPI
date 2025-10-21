@@ -61,14 +61,14 @@ components:
           - Server
         request_time:
           description: The time at which the request was sent/received.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
+          $ref: '#/components/schemas/Time'
         request_body:
           type: string
           description: Base64-encoded body content sent/received as a request.
           default: ""
         response_time:
           description: The time at which the response was sent/received.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
+          $ref: '#/components/schemas/Time'
         response_body:
           type: string
           description: Base64-encoded body content sent/received in response to request.
@@ -170,4 +170,863 @@ components:
         When both `point_designator` and `lat_lng_point` are provided, **lat_lng_point is authoritative**.
       type: string
       example: DF100
+
+    EntityID:
+      description: Identifier for an Entity communicated through the DSS.  Formatted as a UUIDv4.
+      example: 2f8343be-6482-4d1b-a474-16847e01af1e
+      $ref: '#/components/schemas/UUIDv4Format'      
+      
+    Trajectory:
+      type: object
+      description: Wrapper object for trajectory points of this operational intent.
+      properties:
+        trajectory:
+          type: array
+          minItems: 2
+          maxItems: 1000
+          description: |-
+            The list of TrajectoryPoints for this operation.  This list must contain 
+            all significant TrajectoryPoints per the CBRs. Pre-flight, this list must 
+            contain all trajectory flights.  If updated during the flight, only the 
+            current trajectory point to the destination should be included. 
+            For additional insight on points to be included, see the enumeration of 
+            property types in the TrajectoryPoint4D model.
+          items:
+            $ref: '#/components/schemas/TrajectoryPoint4D'
+      required:
+        - trajectory
+
+    Volumes:
+      type: object
+      description: Wrapper object for volume definitions of this operational intent.
+      properties:
+        volumes:
+          type: array
+          description: |-
+            Volumes that wholly contain the operational intent while being as small as 
+            practical. Start and end times, as well as lower and upper altitudes, are 
+            required for each volume. The end time may not be in the past.
+            May not contain any items when the operational intent is Contingent.
+          items:
+            $ref: '#/components/schemas/Volume4D'
+          default: []
+      required:
+        - volumes
+
+    Latitude:
+      maximum: 90
+      minimum: -90
+      type: number
+      description: "Degrees of latitude north of the equator, with reference to the WGS84 ellipsoid."
+      format: double
+      example: 34.123
+
+    Longitude:
+      maximum: 180
+      minimum: -180
+      type: number
+      description: "Degrees of longitude east of the Prime Meridian, with reference to the WGS84 ellipsoid."
+      format: double
+      example: -118.456
+
+    LatLngPoint:
+      required:
+      - lat
+      - lng
+      type: object
+      properties:
+        lng:
+          $ref: '#/components/schemas/Longitude'
+        lat:
+          $ref: '#/components/schemas/Latitude'
+      description: Point on the earth's surface.        
+      
+    Altitude:
+      required:
+      - reference
+      - units
+      - value
+      type: object
+      properties:
+        value:
+          maximum: 100000
+          minimum: -8000
+          type: number
+          description: "The numeric value of the altitude. Note that min and max values are added as a sanity check. As use cases evolve and more options are made available in terms of units of measure or reference systems, these bounds may be re-evaluated."
+          format: double
+        reference:
+          type: string
+          description: "A code indicating the reference for a vertical distance. See AIXM 5.1 and FIXM 4.2.0. Currently, UTM only allows WGS84 with no immediate plans to allow other options. FIXM and AIXM allow for 'SFC' which is equivalent to AGL."
+          enum:
+          - W84
+        units:
+          type: string
+          description: "The reference quantities used to express the value of altitude. See FIXM 4.2. Currently, UTM only allows meters with no immediate plans to allow other options."
+          enum:
+          - M      
+
+    Velocity:
+      required:
+      - speed
+      - units_speed
+      type: object
+      properties:
+        speed:
+          type: number
+          description: Ground speed in meters/second.
+          format: float
+          example: 200.1
+        units_speed:
+          type: string
+          enum:
+          - MetersPerSecond
+        track:
+          type: number
+          description: "Direction of flight expressed as a \"True North-based\" ground track angle. This value is provided in degrees East of North with a minimum resolution of 1 degree. A value of 360 indicates invalid, no value, or unknown."
+          format: float
+          example: 120
+          default: 0
+          
+    TrajectoryPoint4D:
+      required:
+      - altitude
+      - lat_lng_point
+      - speed
+      - time
+      - trajectory_point_property_array
+      - resource_usage
+      type: object
+      properties:  
+        point_designator:
+          $ref: '#/components/schemas/PointDesignator'        
+        lat_lng_point:
+          description: "Latitude and Longitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
+          $ref: '#/components/schemas/LatLngPoint'
+        altitude:
+          description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
+          $ref: '#/components/schemas/Altitude'
+        time:
+          description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
+          $ref: '#/components/schemas/Time'
+        speed:
+          description: |-
+            Speed of the vehicle at this TrajectoryPoint.
+            FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
+          $ref: '#/components/schemas/Velocity'
+        trajectory_point_property_array:
+          maxItems: 4
+          minItems: 1
+          type: array
+          description: |-
+            Describes any applicable properties of the trajectory point.
+            May include multiple properties per point. FIXM allows up to 2000 properties per trajectory point.
+            Pre-flight, the entire trajectory should be provided. If the trajectory is updated
+            during flight, only the current & future trajectory points should be provided. 
+            The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
+            The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
+          externalDocs:
+            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
+          items:
+            $ref: '#/components/schemas/TrajectoryPointProperty'
+        resource_usage:
+          type: array
+          description: If this trajectory point describes a resource crossing or entry/exit, the resource and the event type
+            must be included. If no resource is used this array is empty.
+          items: 
+            $ref: '#/components/schemas/ResourceUsage'
+      description: |
+        A point for use within a planned trajectory.
+        Tolerance around the point is standardized, and will be applicable
+        to all operations in a given area.
+
+        Currently Flight Rule is not expected to change during an operation. If it does, the
+        following may be added as a new property:
+          https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_RouteTrajectoryElementType.html#Link2A3
+      externalDocs:
+        description: See FIXM 4.2.0 for further information.
+        url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link116
+
+    TrajectoryPointProperty:
+      required:
+      - property_type
+      type: object
+      properties:
+        property_type:
+          type: string
+          description: |
+            Provides the type of trajectory point property. Enum list is based on the FIXM definition
+            of TrajectoryPointPropertyType.
+          externalDocs:
+            description: FIXM definition of TrajectoryPointPropertyType
+            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPointPropertyType.html#Link2B0
+          enum:
+          - TOP_OF_CLIMB
+          - TOP_OF_DESCENT
+          - TRAJECTORY_CHANGE_POINT_VERTICAL
+          - TRAJECTORY_CHANGE_POINT_SPEED
+          - TRAJECTORY_CHANGE_POINT_LATERAL
+          - WHEELS_OFF
+          - WHEELS_ON
+          - AIRPORT_REFERENCE_LOCATION
+      description: Describes any applicable properties of the trajectory point.
+
+    Radius:
+      required:
+      - units
+      - value
+      type: object
+      properties:
+        value:
+          exclusiveMinimum: 0
+          type: number
+          description: "Distance from the centerpoint of a circular area, along the WGS84 ellipsoid."
+          format: float
+          example: 300.183
+        units:
+          type: string
+          description: FIXM-compatible units.  Only meters ("M") are acceptable for UTM.
+          enum:
+          - M
+
+    Polygon:
+      required:
+      - vertices
+      type: object
+      properties:
+        vertices:
+          minItems: 3
+          type: array
+          items:
+            $ref: '#/components/schemas/LatLngPoint'
+      description: "An enclosed area on the earth. The bounding edges of this polygon are defined to be the shortest paths between connected vertices.  This means, for instance, that the edge between two points both defined at a particular latitude is not generally contained at that latitude. The winding order must be interpreted as the order which produces the smaller area. The path between two vertices is defined to be the shortest possible path between those vertices. Edges may not cross. Vertices may not be duplicated.  In particular, the final polygon vertex must not be identical to the first vertex."
+
+    Circle:
+      type: object
+      properties:
+        center:
+          $ref: '#/components/schemas/LatLngPoint'
+        radius:
+          $ref: '#/components/schemas/Radius'
+      description: A circular area on the surface of the earth.
+      
+    Volume3D:
+      type: object
+      properties:
+        outline_circle:
+          description: A circular geographic shape on the surface of the earth.
+          $ref: '#/components/schemas/Circle'
+        outline_polygon:
+          description: A polygonal geographic shape on the surface of the earth.
+          $ref: '#/components/schemas/Polygon'
+        altitude_lower:
+          description: "Minimum bounding altitude of this volume. Must be less than altitude_upper, if specified."
+          $ref: '#/components/schemas/Altitude'
+        altitude_upper:
+          description: "Maximum bounding altitude of this volume. Must be greater than altitude_lower, if specified."
+          $ref: '#/components/schemas/Altitude'
+      description: A three-dimensional geographic volume consisting of a vertically-extruded shape. Exactly one outline must be specified.
+
+    Volume4D:
+      required:
+      - volume
+      type: object
+      properties:
+        volume:
+          $ref: '#/components/schemas/Volume3D'
+        time_start:
+          description: Beginning time of this volume. Must be before time_end.
+          $ref: '#/components/schemas/Time'
+        time_end:
+          description: End time of this volume. Must be after time_start.
+          $ref: '#/components/schemas/Time'
+      description: Contiguous block of geographic spacetime.
+      
+    EntityAccessInfo:
+      type: object
+      description: >
+        Minimal information required to locate, retrieve, and optionally validate the state of an entity, such as an operational 
+        intent or resource. This includes the entity's identity, managing PSU endpoint, and versioning information to determine
+        whether the data is current or must be refreshed.
+      required:
+        - id
+        - uss_base_url
+        - version
+      properties:
+        id:
+          $ref: '#/components/schemas/EntityID'
+        uss_base_url:
+          type: string
+          format: uri
+          description: Base URL of the PSU OIM managing this operational intent or resource.
+        ovn:
+          $ref: '#/components/schemas/EntityOVN'
+          description: >
+            Opaque Version Number of the referenced operational intent or resource, representing a specific
+            version of its state. When provided, systems can use this value to determine whether
+            a cached or locally known instance matches the intended version. This helps ensure
+            consistency and avoid unnecessary data retrieval.
+        version:
+          type: integer
+          description: >
+            Numeric version of the referenced operational intent or resource, reflecting the known state
+            at the time this information was generated. Used to determine whether the current
+            data is up-to-date or whether a fresh copy must be retrieved from the managing PSU.   
+
+    EntityOVN:
+      title: EntityOVN
+      maxLength: 128
+      minLength: 16
+      type: string
+      description: "A token associated with a particular UTM Entity+version created by the DSS upon creation or modification of an Entity reference and provided to the client creating or modifying the Entity reference.  The EntityOVN is stored privately by the DSS and then compared against entries in a Key provided to mutate the airspace.  The EntityOVN is also provided by the client whenever that client transmits the full information of the Entity (either via GET, or via a subscription notification)."
+      example: 9d158f59-80b7-4c11-9c0c-8a2b4d936b2d
+
+    Priority:
+      type: integer
+      description: "Ordinal priority of the operational intent, as defined by the regulator.  Operational intents with lesser values are lower priority than all operational intents with greater values.  A lower-priority operational intent may not create a conflict with a higher-priority operational intent.  A higher-priority operational intent may create a conflict with a lower-priority operational intent.  The regulator specifies whether an operational intent may create a conflict with other operational intents of the same priority."
+      default: 0
+
+    ResourceEventType:
+      type: string
+      description: Describes if the trajectory point is a resource crossing or the beginning or end
+        of resource usage. 
+      enum:
+        - RESOURCE_ENTRY
+        - RESOURCE_EXIT
+        - RESOURCE_CROSSING
+        
+    CapacityLimitType:
+      required:
+        - capacity_type
+      type: object
+      properties:
+        capacity_type:
+          type: string
+          description: |
+            The type of capacity limitation which is to be met for the resource. 
+            Types of capacity limitation at waypoint are:
+            - FLOW_RATE_FIXED_BIN
+              Capacity values for number of operations within a fixed time bin with duration in seconds. 
+              The fixed time bin should start at top-of-the-hour and evenly divide up an hour. For more details, see description for unit = seconds in CapacityPropertyType.
+            - INSTANTANEOUS
+              The maximum number of operations that are permitted to occupy the resource at any time.
+          externalDocs:
+            url: TBD
+          enum: 
+          - FLOW_RATE_FIXED_BIN
+          - INSTANTANEOUS
+
+    CapacityPropertyType:
+      required:
+        - capacity_property
+        - capacity_value
+      type: object
+      properties:
+        capacity_property:
+          type: string
+          description: |
+            Property of the capacity check which must be met.
+            - RATE describes the number of crossings (or events) allowed per time interval DURATION (seconds).
+              Resources using RATE property must also specify a DURATION property. 
+            - DURATION describes the length of a capacity bin or the interval duration (seconds). 
+            - LIMIT describes the max aircraft allowed instantaneously.   
+          externalDocs:
+            url: TBD
+          enum: 
+          - DURATION
+          - LIMIT
+          - RATE
+        capacity_value:
+          type: number
+          description: |-
+            The number of flights allowed without exceeding the capacity limit.  This
+            number represents the maximum capacity for the limit type. 
+          minimum: 0
+
+    ResourceCapacity:
+      required:
+      - capacity_limit_type
+      - capacity_property_array
+      properties:
+        capacity_limit_type:
+          $ref: '#/components/schemas/CapacityLimitType'
+        capacity_property_array:
+          minItems: 1
+          maxItems: 2
+          type: array
+          description: |-
+            Describes the properties of the capacity requirements defined for the resource.
+          items:            
+             $ref: '#/components/schemas/CapacityPropertyType'
+
+    TemporaryResourceCapacity:
+      required: 
+        - id
+        - resource_capacity
+        - capacity_start_time
+      description: |-
+        A temporary resource capacity which overrides the default Resource Capacity. 
+      properties:
+        id:
+          description: |- 
+            A unique identifier for this temporary change to the default resource capacity.  Included
+            to allow for future updates (ex. adding an end time) to an existing temporary capacity change. 
+          $ref: '#/components/schemas/EntityID'
+        resource_capacity:
+          $ref: '#/components/schemas/ResourceCapacity'
+        capacity_start_time:
+          description: The time at which the updated resource capacity begins. 
+          $ref: '#/components/schemas/Time'
+        capacity_end_time:
+          description: The time at which the updated resource capacity ends, if known. 
+            If not provided, the temporary capacity continues indefinitely. 
+          $ref: '#/components/schemas/Time'
+
+    ResourceState:
+      description: The current state of the resource. This state is independent of the resource capacity. No end time to the state is specified.
+      required: 
+        - state
+      properties:
+        state: 
+          type: string
+          description: The current state of the resource. 
+          enum: 
+          - ACTIVE
+          - INACTIVE
+
+    ActiveResourceCapacity:
+      required: 
+        - resource_capacity
+      description: |-
+        The current resource capacity requirement in place. This may be a default or a 
+        temporary capacity requirement. 
+      properties:
+        resource_capacity:
+          $ref: '#/components/schemas/ResourceCapacity'
+        capacity_end_time:
+          description: The time at which the updated resource capacity ends, if known. 
+            If not provided, the current capacity continues indefinitely. 
+          $ref: '#/components/schemas/Time'
+
+    CurrentResourceStatus:
+      required:
+        - state
+        - active_capacity
+        - performance_bound
+      description: |-
+        Returns the current resource status, active capacity and resource performance bound. 
+      properties:
+        state: 
+          $ref: '#/components/schemas/ResourceState'
+        active_capacity:
+          $ref: '#/components/schemas/ActiveResourceCapacity'
+        performance_bound:
+          $ref: '#/components/schemas/PerformanceBound'
+
+    PerformanceBound:
+      description: Performance bounds for a resource indicate lateral, vertical, and time 
+        bounds which must be met for an operational intent to remain conforming. 
+      required:
+        - maximum_altitude_deviation
+        - maximum_lateral_deviation
+        - maximum_time_deviation 
+      properties: 
+        maximum_time_deviation:
+          description: The time buffer allowed from the expecting crossing or occupation time that is allowed in Seconds. 
+          type: number
+        maximum_altitude_deviation:
+          description: The maximum allowed altitude deviation to remain conformant with operational intent, in meters. 
+          type: number
+        maximum_lateral_deviation:
+          description: The maximum allowed lateral deviation to remain conformant with operational intent, in meters. 
+          type: number
+        min_altitude:
+          description: The minimum allowed altitude for usage of this resource.
+          $ref: '#/components/schemas/Altitude'
+        max_altitude:
+          description: The maximum allowed altitude for usage of this resource.
+          $ref: '#/components/schemas/Altitude'
+        min_speed:
+          description: The minimum allowed speed for usage of this resource.
+          $ref: '#/components/schemas/Velocity'
+        max_speed:
+          description: The maximum allowed speed for usage of this resource.
+          $ref: '#/components/schemas/Velocity'
+        radius:
+          description: The maximum allowed radius for usage of this waypoint-based resource.
+          $ref: '#/components/schemas/Radius'
+        trajectory_interval_required:
+          description: Specifies how frequently trajectory points are required to be
+            provided when describing use of this resource, in seconds. 
+          type: number
+          format: integer 
+        performance_bound_start_time:
+          description: The time at which the performance bound start, if known. 
+          $ref: '#/components/schemas/Time'
+        performance_bound_end_time:
+          description: The time at which the performance bound ends, if known. 
+            If not provided, the performance bound continues indefinitely. 
+          $ref: '#/components/schemas/Time'
+
+    ResourceShape:
+      description: The physical shape of the resource.  This is not the same as the resource extent saved in the DSS. 
+      oneOf:
+        - $ref: '#/components/schemas/Circle'
+        - $ref: '#/components/schemas/LatLngPoint'
+        - $ref: '#/components/schemas/Polygon'
+
+    ResourceType:
+      required: 
+        - resource_type
+      properties:
+        resource_type: 
+          type: string
+          description: The type of resource.  
+          enum: 
+          - WAYPOINT
+          - VOLUME
+
+    ResourcePhysicalDefinition:
+      required:
+        - name
+        - shape
+        - type
+      properties:
+        name:
+            description: Name of the resource
+            example: CHIPR
+            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/TextShortType'
+        shape:
+          $ref: '#/components/schemas/ResourceShape'
+        altitude_lower:
+          description: Lower altitude limit of the resource, if any. 
+          $ref: '#/components/schemas/Altitude'
+        altitude_upper:
+          description: Upper altitude limit of the resource, if any. 
+          $ref: '#/components/schemas/Altitude'
+        type:
+          $ref: '#/components/schemas/ResourceType' 
+
+    ResourceDefinition:
+      required:
+      - physical_definition
+      - default_capacity
+      type: object
+      properties:
+        physical_definition:
+          $ref: '#/components/schemas/ResourcePhysicalDefinition'
+        default_capacity:
+          $ref: '#/components/schemas/ResourceCapacity'
+        performance_bound:
+          $ref: '#/components/schemas/PerformanceBound'
+      description: Response to peer request for the resource definition of the resource with the given ID.
+
+    ResourceDetails:
+      required:
+        - definition
+        - current_resource_status
+        - future_capacities
+      properties:
+        definition:
+          $ref: '#/components/schemas/ResourceDefinition'
+        current_resource_status:
+          $ref: '#/components/schemas/CurrentResourceStatus'
+        future_capacities:
+          type: array
+          description: |-
+            An array of future resource capacities, excluding the current active capacity and its end/transition back to the default capacity.
+            The current active capacity and its end/transition back to the default capacity is defined by the CurrentResourceStatus ActiveResourceCapacity.
+          items: 
+            $ref: '#/components/schemas/TemporaryResourceCapacity'
+          default: []
+
+    ResourceReference:
+      required:
+      - id
+      - manager
+      - time_start
+      - ris_availability
+      type: object
+      properties:
+        id:
+          description: Unique identifier for the resource. This duplicates the `id` in `access_info` to support easy access.
+          $ref: '#/components/schemas/EntityID'
+        manager:
+          type: string
+          description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USS to reject resource update notifications originating from a USS that does not manage the resource.
+          example: uss1
+        access_info:
+          $ref: '#/components/schemas/EntityAccessInfo'          
+        ris_availability:
+          $ref: '#/components/schemas/UssAvailabilityState'
+        # Start/end time for resource
+        time_start:
+          description: "Date/time when the resource should begin being considered for DCB."
+          $ref: '#/components/schemas/Time'
+        time_end:
+          description: "Ending time of the Resource, if applicable. Indefinite if not set."
+          $ref: '#/components/schemas/Time'
+        bin_duration:
+          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
+          $ref: '#/components/schemas/CapacityPropertyType'
+      description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
+      
+    Resource:
+      required:
+        - reference
+        - details
+      type: object
+      properties:
+        reference:
+          description: |-
+            Full information about the resource reference.  If this field is omitted,
+            the resource was deleted.  The `ovn` field in the nested `reference` must be
+            populated.
+          $ref: '#/components/schemas/ResourceReference'
+        details:
+          $ref: '#/components/schemas/ResourceDetails'
+      description: Full information about the resource.
+
+    PutResourceDetails:
+      required:
+        - resource_id
+        - subscriptions
+        - resource
+      type: object
+      properties:
+        resource_id:
+          description: ID of resource.
+          $ref: '#/components/schemas/EntityID'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '#/components/schemas/SubscriptionState'
+        resource:
+          $ref: '#/components/schemas/Resource'
+          
+    ResourceUsage:
+      required:
+        - resource_id
+        - resource_event
+      properties:
+        resource_id:
+          description: |-
+            The ID of the resource being referenced by the trajectory property array.
+            Required when crossing a waypoint-based resource or entering/exiting a 
+            volume-based resource. 
+          $ref: '#/components/schemas/EntityID'
+        resource_event:
+          description: Describes if the trajectory point is a resource crossing or the beginning or end
+            of resource usage. 
+          $ref: '#/components/schemas/ResourceEventType'
+
+    ResourceOccupationDuration:
+      required:
+       - entry_time
+       - exit_time
+      type: object
+      properties:
+        entry_time:
+          $ref: '#/components/schemas/Time'
+        exit_time:
+          $ref: '#/components/schemas/Time'
+
+    ResourceCrossing:
+      required:
+       - crossing_time
+      type: object
+      properties:
+        crossing_time:
+          $ref: '#/components/schemas/Time'
+
+    ResourceExtent:
+      required:
+        - resource_id
+        - resource_temporal_usage
+        - resource_ovn
+        - operation_ovns
+      type: object
+      properties:
+        resource_temporal_usage:
+          description: |-
+            Duration of time for a volume based resource, or crossing Time
+            for a waypoint based resource. 
+          oneOf:
+            - $ref: "#/components/schemas/ResourceCrossing"
+            - $ref: "#/components/schemas/ResourceOccupationDuration"  
+        resource_id:
+          description: |-
+            The ID of a resources being occupied or crossed by the operational intent. 
+            Details of the crossing times and durations are also shared peer-to-peer when the
+            operational intent trajectory is shared. 
+          $ref: '#/components/schemas/EntityID'
+        resource_ovn:
+          description: |-
+            The OVN of the resource being occupied or crossed by the operational intent. 
+            This proves the operation considers the latest status and capacity of the resource. 
+          $ref: '#/components/schemas/EntityOVN'
+        operation_ovns:
+          description: |-
+            The OVNs of all operations contributing to demand at this resource during the
+            relevant times based upon resource demand & capacity requirements. 
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityOVN'
+
+    OperationalIntentState:
+      type: string
+      description: |-
+        State of an operational intent.
+        'Proposed': Operational intent is created and made available to other PSUs, but the operation is not yet strategically coordinated or approved for takeoff. See standard text for more details.
+        'Accepted': Operational intent is strategically coordinated with an assigned departure time.  
+          The PSU OIM must perform a DCB check before transitioning to this state.  
+          Operations in this state are on the ground and must enter this state before activation.  
+          The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
+        'Activated': Operational intent is in active use; see standard text for more details.
+          The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
+        'Nonconforming': UA is temporarily outside its volumes, but the situation is expected to be recoverable; see standard text for more details.
+          In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+        'DCB-Noncompliant': Operational intent conforms to its trajectory but does not meet DCB constraints due to replanning or capacity changes.  
+          Remaining in this state may require approval from the competent authority.
+        'Contingent': UA is considered unrecoverably unable to conform with its coordinate operational intent; see standard text for more details.
+          This state must transition to Ended.  In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+        'Completed': Operation has landed and is no longer using the operational intent; see standard text for more details.  
+          Details may still be communicated between PSUs as these operations may affect demand models.         
+        'Canceled': Operation never transitioned to Activated and will not use the operational intent; see standard text for more details.  
+          The PSU OIM role must delete the operational intent from the network. Details in this state are not shared between PSUs.          
+      enum:
+      - Proposed
+      - Accepted
+      - Activated
+      - Nonconforming
+      - DCB-Noncompliant
+      - Contingent
+      - Completed
+      - Canceled
+
+    OperationalIntentReference:
+      required:
+        - id
+        - access_info
+        - manager
+        - state
+        - subscription_id
+        - time_start
+        - time_end
+        - uss_availability
+      type: object
+      properties:
+        id:
+          description: Unique identifier for the operational intent. This duplicates the `id` in `access_info` to support easy access.
+          $ref: '#/components/schemas/EntityID'          
+        manager:
+          type: string
+          description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USSs to reject operational intent update notifications originating from a USS that does not manage the operational intent.
+          example: uss1
+        uss_availability:
+          $ref: '#/components/schemas/UssAvailabilityState'
+        access_info:
+          $ref: '#/components/schemas/EntityAccessInfo'
+          description: Metadata needed to retrieve and validate the operational intent from its managing PSU.
+        state:
+          $ref: '#/components/schemas/OperationalIntentState'
+        time_start:
+          description: Beginning time of operational intent.
+          $ref: '#/components/schemas/Time'
+        time_end:
+          description: End time of operational intent.
+          $ref: '#/components/schemas/Time'
+        subscription_id:
+          description: The ID of the subscription that is ensuring the operational intent manager receives relevant airspace updates.
+          $ref: '#/components/schemas/SubscriptionID'
+        occupied_resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceExtent'
+          description: List of resources which will be fully occupied during the duration of the intent. 
+      description: "The high-level information of a planned or active operational intent with the URL of a USS to query for details.  Note: 'ovn' is returned ONLY to the USS that created the operational intent but NEVER to other USS instances."      
+      
+    OperationalIntentDetails:
+      required:
+      - intent
+      type: object
+      properties:
+        aircraft_registration:
+          maxLength: 7
+          minLength: 1
+          pattern: "[A-Z0-9]{1,7}"
+          type: string
+          description: |
+            A unique, alphanumeric string that identifies a civil aircraft and consists of the Aircraft
+            Nationality or Common Mark and an additional alphanumeric string, the registration mark,
+            assigned by the state of registry or common mark registering authority. [FIXM]
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftRegistrationType.html#LinkBC
+          x-uam-data-accessibility: PUBLIC
+        operator_name:
+          pattern: "[A-Z]{3}"
+          type: string
+          description: "The identifier of the UAM Operator. Required if different than the PSU. For X4 this can be any code that meets the required pattern, and does not need to be an ICAO Airline Code.​"
+          example: AAL
+          externalDocs:
+            description: See FIXM 4.2.0 for further information.
+            url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftOperatorType.html#Link1E3
+        intent:
+          oneOf:
+            - $ref: "#/components/schemas/Trajectory"
+            - $ref: "#/components/schemas/Volumes"
+        off_nominal_volumes:
+          type: array
+          description: |-
+            Volumes that contain the anticipated area of non-conformance while the aircraft is in the Nonconforming or Contingent states.
+            Start and end times, as well as lower and upper altitudes, are required for each volume. The end time may not be in the past.
+            Required with at least one item when the operational intent is Nonconforming or Contingent.
+            May not contain any items when the operational intent is Proposed, Accepted, Activated or DCB-Noncompliant.
+          items:
+            $ref: '#/components/schemas/Volume4D'
+          default: []
+        priority:
+          $ref: '#/components/schemas/Priority'
+      description: Details of a UAM operational intent. Note that this data is not stored in the DSS; only with the clients.
+  
+    OperationalIntent:
+      required:
+      - details
+      - reference
+      type: object
+      properties:
+        reference:
+          $ref: '#/components/schemas/OperationalIntentReference'
+        details:
+          $ref: '#/components/schemas/OperationalIntentDetails'
+      description: Full description of a UAM operational intent.
+
+    PutOperationalIntentDetailsParameters:
+      required:
+      - operational_intent_id
+      - operational_intent
+      - subscriptions
+      type: object
+      properties:
+        operational_intent_id:
+          description: ID of operational intent that has changed.
+          $ref: '#/components/schemas/EntityID'
+        operational_intent:
+          description: |-
+            Full information about the operational intent that has changed.  If this field is omitted,
+            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
+            populated.
+          $ref: '#/components/schemas/OperationalIntent'
+        subscriptions:
+          minItems: 1
+          type: array
+          description: Subscription(s) prompting this notification.
+          items:
+            $ref: '#/components/schemas/SubscriptionState'
+      description: |-
+        Parameters of a message informing of detailed information for a peer operational intent.
+        Pushed (by a client, not the DSS) directly to clients with subscriptions when
+        another client makes a change to airspace within a cell with a subscription.      
       

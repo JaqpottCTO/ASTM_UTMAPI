@@ -96,7 +96,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'  
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'  
       operationId: putOperationalIntentDetails
       requestBody:
         content:
@@ -163,7 +163,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: OperationalIntent telemetry details were retrieved successfully.
@@ -216,81 +216,15 @@ paths:
       security:
       - Authority:
         - utm.conformance_monitoring_sa
+
+  /cm/v1/resource_details:
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Create'
+
   /cm/v1/resource_details/{entityid}:
-    summary: |-
-      endpoint hosted by CM to allow RIS to share detailed information about a resource in response to a 
-      subscription that the CM has with the DSS. Identical to an endpoint hosted by the DCB role. 
-    put:
-      tags:
-      - Resource references
-      - Resource capacities
-      - Resource definition
-      - Resource status
-      - p2p_uam
-      summary: Notify a peer PSU of changed resource details.
-      description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyResourceDetailsChanged
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID for this resource.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '../DCB/astm-uam-psu-dcb-0.0.0.yaml#/components/schemas/PutResourceDetails'
-        required: true
-      responses:
-        "204":
-          description: New or updated full resource information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.resource_management
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Update'
 
   /cm/v1/reports:
-    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport'
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReports'
 
 components:
   securitySchemes:
@@ -306,13 +240,13 @@ components:
       properties:
         operational_intent_id:
           description: ID of operational intent that has changed.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         operational_intent:
           description: |-
             Full information about the operational intent that has changed.  If this field is omitted,
             the operational intent was deleted.  The `ovn` field in the nested `reference` must be
             populated.
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntent'
       description: |-
         Parameters of a message informing of detailed information for an operational intent that requirements conformance monitoring.
         Pushed (by an OIM role) directly to CM roles when an operational intent is authorized, or changes are made.

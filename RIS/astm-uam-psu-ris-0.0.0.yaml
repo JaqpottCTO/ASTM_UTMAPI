@@ -50,7 +50,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: Operational intent details were retrieved successfully.
@@ -108,7 +108,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       - name: begin_query_time
         in: query
         description: |-
@@ -183,7 +183,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: The current status of the resource. 
@@ -241,7 +241,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: The definition of the resource
@@ -286,7 +286,7 @@ paths:
         - utm.resource_management
 
   /ris/v1/reports:
-    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport'
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReports'
 
 components:
   securitySchemes:
@@ -294,247 +294,13 @@ components:
       $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
 
   schemas:
-    ResourceShape:
-      description: The physical shape of the resource.  This is not the same as the resource extent saved in the DSS. 
-      oneOf:
-        - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Circle'
-        - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
-        - $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Polygon'
-    ResourcePhysicalDefinition:
-      required:
-        - name
-        - shape
-        - type
-      properties:
-        name:
-            description: Name of the resource
-            example: CHIPR
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/TextShortType'
-        shape:
-          $ref: '#/components/schemas/ResourceShape'
-        altitude_lower:
-          description: Lower altitude limit of the resource, if any. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
-        altitude_upper:
-          description: Upper altitude limit of the resource, if any. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
-        type:
-          $ref: '#/components/schemas/ResourceType' 
-    ResourceState:
-      description: The current state of the resource. This state is independent of the resource capacity. No end time to the state is specified.
-      required: 
-        - state
-      properties:
-        state: 
-          type: string
-          description: The current state of the resource. 
-          enum: 
-          - ACTIVE
-          - INACTIVE
-    ResourceType:
-      required: 
-        - resource_type
-      properties:
-        resource_type: 
-          type: string
-          description: The type of resource.  
-          enum: 
-          - WAYPOINT
-          - VOLUME
-    CapacityLimitType:
-      required:
-        - capacity_type
-      type: object
-      properties:
-        capacity_type:
-          type: string
-          description: |
-            The type of capacity limitation which is to be met for the resource. 
-            Types of capacity limitation at waypoint are:
-            - FLOW_RATE_FIXED_BIN
-              Capacity values for number of operations within a fixed time bin with duration in seconds. 
-              The fixed time bin should start at top-of-the-hour and evenly divide up an hour. For more details, see description for unit = seconds in CapacityPropertyType.
-            - INSTANTANEOUS
-              The maximum number of operations that are permitted to occupy the resource at any time.
-          externalDocs:
-            url: TBD
-          enum: 
-          - FLOW_RATE_FIXED_BIN
-          - INSTANTANEOUS
-    CapacityPropertyType:
-      required:
-        - capacity_property
-        - capacity_value
-      type: object
-      properties:
-        capacity_property:
-          type: string
-          description: |
-            Property of the capacity check which must be met.
-            - RATE describes the number of crossings (or events) allowed per time interval DURATION (seconds).
-              Resources using RATE property must also specify a DURATION property. 
-            - DURATION describes the length of a capacity bin or the interval duration (seconds). 
-            - LIMIT describes the max aircraft allowed instantaneously.   
-          externalDocs:
-            url: TBD
-          enum: 
-          - DURATION
-          - LIMIT
-          - RATE
-        capacity_value:
-          type: number
-          description: |-
-            The number of flights allowed without exceeding the capacity limit.  This
-            number represents the maximum capacity for the limit type. 
-          minimum: 0
-    ResourceCapacity:
-      required:
-      - capacity_limit_type
-      - capacity_property_array
-      properties:
-        capacity_limit_type:
-          $ref: "#/components/schemas/CapacityLimitType"
-        capacity_property_array:
-          minItems: 1
-          maxItems: 2
-          type: array
-          description: |-
-            Describes the properties of the capacity requirements defined for the resource.
-          items:            
-             $ref: "#/components/schemas/CapacityPropertyType"
-    PerformanceBound:
-      description: Performance bounds for a resource indicate lateral, vertical, and time 
-        bounds which must be met for an operational intent to remain conforming. 
-      required:
-        - maximum_altitude_deviation
-        - maximum_lateral_deviation
-        - maximum_time_deviation 
-      properties: 
-        maximum_time_deviation:
-          description: The time buffer allowed from the expecting crossing or occupation time that is allowed in Seconds. 
-          type: number
-        maximum_altitude_deviation:
-          description: The maximum allowed altitude deviation to remain conformant with operational intent, in meters. 
-          type: number
-        maximum_lateral_deviation:
-          description: The maximum allowed lateral deviation to remain conformant with operational intent, in meters. 
-          type: number
-        min_altitude:
-          description: The minimum allowed altitude for usage of this resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
-        max_altitude:
-          description: The maximum allowed altitude for usage of this resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
-        min_speed:
-          description: The minimum allowed speed for usage of this resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
-        max_speed:
-          description: The maximum allowed speed for usage of this resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
-        radius:
-          description: The maximum allowed radius for usage of this waypoint-based resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Radius'
-        trajectory_interval_required:
-          description: Specifies how frequently trajectory points are required to be
-            provided when describing use of this resource, in seconds. 
-          type: number
-          format: integer 
-        performance_bound_start_time:
-          description: The time at which the performance bound start, if known. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        performance_bound_end_time:
-          description: The time at which the performance bound ends, if known. 
-            If not provided, the performance bound continues indefinitely. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-    TemporaryResourceCapacity:
-      required: 
-        - id
-        - resource_capacity
-        - capacity_start_time
-      description: |-
-        A temporary resource capacity which overrides the default Resource Capacity. 
-      properties:
-        id:
-          description: |- 
-            A unique identifier for this temporary change to the default resource capacity.  Included
-            to allow for future updates (ex. adding an end time) to an existing temporary capacity change. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-        resource_capacity:
-          $ref: "#/components/schemas/ResourceCapacity"
-        capacity_start_time:
-          description: The time at which the updated resource capacity begins. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        capacity_end_time:
-          description: The time at which the updated resource capacity ends, if known. 
-            If not provided, the temporary capacity continues indefinitely. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-    ActiveResourceCapacity:
-      required: 
-        - resource_capacity
-      description: |-
-        The current resource capacity requirement in place. This may be a default or a 
-        temporary capacity requirement. 
-      properties:
-        resource_capacity:
-          $ref: "#/components/schemas/ResourceCapacity"
-        capacity_end_time:
-          description: The time at which the updated resource capacity ends, if known. 
-            If not provided, the current capacity continues indefinitely. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-    CurrentResourceStatus:
-      required:
-        - state
-        - active_capacity
-        - performance_bound
-      description: |-
-        Returns the current resource status, active capacity and resource performance bound. 
-      properties:
-        state: 
-          $ref: '#/components/schemas/ResourceState'
-        active_capacity:
-          $ref: '#/components/schemas/ActiveResourceCapacity'
-        performance_bound:
-          $ref: '#/components/schemas/PerformanceBound'
-    ResourceDetails:
-      required:
-        - definition
-        - current_resource_status
-        - future_capacities
-      properties:
-        definition:
-          $ref: '#/components/schemas/ResourceDefinition'
-        current_resource_status:
-          $ref: '#/components/schemas/CurrentResourceStatus'
-        future_capacities:
-          type: array
-          description: |-
-            An array of future resource capacities, excluding the current active capacity and its end/transition back to the default capacity.
-            The current active capacity and its end/transition back to the default capacity is defined by the CurrentResourceStatus ActiveResourceCapacity.
-          items: 
-            $ref: '#/components/schemas/TemporaryResourceCapacity'
-          default: []
-    Resource:
-      required:
-        - reference
-        - details
-      type: object
-      properties:
-        reference:
-          description: |-
-            Full information about the resource reference.  If this field is omitted,
-            the resource was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceReference'
-        details:
-          $ref: '#/components/schemas/ResourceDetails'
-      description: Full information about the resource.
     QueryResourceDetailsResponse:
       required:
       - resource
       type: object
       properties:
         resource:
-          $ref: '#/components/schemas/Resource'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Resource'
       description: Response to peer request for the details of resource with the given ID.
     QueryResourceDefinitionResponse:
       required:
@@ -542,20 +308,7 @@ components:
       type: object
       properties:
         definition:
-          $ref: '#/components/schemas/ResourceDefinition'
-      description: Response to peer request for the resource definition of the resource with the given ID.
-    ResourceDefinition:
-      required:
-      - physical_definition
-      - default_capacity
-      type: object
-      properties:
-        physical_definition:
-          $ref: '#/components/schemas/ResourcePhysicalDefinition'
-        default_capacity:
-          $ref: '#/components/schemas/ResourceCapacity'
-        performance_bound:
-          $ref: '#/components/schemas/PerformanceBound'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceDefinition'
       description: Response to peer request for the resource definition of the resource with the given ID.
     QueryCurrentResourceStatusResponse:
       description: Returns the current status of the resource. 
@@ -564,7 +317,7 @@ components:
         - current_resource_status
       properties:
         current_resource_status:
-          $ref: "#/components/schemas/CurrentResourceStatus"
+          $ref: "../shared-components/schemas.yaml#/components/schemas/CurrentResourceStatus"
     QueryFutureCapacitiesResponse:
       description: Return a list temporary capacities for the future. 
       type: object
@@ -572,10 +325,10 @@ components:
         - future_capacities
       properties:
         future_capacities:
-          description: An array of future resource capacities, excluding the current active capacity and its end/transition back to the default capacity.
+          description: |-
+            An array of future resource capacities, excluding the current active capacity and its end/transition back to the default capacity.
             The current active capacity and its end/transition back to the default capacity is defined by the CurrentResourceStatus ActiveResourceCapacity.
           type: array
           items: 
-            $ref: '#/components/schemas/TemporaryResourceCapacity'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/TemporaryResourceCapacity'
           default: []
-

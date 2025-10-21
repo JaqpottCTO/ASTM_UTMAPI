@@ -113,7 +113,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: Operational intent reference was retrieved successfully.
@@ -172,7 +172,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       requestBody:
         content:
           application/json:
@@ -251,7 +251,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       - name: ovn
         in: path
         description: Opaque version number of the existing operational intent reference.
@@ -259,7 +259,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityOVN'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
       requestBody:
         content:
           application/json:
@@ -337,7 +337,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       - name: ovn
         in: path
         description: Opaque version number of the existing operational intent reference.
@@ -345,7 +345,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityOVN'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
       responses:
         "200":
           description: The specified operational intent was successfully removed from the DSS.
@@ -477,7 +477,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
           description: Resource reference was retrieved successfully.
@@ -536,7 +536,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       requestBody:
         content:
           application/json:
@@ -609,7 +609,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       - name: ovn
         in: path
         description: Opaque version number of the existing operational intent reference.
@@ -617,7 +617,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityOVN'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
       requestBody:
         content:
           application/json:
@@ -688,7 +688,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       - name: ovn
         in: path
         description: Opaque version number of the existing operational intent reference.
@@ -696,7 +696,7 @@ paths:
         style: simple
         explode: false
         schema:
-          $ref: '#/components/schemas/EntityOVN'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
       responses:
         "200":
           description: The resource was successfully removed from the DSS.
@@ -1111,7 +1111,7 @@ paths:
         - utm.resource_processing
 
   /dss/v1/reports:
-    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport'
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReports'
 
   /dss/v1/uss_availability/{uss_id}:
     summary: Availability status of a USS
@@ -1232,144 +1232,12 @@ components:
       $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
 
   schemas:
-    EntityID:
-      description: Identifier for an Entity communicated through the DSS.  Formatted as a UUIDv4.
-      example: 2f8343be-6482-4d1b-a474-16847e01af1e
-      $ref: '../shared-components/schemas.yaml#/components/schemas/UUIDv4Format'
-    EntityOVN:
-      title: EntityOVN
-      maxLength: 128
-      minLength: 16
-      type: string
-      description: "A token associated with a particular UTM Entity+version created by the DSS upon creation or modification of an Entity reference and provided to the client creating or modifying the Entity reference.  The EntityOVN is stored privately by the DSS and then compared against entries in a Key provided to mutate the airspace.  The EntityOVN is also provided by the client whenever that client transmits the full information of the Entity (either via GET, or via a subscription notification)."
-      example: 9d158f59-80b7-4c11-9c0c-8a2b4d936b2d
     Key:
       type: array
       description: "Proof that a client has obtained the latest airspace content, used to ensure that write operations to the DSS occur only when the latest content is known (i.e., has been read). The client is required to pass a current Key constructed from information obtained with previous read operations and subsequent requests for full information, and optionally, subscription updates for write operations to the DSS.  The contents of this data structure are generated by the client."
       items:
-        $ref: '#/components/schemas/EntityOVN'
+        $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
       default: []
-    Radius:
-      required:
-      - units
-      - value
-      type: object
-      properties:
-        value:
-          minimum: 0
-          exclusiveMinimum: true
-          type: number
-          description: "Distance from the centerpoint of a circular area, along the WGS84 ellipsoid."
-          format: float
-          example: 300.183
-        units:
-          type: string
-          description: FIXM-compatible units.  Only meters ("M") are acceptable for UTM.
-          enum:
-          - M
-    Altitude:
-      required:
-      - reference
-      - units
-      - value
-      type: object
-      properties:
-        value:
-          maximum: 100000
-          exclusiveMaximum: false
-          minimum: -8000
-          exclusiveMinimum: false
-          type: number
-          description: "The numeric value of the altitude. Note that min and max values are added as a sanity check. As use cases evolve and more options are made available in terms of units of measure or reference systems, these bounds may be re-evaluated."
-          format: double
-        reference:
-          type: string
-          description: "A code indicating the reference for a vertical distance. See AIXM 5.1 and FIXM 4.2.0. Currently, UTM only allows WGS84 with no immediate plans to allow other options. FIXM and AIXM allow for 'SFC' which is equivalent to AGL."
-          enum:
-          - W84
-        units:
-          type: string
-          description: "The reference quantities used to express the value of altitude. See FIXM 4.2. Currently, UTM only allows meters with no immediate plans to allow other options."
-          enum:
-          - M
-    Latitude:
-      maximum: 90
-      exclusiveMaximum: false
-      minimum: -90
-      exclusiveMinimum: false
-      type: number
-      description: "Degrees of latitude north of the equator, with reference to the WGS84 ellipsoid."
-      format: double
-      example: 34.123
-    Longitude:
-      maximum: 180
-      exclusiveMaximum: false
-      minimum: -180
-      exclusiveMinimum: false
-      type: number
-      description: "Degrees of longitude east of the Prime Meridian, with reference to the WGS84 ellipsoid."
-      format: double
-      example: -118.456
-    Polygon:
-      required:
-      - vertices
-      type: object
-      properties:
-        vertices:
-          minItems: 3
-          type: array
-          items:
-            $ref: '#/components/schemas/LatLngPoint'
-      description: "An enclosed area on the earth. The bounding edges of this polygon are defined to be the shortest paths between connected vertices.  This means, for instance, that the edge between two points both defined at a particular latitude is not generally contained at that latitude. The winding order must be interpreted as the order which produces the smaller area. The path between two vertices is defined to be the shortest possible path between those vertices. Edges may not cross. Vertices may not be duplicated.  In particular, the final polygon vertex must not be identical to the first vertex."
-    LatLngPoint:
-      required:
-      - lat
-      - lng
-      type: object
-      properties:
-        lng:
-          $ref: '#/components/schemas/Longitude'
-        lat:
-          $ref: '#/components/schemas/Latitude'
-      description: Point on the earth's surface.
-    Circle:
-      type: object
-      properties:
-        center:
-          $ref: '#/components/schemas/LatLngPoint'
-        radius:
-          $ref: '#/components/schemas/Radius'
-      description: A circular area on the surface of the earth.
-    Volume3D:
-      type: object
-      properties:
-        outline_circle:
-          description: A circular geographic shape on the surface of the earth.
-          $ref: '#/components/schemas/Circle'
-        outline_polygon:
-          description: A polygonal geographic shape on the surface of the earth.
-          $ref: '#/components/schemas/Polygon'
-        altitude_lower:
-          description: "Minimum bounding altitude of this volume. Must be less than altitude_upper, if specified."
-          $ref: '#/components/schemas/Altitude'
-        altitude_upper:
-          description: "Maximum bounding altitude of this volume. Must be greater than altitude_lower, if specified."
-          $ref: '#/components/schemas/Altitude'
-      description: A three-dimensional geographic volume consisting of a vertically-extruded shape. Exactly one outline must be specified.
-    Volume4D:
-      required:
-      - volume
-      type: object
-      properties:
-        volume:
-          $ref: '#/components/schemas/Volume3D'
-        time_start:
-          description: Beginning time of this volume. Must be before time_end.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        time_end:
-          description: End time of this volume. Must be after time_start.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-      description: Contiguous block of geographic spacetime.
     ResourceOccupation:
       required:
         - resource_id
@@ -1382,19 +1250,19 @@ components:
             The ID of a resources being occupied or crossed by the operational intent. 
             Details of the crossing times and durations are also shared peer-to-peer when the
             operational intent trajectory is shared. 
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         resource_ovn:
           description: |-
             The OVN of the resource being occupied or crossed by the operational intent. 
             This proves the operation considers the latest status and capacity of the resource. 
-          $ref: '#/components/schemas/EntityOVN'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
         operation_ovns:
           description: |-
             The OVNs of all operations contributing to demand at this resource during the
             relevant times based upon resource demand & capacity requirements. 
           type: array
           items:
-            $ref: '#/components/schemas/EntityOVN'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
     Volume4DExtent:
       required:
       - volume4D
@@ -1402,7 +1270,7 @@ components:
       type: object
       properties:
         volume4d:
-          $ref: '#/components/schemas/Volume4D'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
         occupied_resources:
           type: array
           items:
@@ -1465,7 +1333,7 @@ components:
           type: array
           description: List of IDs for operational intents that are dependent on this subscription.
           items:
-            $ref: '#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
           default: []
       description: "Specification of a geographic area that a client is interested in on an ongoing basis (e.g., \"planning area\")."
     QuerySubscriptionParameters:
@@ -1474,7 +1342,7 @@ components:
         - area_of_interest
       properties:
         area_of_interest:
-          $ref: '#/components/schemas/Volume4D'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
       description: Parameters for a request to find subscriptions matching the provided criteria.
     QuerySubscriptionsResponse:
       required:
@@ -1506,12 +1374,12 @@ components:
             Volume of airspace to subscribe to.
             This subscription will automatically be deleted after its end time if it has not been refreshed by then. 
             Note that some Entities triggering notifications may lie entirely outside the requested area.
-          $ref: '#/components/schemas/Volume3D'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Volume3D'
         resource_ids:
           description: List of resources for which to create the subscription. 
           type: array
           items:
-            $ref: '#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         time_start:
           description: If start time is not specified, it will default to the time the request is processed. 
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
@@ -1545,13 +1413,13 @@ components:
           type: array
           description: "Operational intents in or near the subscription area at the time of creation/update, if `notify_for_operational_intents` is true."
           items:
-            $ref: '#/components/schemas/OperationalIntentReference'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
           default: []
         resource_references:
           type: array
           description: "Resources in or near the subscription area at the time of creation/update, if `notify_for_resources` is true."
           items:
-            $ref: '#/components/schemas/ResourceReference'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceReference'
           default: []
       description: Response for a request to create or update a subscription.
     DeleteSubscriptionResponse:
@@ -1566,107 +1434,6 @@ components:
       type: string
       description: "The base URL of a PSU RIS, OIM or other PSU role implementation of part or all of the PSU-PSU API. "
       example: https://uss.example.com/utm
-    EntityAccessInfo:
-      type: object
-      description: >
-        Minimal information required to locate, retrieve, and optionally validate the state of an entity, such as an operational 
-        intent or resource. This includes the entity's identity, managing PSU endpoint, and versioning information to determine
-        whether the data is current or must be refreshed.
-      required:
-        - id
-        - uss_base_url
-        - version
-      properties:
-        id:
-          $ref: '#/components/schemas/EntityID'
-        uss_base_url:
-          type: string
-          format: uri
-          description: Base URL of the PSU OIM managing this operational intent or resource.
-        ovn:
-          $ref: '#/components/schemas/EntityOVN'
-          description: >
-            Opaque Version Number of the referenced operational intent or resource, representing a specific
-            version of its state. When provided, systems can use this value to determine whether
-            a cached or locally known instance matches the intended version. This helps ensure
-            consistency and avoid unnecessary data retrieval.
-        version:
-          type: integer
-          description: >
-            Numeric version of the referenced operational intent or resource, reflecting the known state
-            at the time this information was generated. Used to determine whether the current
-            data is up-to-date or whether a fresh copy must be retrieved from the managing PSU.    
-    OperationalIntentState:
-      type: string
-      description: |-
-        State of an operational intent.
-        'Proposed': Operational intent is created and made available to other PSUs, but the operation is not yet strategically coordinated or approved for takeoff. See standard text for more details.
-        'Accepted': Operational intent is strategically coordinated with an assigned departure time.  
-          The PSU OIM must perform a DCB check before transitioning to this state.  
-          Operations in this state are on the ground and must enter this state before activation.  
-          The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
-        'Activated': Operational intent is in active use; see standard text for more details.
-          The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
-        'Nonconforming': UA is temporarily outside its volumes, but the situation is expected to be recoverable; see standard text for more details.
-          In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
-        'DCB-Noncompliant': Operational intent conforms to its trajectory but does not meet DCB constraints due to replanning or capacity changes.  
-          Remaining in this state may require approval from the competent authority.
-        'Contingent': UA is considered unrecoverably unable to conform with its coordinate operational intent; see standard text for more details.
-          This state must transition to Ended.  In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
-        'Completed': Operation has landed and is no longer using the operational intent; see standard text for more details.  
-          Details may still be communicated between PSUs as these operations may affect demand models.         
-        'Canceled': Operation never transitioned to Activated and will not use the operational intent; see standard text for more details.  
-          The PSU OIM role must delete the operational intent from the network. Details in this state are not shared between PSUs.          
-      enum:
-      - Proposed
-      - Accepted
-      - Activated
-      - Nonconforming
-      - DCB-Noncompliant
-      - Contingent
-      - Completed
-      - Canceled
-    OperationalIntentReference:
-      required:
-        - id
-        - access_info
-        - manager
-        - state
-        - subscription_id
-        - time_start
-        - time_end
-        - uss_availability
-      type: object
-      properties:
-        id:
-          description: Unique identifier for the operational intent. This duplicates the `id` in `access_info` to support easy access.
-          $ref: '#/components/schemas/EntityID'          
-        manager:
-          type: string
-          description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USSs to reject operational intent update notifications originating from a USS that does not manage the operational intent.
-          example: uss1
-        uss_availability:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/UssAvailabilityState'
-        access_info:
-          $ref: '#/components/schemas/EntityAccessInfo'
-          description: Metadata needed to retrieve and validate the operational intent from its managing PSU.
-        state:
-          $ref: '#/components/schemas/OperationalIntentState'
-        time_start:
-          description: Beginning time of operational intent.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        time_end:
-          description: End time of operational intent.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        subscription_id:
-          description: The ID of the subscription that is ensuring the operational intent manager receives relevant airspace updates.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionID'
-        occupied_resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/ResourceExtent'
-          description: List of resources which will be fully occupied during the duration of the intent. 
-      description: "The high-level information of a planned or active operational intent with the URL of a USS to query for details.  Note: 'ovn' is returned ONLY to the USS that created the operational intent but NEVER to other USS instances."
     OperationalIntentUssBaseURL:
       description: "The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this operational intent, and telemetry during non-conformance or contingency, if applicable."
       $ref: '#/components/schemas/UssBaseURL'
@@ -1683,7 +1450,7 @@ components:
           description: "Proof that the USS creating or mutating this operational intent was aware of the current state of the airspace, with the expectation that this operational intent accounts for demand and capacity of all relevant resources. This field is not required when declaring an operational intent Nonconforming or Contingent, or when the operational intent does not intersect any capacity constrained resources, but is otherwise required. OVNs are required for intersected resources and all operations utilizing intersected resources. The key does not need to contain the OVN for the operational intent being updated."
           $ref: '#/components/schemas/Key'
         state:
-          $ref: '#/components/schemas/OperationalIntentState'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentState'
         uss_base_url:
           $ref: '#/components/schemas/OperationalIntentUssBaseURL'
         subscription_id:
@@ -1695,7 +1462,7 @@ components:
             notification capability for the operational intent.  The subscription specified by this 
             ID must cover at least the area over which this operational intent is conducted, and it 
             must provide notifications for operational intents.
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         new_subscription:
           description: |- 
             If an existing subscription is not specified in `subscription_id`, and the operational 
@@ -1732,7 +1499,7 @@ components:
       type: object
       properties:
         operational_intent_reference:
-          $ref: '#/components/schemas/OperationalIntentReference'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
       description: Response to DSS request for the OperationalIntentReference with the given ID.
     ChangeOperationalIntentReferenceResponse:
       required:
@@ -1747,7 +1514,7 @@ components:
             $ref: '#/components/schemas/SubscriberToNotify'
           default: []
         operational_intent_reference:
-          $ref: '#/components/schemas/OperationalIntentReference'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
       description: "Response to a request to create, update, or delete an OperationalIntentReference in the DSS."
     QueryOperationalIntentReferenceParameters:
       type: object
@@ -1755,12 +1522,12 @@ components:
         area_of_interest:
           description: |-
             Volume of airspace to search for operational intents.
-          $ref: '#/components/schemas/Volume3D'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Volume3D'
         resource_ids:
           description: List of resources for which to return operational intents using the resource. 
           type: array
           items:
-            $ref: '#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         time_start:
           description: Start time of the information query. If start time is not specified, it will default to the time the request is processed. 
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
@@ -1779,39 +1546,9 @@ components:
           type: array
           description: OperationalIntentReferences in the area of interest.
           items:
-            $ref: '#/components/schemas/OperationalIntentReference'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
           default: []
       description: Response to DSS query for OperationalIntentReferences in an area of interest.
-    ResourceReference:
-      required:
-      - id
-      - manager
-      - time_start
-      - ris_availability
-      type: object
-      properties:
-        id:
-          description: Unique identifier for the resource. This duplicates the `id` in `access_info` to support easy access.
-          $ref: '#/components/schemas/EntityID'
-        manager:
-          type: string
-          description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USS to reject resource update notifications originating from a USS that does not manage the resource.
-          example: uss1
-        access_info:
-          $ref: '#/components/schemas/EntityAccessInfo'          
-        ris_availability:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/UssAvailabilityState'
-        # Start/end time for resource
-        time_start:
-          description: "Date/time when the resource should begin being considered for DCB."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        time_end:
-          description: "Ending time of the Resource, if applicable. Indefinite if not set."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        bin_duration:
-          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
-          $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/CapacityPropertyType'
-      description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
     ResourceUssBaseURL:
       description: The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this resource.
       $ref: '#/components/schemas/UssBaseURL'
@@ -1830,12 +1567,12 @@ components:
             The end time may not be in the past.
             All volumes of the resource must be encompassed in these extents. However, these extents do not need to match the precise volumes of the resource; a single bounding extent may be provided instead, for instance.
           items:
-            $ref: '#/components/schemas/Volume4D'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
         ris_base_url:
           $ref: '#/components/schemas/ResourceUssBaseURL'
         subscription_id:
           description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         new_subscription:
           description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
           $ref: '#/components/schemas/ImplicitSubscriptionParameters'
@@ -1857,12 +1594,12 @@ components:
             The end time may not be in the past.
             All volumes of the resource must be encompassed in these extents. However, these extents do not need to match the precise volumes of the resource; a single bounding extent may be provided instead, for instance.
           items:
-            $ref: '#/components/schemas/Volume4D'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
         ris_base_url:
           $ref: '#/components/schemas/ResourceUssBaseURL'
         subscription_id:
           description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         new_subscription:
           description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
           $ref: '#/components/schemas/ImplicitSubscriptionParameters'
@@ -1886,7 +1623,7 @@ components:
       type: object
       properties:
         resource_reference:
-          $ref: '#/components/schemas/ResourceReference'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceReference'
       description: Response to DSS request for the ResourceReference with the given ID.
     ChangeResourceReferenceResponse:
       required:
@@ -1901,7 +1638,7 @@ components:
             $ref: '#/components/schemas/SubscriberToNotify'
           default: []
         resource_reference:
-          $ref: '#/components/schemas/ResourceReference'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceReference'
       description: "Response to a request to create, update, or delete a ResourceReference. in the DSS."
     QueryResourceReferenceParameters:
       type: object
@@ -1909,7 +1646,7 @@ components:
         - area_of_interest
       properties:
         area_of_interest:
-          $ref: '#/components/schemas/Volume4D'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
       description: Parameters for a request to find ResourceReferences matching the provided criteria.
     QueryResourceReferencesResponse:
       required:
@@ -1920,7 +1657,7 @@ components:
           type: array
           description: ResourceReferences in the area of interest.
           items:
-            $ref: '#/components/schemas/ResourceReference'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceReference'
           default: []
       description: Response to DSS query for ResourceReferences in an area of interest.
     AirspaceConflictResponse:
@@ -1938,7 +1675,7 @@ components:
             correct OVNs.  The OVNs can be used to update the key, at which point the USS may retry 
             this call.
           items:
-            $ref: '#/components/schemas/OperationalIntentReference'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
           default: []
         missing_resources:
           type: array
@@ -1948,7 +1685,7 @@ components:
             query the details URLs for these resources to obtain their details and correct OVNs. The 
             OVNs can be used to update the key, after which the request may be retried.
           items:
-            $ref: "#/components/schemas/ResourceReference"
+            $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceReference"
           default: []          
       description: Data provided when an airspace conflict was encountered.
     VolumeExtents:
@@ -1987,24 +1724,7 @@ components:
             be provided instead, for instance. Start and end times, as well as lower and upper altitudes, 
             are required for each volume. The end time may not be in the past. 
           items:
-            $ref: '#/components/schemas/Volume4D'
-    ResourceCrossing:
-      required:
-       - crossing_time
-      type: object
-      properties:
-        crossing_time:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-    ResourceOccupationDuration:
-      required:
-       - entry_time
-       - exit_time
-      type: object
-      properties:
-        entry_time:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        exit_time:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
     PastResourceExtent:
       description: Describes a resource crossing or occupation which has occurred
         in the past for this flight.  The operation and resource OVNs do not need
@@ -2021,59 +1741,26 @@ components:
             Duration of time for a volume based resource, or crossing Time
             for a waypoint based resource. 
           oneOf:
-            - $ref: "#/components/schemas/ResourceCrossing"
-            - $ref: "#/components/schemas/ResourceOccupationDuration"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing"
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"  
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 
             Details of the crossing times and durations are also shared peer-to-peer when the
             operational intent trajectory is shared. 
-          $ref: '#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         resource_ovn:
           description: |-
             The OVN of the resource being occupied or crossed by the operational intent. 
             This proves the operation considers the latest status and capacity of the resource. 
-          $ref: '#/components/schemas/EntityOVN'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
         operation_ovns:
           description: |-
             The OVNs of all operations contributing to demand at this resource during the
             relevant times based upon resource demand & capacity requirements. 
           type: array
           items:
-            $ref: '#/components/schemas/EntityOVN'
-    ResourceExtent:
-      required:
-        - resource_id
-        - resource_temporal_usage
-        - resource_ovn
-        - operation_ovns
-      type: object
-      properties:
-        resource_temporal_usage:
-          description: |-
-            Duration of time for a volume based resource, or crossing Time
-            for a waypoint based resource. 
-          oneOf:
-            - $ref: "#/components/schemas/ResourceCrossing"
-            - $ref: "#/components/schemas/ResourceOccupationDuration"  
-        resource_id:
-          description: |-
-            The ID of a resources being occupied or crossed by the operational intent. 
-            Details of the crossing times and durations are also shared peer-to-peer when the
-            operational intent trajectory is shared. 
-          $ref: '#/components/schemas/EntityID'
-        resource_ovn:
-          description: |-
-            The OVN of the resource being occupied or crossed by the operational intent. 
-            This proves the operation considers the latest status and capacity of the resource. 
-          $ref: '#/components/schemas/EntityOVN'
-        operation_ovns:
-          description: |-
-            The OVNs of all operations contributing to demand at this resource during the
-            relevant times based upon resource demand & capacity requirements. 
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityOVN'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
     ResourceExtents:
       required:
         - resource_extents
@@ -2087,7 +1774,7 @@ components:
             will be occupied by the Flight Intent. These extents are intended to be
             shared with the DSS when the Operation Intent is submitted/updated. 
           items:
-            $ref: '#/components/schemas/ResourceExtent'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
     PastResourceExtents:
       required:
         - past_extents
@@ -2129,7 +1816,7 @@ components:
         position:
           $ref: '#/components/schemas/Position'
         velocity:
-          $ref: '#/components/schemas/Velocity'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Velocity'
       description: "Vehicle position, altitude, and velocity."
     PositionAccuracyVertical:
       type: string
@@ -2165,9 +1852,9 @@ components:
       type: object
       properties:
         longitude:
-          $ref: '#/components/schemas/Longitude'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Longitude'
         latitude:
-          $ref: '#/components/schemas/Latitude'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Latitude'
         accuracy_h:
           $ref: '#/components/schemas/PositionAccuracyHorizontal'
         accuracy_v:
@@ -2177,29 +1864,8 @@ components:
           description: True if this position was generated primarily by computation rather than primarily from a direct instrument measurement.
           default: false
         altitude:
-          $ref: '#/components/schemas/Altitude'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Altitude'
       description: "Location of the vehicle (UAS) as reported for UTM. Note: 'accuracy' values are required when extrapolated field is true."
-    Velocity:
-      required:
-      - speed
-      - units_speed
-      type: object
-      properties:
-        speed:
-          type: number
-          description: Ground speed in meters/second.
-          format: float
-          example: 200.1
-        units_speed:
-          type: string
-          enum:
-          - MetersPerSecond
-        track:
-          type: number
-          description: "Direction of flight expressed as a \"True North-based\" ground track angle. This value is provided in degrees East of North with a minimum resolution of 1 degree. A value of 360 indicates invalid, no value, or unknown."
-          format: float
-          example: 120
-          default: 0
     SetUssAvailabilityStatusParameters:
       required:
       - availability
