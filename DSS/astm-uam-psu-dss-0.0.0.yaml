@@ -590,6 +590,12 @@ paths:
             application/json:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "432":
+          description: The resource start and end times don’t align with the bin duration.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'                    
       security:
       - Authority:
         - utm.resource_management
@@ -671,6 +677,12 @@ paths:
             application/json:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "432":
+          description: The resource start and end times don’t align with the bin duration.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'                 
       security:
       - Authority:
         - utm.resource_management
