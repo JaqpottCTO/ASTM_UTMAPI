@@ -591,7 +591,7 @@ paths:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "432":
-          description: The resource start and end times don’t align with the bin duration.
+          description: The resource start and end times don't align with the bin boundaries.
           content:
             application/json:
               schema:
@@ -678,7 +678,7 @@ paths:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "432":
-          description: The resource start and end times don’t align with the bin duration.
+          description: The resource start and end times don't align with the bin boundaries.
           content:
             application/json:
               schema:
@@ -1618,12 +1618,6 @@ components:
         new_subscription:
           description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
           $ref: '#/components/schemas/ImplicitSubscriptionParameters'
-        time_start:
-          description: "Date/time when the resource should begin being considered for DCB."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        time_end:
-          description: "Ending time of the Resource, if applicable. Indefinite if not set."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         bin_duration:
           description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
           $ref: '../shared-components/schemas.yaml#/components/schemas/CapacityPropertyType'         
