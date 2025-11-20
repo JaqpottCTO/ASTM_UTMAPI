@@ -332,7 +332,7 @@ paths:
             will need to ignore the existing resource usage for this flight intent and only
             consider the trajectory provided in the body. 
           schema:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         - name: returnAvailability
           in: query
           required: false
@@ -450,7 +450,7 @@ paths:
           description: The operational intent to recheck.  This operational intent must already
             be included within an existing imbalance subscription with this DCB. 
           schema:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       requestBody:
         content:
           application/json:
@@ -607,7 +607,7 @@ paths:
           schema:
             type: array
             items: 
-              $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+              $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         - name: time_start
           in: query
           required: true
@@ -674,274 +674,26 @@ paths:
       security:
       - Authority:
         - utm.dcb_check
+        
   /dcb/v1/resource_details:
-    summary: RIS shares detailed information about a resource. 
-    post:
-      tags:
-      - Resource references
-      - Resource capacities
-      - Resource definition
-      - Resource status
-      - p2p_uam
-      summary: Notify a peer PSU of changed resource details.
-      description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyResourceDetails
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutResourceDetails'
-        required: true
-      responses:
-        "204":
-          description: New or updated full resource information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.resource_management
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Create'
+    
   /dcb/v1/resource_details/{entityid}:
-    summary: |-
-      endpoint hosted by DCB to allow RIS to share detailed information about a resource in response to a 
-      subscription that the DCB has with the DSS. 
-    put:
-      tags:
-      - Resource references
-      - Resource capacities
-      - Resource definition
-      - Resource status
-      - p2p_uam
-      summary: Notify a peer PSU of changed resource details.
-      description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyResourceDetailsChanged
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID for this resource.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutResourceDetails'
-        required: true
-      responses:
-        "204":
-          description: New or updated full resource information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.resource_management
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Update'
+
   /dcb/v1/operational_intents:
-    summary: A PSU OIM's representation of detailed information about new operational intents.
-    post:
-      tags:
-      - Operational intent details
-      - p2p_uam
-      summary: Notify a peer PSU of new operational intent details.
-      description: Notify a peer PSU directly of new operational intent details (usually as a requirement of previous interactions with the DSS).
-      operationId: notifyOperationalIntentDetails
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
-        required: true
-      responses:
-        "204":
-          description: New or updated full operational intent information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.strategic_coordination
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_OperationalIntentNotifications_Create'
+
   /dcb/v1/operational_intents/{entityid}:
-    summary: Receive detailed information of an operational intent from a PSU OIM role because of a subscription with the DSS.
-    put:
-      tags:
-      - Operational intent details
-      - p2p_uam
-      summary: Update the specified operational intent details for another PSU.
-      description: |-
-        The PSU managing an operation uses this endpoint to updates the details (and reference) of an
-        operational intent it manages with the PSU that hosts the endpoint, typically in response to a 
-        subscription in the DSS.
-      operationId: notifyOperationalIntentDetailsChanged
-      parameters:
-      - name: entityid
-        in: path
-        description: EntityID for this operational intent.
-        required: true
-        style: simple
-        explode: false
-        schema:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PutOperationalIntentDetailsParameters'
-        required: true
-      responses:
-        "204":
-          description: New or updated full operational intent information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.strategic_coordination
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_OperationalIntentNotifications_Update'
 
   /dcb/v1/reports:
-    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReport' 
+    $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReports' 
 
 components:
   securitySchemes:
-    $ref: '../shared-components/schemas.yaml#/components/securitySchemes'
+    Authority:
+      $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
        
   schemas:
     IntentTrajectoryPoint:
@@ -960,10 +712,10 @@ components:
           $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'
         lat_lng_point:
           description: "Latitude and Longitude of the point."
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/LatLngPoint'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/LatLngPoint'
         altitude:
           description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Altitude'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Altitude'
         time:
           description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
@@ -971,7 +723,7 @@ components:
           description: |-
             Speed of the vehicle at this TrajectoryPoint.
             FIXM allows for two speed entries:  predictedAirspeed and predictedGroundspeed
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Velocity'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Velocity'
         trajectory_point_property_array:
           maxItems: 4
           minItems: 1
@@ -985,7 +737,7 @@ components:
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
-            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPointProperty'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPointProperty'
     IntentTrajectory:
       type: object
       required:
@@ -1023,7 +775,7 @@ components:
             This value ensures that both the client and the DCB are referring to the same
             version of the operational intent during imbalance evaluation, preventing
             mismatches due to stale or conflicting state.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityOVN'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
         required_additional_operations:
           $ref: '#/components/schemas/RequiredAdditionalOperations'
         required_additional_resources:
@@ -1052,7 +804,7 @@ components:
         operational_intent_id:
           description: The ID of the operational intent (as shared with the DSS and other entities)
             which must be updated. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         is_dcb_compliant:
           type: boolean
           description: Returns true if the trajectory is DCB compliant (no imbalances). 
@@ -1070,7 +822,7 @@ components:
             an indication if this is a crossing for waypoint-based resources or an entry/exit for 
             volume-based resources.
           items:
-            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPoint4D'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
         resource_imbalances:
@@ -1107,7 +859,7 @@ components:
             by the trajectory and an indication if this is a crossing for waypoint-based resources or an 
             entry/exit for volume-based resources. 
           items:
-            $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/TrajectoryPoint4D'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
         resource_imbalances:
@@ -1150,13 +902,13 @@ components:
       properties:
         operational_intent_id:
           description: The ID of the operational intent (as shared with the DSS and other entities). 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         operational_intent_reference:
           description: The operational intent reference (as shared with the DSS and other entities)
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/OperationalIntentReference'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
         operational_intent_details:
           description: The operational intent details shared with other stakeholders.
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntentDetails'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentDetails'
     ImbalanceSubscription:
       required:
       - subscription_id
@@ -1176,7 +928,7 @@ components:
           type: array
           description: List of IDs for operational intents that are monitored as part of this DCB. 
           items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
           default: []
         version:
           type: string
@@ -1199,7 +951,7 @@ components:
           type: array
           description: Operational intents to remove from monitoring. 
           items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
           default: []
         version:
           type: string
@@ -1212,12 +964,12 @@ components:
         area_of_interest:
           description: |-
             Volume of airspace to query for resource imbalance details. 
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/Volume3D'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/Volume3D'
         resource_ids:
           description: List of resources for which to query. 
           type: array
           items:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         time_start:
           description: Start time for resource availability query.  If start time is not specified, 
             it will default to the time the request is processed. 
@@ -1249,15 +1001,15 @@ components:
         - is_dcb_compliant
       properties:
         operational_intent_id:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
           description: Operational intent ID of the operation
         resource_temporal_usage:
           description: |-
             Duration of time for a volume based resource, or crossing Time
             for a waypoint based resource. 
           oneOf:
-            - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceCrossing"
-            - $ref: "../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceOccupationDuration" 
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing"
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration" 
         priority_rank: 
           description: The absolute priority rank of this flight compared to other flights utilizing the resource
             within this time bin or within the applicable time range of this bin. Each flight must have
@@ -1323,7 +1075,7 @@ components:
         - resource_imbalances
       properties:
         resource_id:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         resource_imbalances:
           type: array
           items:
@@ -1349,7 +1101,7 @@ components:
         - available_intervals
       properties:
         resource_id:
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         available_intervals:
           type: array
           items:
@@ -1367,50 +1119,6 @@ components:
         time_end:
           description: End time of this availability time interval. Must be after time_start.
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-    PutOperationalIntentDetailsParameters:
-      required:
-      - operational_intent_id
-      - operational_intent
-      - subscriptions
-      type: object
-      properties:
-        operational_intent_id:
-          description: ID of operational intent that has changed.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-        operational_intent:
-          description: |-
-            Full information about the operational intent that has changed.  If this field is omitted,
-            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
-          $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/OperationalIntent'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionState'
-      description: |-
-        Parameters of a message informing of detailed information for a peer operational intent.
-        Pushed (by a client, not the DSS) directly to clients with subscriptions when
-        another client makes a change to airspace within a cell with a subscription.
-    PutResourceDetails:
-      required:
-        - resource_id
-        - subscriptions
-        - resource
-      type: object
-      properties:
-        resource_id:
-          description: ID of resource.
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityID'
-        subscriptions:
-          minItems: 1
-          type: array
-          description: Subscription(s) prompting this notification.
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionState'
-        resource:
-          $ref: '../RIS/astm-uam-psu-ris-0.0.0.yaml#/components/schemas/Resource'
     RequiredAdditionalOperations:
       type: array
       description: >
@@ -1423,7 +1131,7 @@ components:
         are not already cached or are outdated, DCB must retrieve their details from the
         managing PSU in its OIM role using the provided access information.
       items:
-        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityAccessInfo'     
+        $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'     
     RequiredAdditionalResources:
       type: array
       description: >
@@ -1436,5 +1144,5 @@ components:
         resources are not already cached or are outdated, the DCB must retrieve their
         details from the managing PSU in its RIS role using the provided access information.
       items:
-        $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/EntityAccessInfo'            
+        $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'            
                
