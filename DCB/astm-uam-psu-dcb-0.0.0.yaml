@@ -675,10 +675,10 @@ paths:
       - Authority:
         - utm.dcb_check
         
-  /dcb/v1/resource_details:
+  /dcb/v1/resources:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Create'
     
-  /dcb/v1/resource_details/{entityid}:
+  /dcb/v1/resources/{entityid}:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Update'
 
   /dcb/v1/operational_intents:

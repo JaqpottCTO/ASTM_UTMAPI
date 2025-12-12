@@ -1521,7 +1521,11 @@ components:
       properties:
         subscribers:
           type: array
-          description: DSS subscribers that this client now has the obligation to notify of the operational intent changes just made.  This client must call POST for each provided URL according to the USS-USS `/uss/v1/operational_intents` path API.  The client's own subscriptions will also be included in this list.
+          description: >-
+             DSS subscribers that this client now has the obligation to notify of the operational
+             intent changes just made.  This client must call POST for each provided URL according
+             to the USS-USS `/{psu_role}/v1/operational_intents` path API.  The client's own
+             subscriptions will also be included in this list.
           items:
             $ref: '#/components/schemas/SubscriberToNotify'
           default: []
@@ -1645,7 +1649,11 @@ components:
       properties:
         subscribers:
           type: array
-          description: DSS subscribers that this client now has the obligation to notify of the resource changes just made.  This client must call POST for each provided URL according to the USS-USS `/uss/v1/resources` path API.  The client's own subscriptions will also be included in this list.
+          description: >-
+             DSS subscribers that this client now has the obligation to notify of the resource
+             changes just made.  This client must call POST for each provided URL according to the
+             USS-USS `/{psu_role}/v1/resources` path API.  The client's own subscriptions will also
+             be included in this list.
           items:
             $ref: '#/components/schemas/SubscriberToNotify'
           default: []

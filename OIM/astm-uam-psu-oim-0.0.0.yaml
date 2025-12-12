@@ -32,10 +32,10 @@ paths:
   /oim/v1/operational_intents/{entityid}:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_OperationalIntentNotifications_GetAndUpdate'
 
-  /oim/v1/resource_details:
+  /oim/v1/resources:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Create'
     
-  /oim/v1/resource_details/{entityid}:
+  /oim/v1/resources/{entityid}:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Update'
         
   /oim/v1/conformance_alert/{entityid}:
