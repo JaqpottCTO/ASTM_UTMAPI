@@ -1412,8 +1412,15 @@ components:
       description: Parameters for a request to create/update a subscription in the DSS.  At least one form of notifications must be requested.
         At least one of the volume_of_interest or resource_ids must be provided. A combination of volume and resource ids may be provided. 
     SubscriptionUssBaseURL:
-      description: The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications requested by this subscription.
-      $ref: '#/components/schemas/UssBaseURL'
+      description: >- 
+        The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving 
+        the notifications requested by this subscription. The base URL path pattern is '/{psu_role}/v1'.
+        The USS identified by this base URL must implement notification endpoints at `/resources` and
+        `/operational_intents` relative to this base URL. Notification senders construct the full
+        notification URL by appending the appropriate path suffix to this base URL.
+      type: string
+      format: uri      
+      example: https://uss.example.com/oim/v1
     PutSubscriptionResponse:
       required:
       - subscription
@@ -1442,13 +1449,6 @@ components:
         subscription:
           $ref: '#/components/schemas/Subscription'
       description: Response for a successful request to delete a subscription.
-    UssBaseURL:
-      type: string
-      description: "The base URL of a PSU RIS, OIM or other PSU role implementation of part or all of the PSU-PSU API. "
-      example: https://uss.example.com/utm
-    OperationalIntentUssBaseURL:
-      description: "The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this operational intent, and telemetry during non-conformance or contingency, if applicable."
-      $ref: '#/components/schemas/UssBaseURL'
     PutOperationalIntentReferenceParameters:
       required:
       - operational_extents
@@ -1464,7 +1464,7 @@ components:
         state:
           $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentState'
         uss_base_url:
-          $ref: '#/components/schemas/OperationalIntentUssBaseURL'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentUssBaseURL'
         subscription_id:
           description: |- 
             The ID of an existing subscription that the USS will use to keep the operator informed
@@ -1523,9 +1523,9 @@ components:
           type: array
           description: >-
              DSS subscribers that this client now has the obligation to notify of the operational
-             intent changes just made.  This client must call POST for each provided URL according
-             to the USS-USS `/{psu_role}/v1/operational_intents` path API.  The client's own
-             subscriptions will also be included in this list.
+             intent changes just made.  For each provided `uss_base_url`, this client must call
+             `POST` at `{uss_base_url}/operational_intents` according to the USS-USS API.  The
+             client's own subscriptions will also be included in this list.
           items:
             $ref: '#/components/schemas/SubscriberToNotify'
           default: []
@@ -1565,9 +1565,6 @@ components:
             $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
           default: []
       description: Response to DSS query for OperationalIntentReferences in an area of interest.
-    ResourceUssBaseURL:
-      description: The base URL of a USS implementation that implements the parts of the USS-USS API necessary for providing the details of this resource.
-      $ref: '#/components/schemas/UssBaseURL'
     PostResourceReferenceParameters:
       required:
       - extents
@@ -1585,7 +1582,7 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
         ris_base_url:
-          $ref: '#/components/schemas/ResourceUssBaseURL'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceUssBaseURL'
         subscription_id:
           description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
@@ -1615,7 +1612,7 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
         ris_base_url:
-          $ref: '#/components/schemas/ResourceUssBaseURL'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceUssBaseURL'
         subscription_id:
           description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
@@ -1651,9 +1648,9 @@ components:
           type: array
           description: >-
              DSS subscribers that this client now has the obligation to notify of the resource
-             changes just made.  This client must call POST for each provided URL according to the
-             USS-USS `/{psu_role}/v1/resources` path API.  The client's own subscriptions will also
-             be included in this list.
+             changes just made.  For each provided `uss_base_url`, this client must call `POST` at
+             `{uss_base_url}/resources` according to the USS-USS API.  The client's own
+             subscriptions will also be included in this list.
           items:
             $ref: '#/components/schemas/SubscriberToNotify'
           default: []

@@ -457,7 +457,9 @@ components:
         uss_base_url:
           type: string
           format: uri
-          description: Base URL of the PSU OIM managing this operational intent or resource.
+          description: |-
+            Base URL of the PSU managing the referenced entity.
+            The base URL path pattern is '/{psu_role}/v1'. Clients retrieve entity details by appending '/resources' (resources) or '/operational_intents' (operational intents) to this base URL.
         ovn:
           $ref: '#/components/schemas/EntityOVN'
           description: >
@@ -1030,3 +1032,23 @@ components:
         Pushed (by a client, not the DSS) directly to clients with subscriptions when
         another client makes a change to airspace within a cell with a subscription.      
       
+    ResourceUssBaseURL:
+      description: |- 
+        The base URL of a USS implementation that implements the parts of the USS-USS API necessary 
+        for providing the details of this resource.
+        The base URL path pattern is '/{psu_role}/v1', and clients retrieve resource details by 
+        appending the postfix '/resources' to this base URL. 
+      type: string
+      format: uri
+      example: https://uss.example.com/ris/v1
+
+    OperationalIntentUssBaseURL:
+      description: |- 
+        The base URL of a USS implementation that implements the parts of the USS-USS API necessary 
+        for providing the details of this operational intent, and telemetry during non-conformance 
+        or contingency, if applicable. 
+        The base URL path pattern is '/{psu_role}/v1', and clients retrieve operational intent 
+        details by appending the path postfix '/operational_intents' to this base URL.
+      type: string
+      format: uri
+      example: https://uss.example.com/oim/v1   
