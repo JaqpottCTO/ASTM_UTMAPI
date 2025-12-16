@@ -496,69 +496,53 @@ components:
         - RESOURCE_EXIT
         - RESOURCE_CROSSING
         
-    CapacityLimitType:
-      required:
-        - capacity_type
-      type: object
-      properties:
-        capacity_type:
-          type: string
-          description: |
-            The type of capacity limitation which is to be met for the resource. 
-            Types of capacity limitation at waypoint are:
-            - FLOW_RATE_FIXED_BIN
-              Capacity values for number of operations within a fixed time bin with duration in seconds. 
-              The fixed time bin should start at top-of-the-hour and evenly divide up an hour. For more details, see description for unit = seconds in CapacityPropertyType.
-            - INSTANTANEOUS
-              The maximum number of operations that are permitted to occupy the resource at any time.
-          externalDocs:
-            url: TBD
-          enum: 
-          - FLOW_RATE_FIXED_BIN
-          - INSTANTANEOUS
+    BinDurationSeconds:
+      type: integer
+      format: int32
+      minimum: 1
+      description: |-
+        Duration of a fixed capacity time bin, in seconds. For FLOW_RATE_FIXED_BIN capacities the
+        bin should start at top-of-the-hour and evenly divide up an hour.
+      example: 60
 
-    CapacityPropertyType:
-      required:
-        - capacity_property
-        - capacity_value
+    FlowRateFixedBinResourceCapacity:
       type: object
+      description: |-
+        Capacity requirements for FLOW_RATE_FIXED_BIN resources.
+      required:
+      - operations_per_bin
+      - bin_duration
       properties:
-        capacity_property:
-          type: string
-          description: |
-            Property of the capacity check which must be met.
-            - RATE describes the number of crossings (or events) allowed per time interval DURATION (seconds).
-              Resources using RATE property must also specify a DURATION property. 
-            - DURATION describes the length of a capacity bin or the interval duration (seconds). 
-            - LIMIT describes the max aircraft allowed instantaneously.   
-          externalDocs:
-            url: TBD
-          enum: 
-          - DURATION
-          - LIMIT
-          - RATE
-        capacity_value:
-          type: number
-          description: |-
-            The number of flights allowed without exceeding the capacity limit.  This
-            number represents the maximum capacity for the limit type. 
+        operations_per_bin:
+          type: integer
+          format: int32
           minimum: 0
+          description: |-
+            The maximum number of operations allowed within each fixed time bin.
+        bin_duration:
+          $ref: '#/components/schemas/BinDurationSeconds'
+
+    InstantaneousResourceCapacity:
+      type: object
+      description: |-
+        Capacity requirements for INSTANTANEOUS resources.
+      required:
+      - instantaneous_limit
+      properties:
+        instantaneous_limit:
+          type: integer
+          format: int32
+          minimum: 0
+          description: |-
+            The maximum number of operations permitted to occupy the resource at any time.
 
     ResourceCapacity:
-      required:
-      - capacity_limit_type
-      - capacity_property_array
-      properties:
-        capacity_limit_type:
-          $ref: '#/components/schemas/CapacityLimitType'
-        capacity_property_array:
-          minItems: 1
-          maxItems: 2
-          type: array
-          description: |-
-            Describes the properties of the capacity requirements defined for the resource.
-          items:            
-             $ref: '#/components/schemas/CapacityPropertyType'
+      description: |-
+        Capacity requirements defined for a resource. The capacity type is inferred by which
+        properties are present.
+      oneOf:
+      - $ref: '#/components/schemas/FlowRateFixedBinResourceCapacity'
+      - $ref: '#/components/schemas/InstantaneousResourceCapacity'
 
     TemporaryResourceCapacity:
       required: 
@@ -769,7 +753,7 @@ components:
           $ref: '#/components/schemas/Time'
         bin_duration:
           description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
-          $ref: '#/components/schemas/CapacityPropertyType'
+          $ref: '#/components/schemas/BinDurationSeconds'
       description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
       
     Resource:
