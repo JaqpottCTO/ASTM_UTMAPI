@@ -1412,7 +1412,7 @@ components:
       description: Parameters for a request to create/update a subscription in the DSS.  At least one form of notifications must be requested.
         At least one of the volume_of_interest or resource_ids must be provided. A combination of volume and resource ids may be provided. 
     SubscriptionUssBaseURL:
-      description: >- 
+      description: >-
         The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving 
         the notifications requested by this subscription. The base URL path pattern is '/{psu_role}/v1'.
         The USS identified by this base URL must implement notification endpoints at `/resources` and
