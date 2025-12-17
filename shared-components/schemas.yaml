@@ -1017,21 +1017,21 @@ components:
         another client makes a change to airspace within a cell with a subscription.      
       
     ResourceUssBaseURL:
-      description: |- 
-        The base URL of a USS implementation that implements the parts of the USS-USS API necessary 
+      description: >- 
+        The base URL of a USS implementation that implements the parts of the USS-USS API necessary
         for providing the details of this resource.
-        The base URL path pattern is '/{psu_role}/v1', and clients retrieve resource details by 
+        The base URL path pattern is '/{psu_role}/v1', and clients retrieve resource details by
         appending the postfix '/resources' to this base URL. 
       type: string
       format: uri
       example: https://uss.example.com/ris/v1
 
     OperationalIntentUssBaseURL:
-      description: |- 
-        The base URL of a USS implementation that implements the parts of the USS-USS API necessary 
+      description: >-
+        The base URL of a USS implementation that implements the parts of the USS-USS API necessary
         for providing the details of this operational intent, and telemetry during non-conformance 
-        or contingency, if applicable. 
-        The base URL path pattern is '/{psu_role}/v1', and clients retrieve operational intent 
+        or contingency, if applicable.
+        The base URL path pattern is '/{psu_role}/v1', and clients retrieve operational intent
         details by appending the path postfix '/operational_intents' to this base URL.
       type: string
       format: uri
