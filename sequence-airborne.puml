@@ -50,7 +50,7 @@ else If operation not in conformance
         OIM -> DCB: POST /dcb/v1/imbalance/intent
         OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
         alt If imbalance detected
-            note over OIM: Do not update the operation
+            note over OIM: Do not transition operation to Activated state
             OIM -> op: Op cannot re-activate
             note over op: Operator must replan again in order to re-activate
         else If no imbalance detected
@@ -120,9 +120,9 @@ loop For each resource subscriber
             OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
 
             alt If imbalance detected
-                note over OIM: Do not update the operation
-                OIM -> op: Op cannot activate
-                note over op: Operator must replan again in order to activate
+                note over OIM: Do not transition operation to Activated state
+                OIM -> op: Op cannot re-activate
+                note over op: Operator must replan again in order to re-activate
             else If no imbalance detected
                 OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
                 DSS -> DSS: Confirms OVNs are correct
@@ -137,6 +137,7 @@ loop For each resource subscriber
             end 
         else If op cannot replan intent to be DCB-compliant
             note over op: do nothing\nOperation remains DCB-Noncompliant
+        end
     else If no imbalance detected
         note over DCB: do nothing
     end
