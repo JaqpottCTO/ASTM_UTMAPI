@@ -483,7 +483,8 @@ components:
       example: 9d158f59-80b7-4c11-9c0c-8a2b4d936b2d
 
     Priority:
-      type: integer
+      type: number
+      format: float
       description: "Ordinal priority of the operational intent, as defined by the regulator.  Operational intents with lesser values are lower priority than all operational intents with greater values.  A lower-priority operational intent may not create a conflict with a higher-priority operational intent.  A higher-priority operational intent may create a conflict with a lower-priority operational intent.  The regulator specifies whether an operational intent may create a conflict with other operational intents of the same priority."
       default: 0
 
