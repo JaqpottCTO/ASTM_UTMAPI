@@ -10,7 +10,6 @@ participant "Demand Capacity\nBalancing (DCB)" as DCB
 participant "DCB2" as DCB2
 participant "Operational Intent\nManagement (OIM)" as OIM
 participant "Conformance\nMonitoring (CM)" as CM
-participant "CM2" as CM2
 
 ==DCB subscribe to resources==
 DCB -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
