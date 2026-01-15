@@ -21,7 +21,7 @@ alt If operation in conformance
 else If operation not in conformance
     CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Nonconforming)
     OIM -> OIM: Define off-nominal volumes
-    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Nonconforming; extent = Off-nominal volumes)
+    OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Nonconforming; extent = Off-nominal volumes)
     OIM <-- DSS: operation intent reference with subscribers
     loop For all subscribers
         OIM -> DCB2: POST /dcb/v1/operational_intents
@@ -34,7 +34,7 @@ else If operation not in conformance
         op -> CM: Tracking info for CM conformant
         CM -> CM: Conformance monitoring
         CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Reconforming)
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+        OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Activated)
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
             OIM -> DCB2: POST /dcb/v1/operational_intents
@@ -54,7 +54,7 @@ else If operation not in conformance
             OIM -> op: Op cannot re-activate
             note over op: Operator must replan again in order to re-activate
         else If no imbalance detected
-            OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+            OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Activated)
             DSS -> DSS: Confirms OVNs are correct
             OIM <-- DSS: operation intent reference with subscribers
             loop For all subscribers
@@ -67,7 +67,7 @@ else If operation not in conformance
         end 
     else If op cannot become conformant in time limit
         OIM -> OIM: Define off-nominal volumes
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Contingent; extent = Off-nominal volumes)
+        OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Contingent; extent = Off-nominal volumes)
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
             OIM -> DCB2: POST /dcb/v1/operational_intents
@@ -103,7 +103,7 @@ loop For each resource subscriber
             DCB -> OIM: POST /oim/v1/imbalance
         end
         loop For each impacted operation
-            OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
+            OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
             OIM <-- DSS: operation intent reference with subscribers
             loop For all subscribers
                 OIM -> DCB2: POST /dcb/v1/operational_intents
@@ -124,7 +124,7 @@ loop For each resource subscriber
                 OIM -> op: Op cannot re-activate
                 note over op: Operator must replan again in order to re-activate
             else If no imbalance detected
-                OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+                OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Activated)
                 DSS -> DSS: Confirms OVNs are correct
                 OIM <-- DSS: operation intent reference with subscribers
                 loop For all subscribers

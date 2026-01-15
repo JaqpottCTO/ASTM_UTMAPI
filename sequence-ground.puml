@@ -100,7 +100,7 @@ loop For each operation reference received
     note over DCB2
     Get all operation details.
     end note
-    DCB2 -> OIM: GET /oim/v1/operation_intents/{operation-id} (includes OVN)
+    DCB2 -> OIM: GET /oim/v1/operational_intents/{operation-id} (includes OVN)
     DCB2 <-- OIM: operation details (everything)
 end
 DCB2 -> DCB2: Adjust demand/capacity values
@@ -123,7 +123,7 @@ alt If imbalance detected
             OIM -> op: Op cannot transition to accepted state
             note over op: Operator must replan again in order to be accepted
         else If no imbalance detected
-            OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Accepted)
+            OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Accepted)
             DSS -> DSS: Confirms OVNs are correct
             OIM <-- DSS: operation intent reference with subscribers
             loop For all subscribers
@@ -137,7 +137,7 @@ alt If imbalance detected
     else If operator cannot replan into available windows
         note over op: Cancel operation
         op -> OIM: Cancel operation
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Cancelled)
+        OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Cancelled)
         DSS -> DSS: Confirms OVNs are correct
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
@@ -150,7 +150,7 @@ alt If imbalance detected
 else If no imbalance detected
     OIM -> op: No imbalances detected (optional)
     op --> OIM: Confirmation of op request (optional)
-    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Accepted)
+    OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Accepted)
     DSS -> DSS: Confirms OVNs are correct
     OIM <-- DSS: operation intent reference with subscribers
     loop For all subscribers
@@ -184,7 +184,7 @@ loop For each resource subscriber
             DCB -> OIM: POST /oim/v1/imbalance
         end
         loop For each impacted operation
-            OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Proposed)
+            OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Proposed)
             OIM <-- DSS: operation intent reference with subscribers
             loop For all subscribers
                 OIM -> DCB2: POST /dcb/v1/operational_intents
@@ -205,7 +205,7 @@ loop For each resource subscriber
                 OIM -> op: Op cannot be re-accepted
                 note over op: Operator must replan again in order to be re-accepted
             else If no imbalance detected
-                OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Accepted)
+                OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Accepted)
                 DSS -> DSS: Confirms OVNs are correct
                 OIM <-- DSS: operation intent reference with subscribers
                 loop For all subscribers
@@ -253,7 +253,7 @@ alt If imbalance detected
             OIM -> op: Op cannot activate
             note over op: Operator must replan again in order to activate
         else If no imbalance detected
-            OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+            OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Activated)
             DSS -> DSS: Confirms OVNs are correct
             OIM <-- DSS: operation intent reference with subscribers
             loop For all subscribers
@@ -267,7 +267,7 @@ alt If imbalance detected
     else If operator cannot replan into available windows
         note over op: Cancel operation
         op -> OIM: Cancel operation
-        OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Cancelled)
+        OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Cancelled)
         DSS -> DSS: Confirms OVNs are correct
         OIM <-- DSS: operation intent reference with subscribers
         loop For all subscribers
@@ -278,7 +278,7 @@ alt If imbalance detected
         end
     end
 else If no imbalance detected
-    OIM -> DSS: PUT /dss/v1/operation_intent_references/{entityId}/{ovn}\n(state = Activated)
+    OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Activated)
     DSS -> DSS: Confirms OVNs are correct
     OIM <-- DSS: operation intent reference with subscribers
     loop For all subscribers
