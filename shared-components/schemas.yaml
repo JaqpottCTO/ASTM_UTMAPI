@@ -457,7 +457,9 @@ components:
         uss_base_url:
           type: string
           format: uri
-          description: Base URL of the PSU OIM managing this operational intent or resource.
+          description: |-
+            Base URL of the PSU managing the referenced entity.
+            The base URL path pattern is '/{psu_role}/v1'. Clients retrieve entity details by appending '/resources' (resources) or '/operational_intents' (operational intents) to this base URL.
         ovn:
           $ref: '#/components/schemas/EntityOVN'
           description: >
@@ -481,7 +483,8 @@ components:
       example: 9d158f59-80b7-4c11-9c0c-8a2b4d936b2d
 
     Priority:
-      type: integer
+      type: number
+      format: float
       description: "Ordinal priority of the operational intent, as defined by the regulator.  Operational intents with lesser values are lower priority than all operational intents with greater values.  A lower-priority operational intent may not create a conflict with a higher-priority operational intent.  A higher-priority operational intent may create a conflict with a lower-priority operational intent.  The regulator specifies whether an operational intent may create a conflict with other operational intents of the same priority."
       default: 0
 
@@ -494,69 +497,53 @@ components:
         - RESOURCE_EXIT
         - RESOURCE_CROSSING
         
-    CapacityLimitType:
-      required:
-        - capacity_type
-      type: object
-      properties:
-        capacity_type:
-          type: string
-          description: |
-            The type of capacity limitation which is to be met for the resource. 
-            Types of capacity limitation at waypoint are:
-            - FLOW_RATE_FIXED_BIN
-              Capacity values for number of operations within a fixed time bin with duration in seconds. 
-              The fixed time bin should start at top-of-the-hour and evenly divide up an hour. For more details, see description for unit = seconds in CapacityPropertyType.
-            - INSTANTANEOUS
-              The maximum number of operations that are permitted to occupy the resource at any time.
-          externalDocs:
-            url: TBD
-          enum: 
-          - FLOW_RATE_FIXED_BIN
-          - INSTANTANEOUS
+    BinDurationSeconds:
+      type: integer
+      format: int32
+      minimum: 1
+      description: |-
+        Duration of a fixed capacity time bin, in seconds. For FLOW_RATE_FIXED_BIN capacities the
+        bin should start at top-of-the-hour and evenly divide up an hour.
+      example: 60
 
-    CapacityPropertyType:
-      required:
-        - capacity_property
-        - capacity_value
+    FlowRateFixedBinResourceCapacity:
       type: object
+      description: |-
+        Capacity requirements for FLOW_RATE_FIXED_BIN resources.
+      required:
+      - operations_per_bin
+      - bin_duration
       properties:
-        capacity_property:
-          type: string
-          description: |
-            Property of the capacity check which must be met.
-            - RATE describes the number of crossings (or events) allowed per time interval DURATION (seconds).
-              Resources using RATE property must also specify a DURATION property. 
-            - DURATION describes the length of a capacity bin or the interval duration (seconds). 
-            - LIMIT describes the max aircraft allowed instantaneously.   
-          externalDocs:
-            url: TBD
-          enum: 
-          - DURATION
-          - LIMIT
-          - RATE
-        capacity_value:
-          type: number
-          description: |-
-            The number of flights allowed without exceeding the capacity limit.  This
-            number represents the maximum capacity for the limit type. 
+        operations_per_bin:
+          type: integer
+          format: int32
           minimum: 0
+          description: |-
+            The maximum number of operations allowed within each fixed time bin.
+        bin_duration:
+          $ref: '#/components/schemas/BinDurationSeconds'
+
+    InstantaneousResourceCapacity:
+      type: object
+      description: |-
+        Capacity requirements for INSTANTANEOUS resources.
+      required:
+      - instantaneous_limit
+      properties:
+        instantaneous_limit:
+          type: integer
+          format: int32
+          minimum: 0
+          description: |-
+            The maximum number of operations permitted to occupy the resource at any time.
 
     ResourceCapacity:
-      required:
-      - capacity_limit_type
-      - capacity_property_array
-      properties:
-        capacity_limit_type:
-          $ref: '#/components/schemas/CapacityLimitType'
-        capacity_property_array:
-          minItems: 1
-          maxItems: 2
-          type: array
-          description: |-
-            Describes the properties of the capacity requirements defined for the resource.
-          items:            
-             $ref: '#/components/schemas/CapacityPropertyType'
+      description: |-
+        Capacity requirements defined for a resource. The capacity type is inferred by which
+        properties are present.
+      oneOf:
+      - $ref: '#/components/schemas/FlowRateFixedBinResourceCapacity'
+      - $ref: '#/components/schemas/InstantaneousResourceCapacity'
 
     TemporaryResourceCapacity:
       required: 
@@ -767,7 +754,7 @@ components:
           $ref: '#/components/schemas/Time'
         bin_duration:
           description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
-          $ref: '#/components/schemas/CapacityPropertyType'
+          $ref: '#/components/schemas/BinDurationSeconds'
       description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
       
     Resource:
@@ -886,11 +873,11 @@ components:
         'Activated': Operational intent is in active use; see standard text for more details.
           The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
         'Nonconforming': UA is temporarily outside its volumes, but the situation is expected to be recoverable; see standard text for more details.
-          In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+          In this state, the `/cm/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
         'DCB-Noncompliant': Operational intent conforms to its trajectory but does not meet DCB constraints due to replanning or capacity changes.  
           Remaining in this state may require approval from the competent authority.
         'Contingent': UA is considered unrecoverably unable to conform with its coordinate operational intent; see standard text for more details.
-          This state must transition to Ended.  In this state, the `/uss/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+          This state must transition to Ended.  In this state, the `/cm/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
         'Completed': Operation has landed and is no longer using the operational intent; see standard text for more details.  
           Details may still be communicated between PSUs as these operations may affect demand models.         
         'Canceled': Operation never transitioned to Activated and will not use the operational intent; see standard text for more details.  
@@ -1030,3 +1017,23 @@ components:
         Pushed (by a client, not the DSS) directly to clients with subscriptions when
         another client makes a change to airspace within a cell with a subscription.      
       
+    ResourceUssBaseURL:
+      description: >- 
+        The base URL of a USS implementation that implements the parts of the USS-USS API necessary
+        for providing the details of this resource.
+        The base URL path pattern is '/{psu_role}/v1', and clients retrieve resource details by
+        appending the postfix '/resources' to this base URL. 
+      type: string
+      format: uri
+      example: https://uss.example.com/ris/v1
+
+    OperationalIntentUssBaseURL:
+      description: >-
+        The base URL of a USS implementation that implements the parts of the USS-USS API necessary
+        for providing the details of this operational intent, and telemetry during non-conformance 
+        or contingency, if applicable.
+        The base URL path pattern is '/{psu_role}/v1', and clients retrieve operational intent
+        details by appending the path postfix '/operational_intents' to this base URL.
+      type: string
+      format: uri
+      example: https://uss.example.com/oim/v1   

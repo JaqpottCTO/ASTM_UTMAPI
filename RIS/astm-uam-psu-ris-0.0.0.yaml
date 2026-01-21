@@ -29,7 +29,7 @@ tags:
   description: Endpoints exposed by the PSUs for reporting peer PSU issues.
 
 paths:
-  /ris/v1/resource_details/{entityid}:
+  /ris/v1/resources/{entityid}:
     summary: Query detailed information of a resource from RIS. 
     get:
       tags:
@@ -93,7 +93,7 @@ paths:
         - utm.resource_processing
       - Authority:
         - utm.resource_management
-  /ris/v1/resource_details/{entityid}/capacities:
+  /ris/v1/resources/{entityid}/capacities:
     summary: Get future capacity details for the resource. 
     get:
       tags:
@@ -168,7 +168,7 @@ paths:
         - utm.resource_management
       - Authority:
         - utm.resource_processing
-  /ris/v1/resource_details/{entityid}/status:
+  /ris/v1/resources/{entityid}/status:
     summary: Get the current resource status 
     get:
       tags:
@@ -226,7 +226,7 @@ paths:
         - utm.resource_processing
       - Authority:
         - utm.resource_management
-  /ris/v1/resource_details/{entityid}/definition:
+  /ris/v1/resources/{entityid}/definition:
     summary: Get the resource definition 
     get:
       tags:

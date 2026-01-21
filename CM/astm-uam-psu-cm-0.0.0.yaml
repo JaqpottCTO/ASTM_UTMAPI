@@ -217,10 +217,10 @@ paths:
       - Authority:
         - utm.conformance_monitoring_sa
 
-  /cm/v1/resource_details:
+  /cm/v1/resources:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Create'
 
-  /cm/v1/resource_details/{entityid}:
+  /cm/v1/resources/{entityid}:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ResourceNotifications_Update'
 
   /cm/v1/reports:
