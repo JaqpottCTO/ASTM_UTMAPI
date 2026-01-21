@@ -100,7 +100,7 @@ loop For each resource subscriber
     end
     alt If imbalance detected
         alt If extent not already updated for this operation
-            DCB -> OIM: POST /oim/v1/imbalance
+            DCB -> OIM: POST /oim/v1/dcb_update
         end
         loop For each impacted operation
             OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
@@ -139,7 +139,8 @@ loop For each resource subscriber
             note over op: do nothing\nOperation remains DCB-Noncompliant
         end
     else If no imbalance detected
-        note over DCB: do nothing
+        DCB -> OIM: POST /oim/v1/dcb_update
+        note over DCB: Send updated resource OVNs
     end
     RIS -> DCB2: PUT /dcb/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
     DCB2 -> DCB2: Adjust capacity values
