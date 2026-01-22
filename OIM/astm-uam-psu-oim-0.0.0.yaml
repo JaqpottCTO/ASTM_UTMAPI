@@ -174,17 +174,17 @@ paths:
   /oim/v1/extent_update:
     summary: Submit updated resource extents and trajectory back to OIM from DCB. This endpoint
       will be called in the case where a new resource is created or the physical definition
-      of a resource is updated causing a flight's shared resource extents and trajectory to 
+      of a resource is updated causing one or more flights' shared resource extents and trajectory to 
       be out of date.  This endpoint provides the same data as would be provided by the DCB in response to an imbalance intent request 
-      by the OIM.  It indicates if the flight is DCB compliant or not (after the change), 
+      by the OIM.  It indicates if each flight is DCB compliant or not (after the change), 
       provides details about imbalances, and also provides the updated resource extents and
       supplemental trajectory for updates to the DSS and other OIMs. 
     post:
       tags:
       - Imbalance monitoring 
-      summary: Notify an OIM that the resource interaction of its existing operational intent
+      summary: Notify an OIM that the resource interaction of one or more operational intents
         is out of date and must be updated. 
-      description: Notify an OIM that the resource interaction of its existing operational intent
+      description: Notify an OIM that the resource interaction of one or more operational intents
         is out of date and must be updated. 
       operationId: notifyExtentsRequireUpdate
       requestBody:

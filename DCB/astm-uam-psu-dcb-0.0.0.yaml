@@ -795,16 +795,27 @@ components:
     ExtentUpdateRequest:
       type: object
       required: 
-        - operational_intent_id
+        - operations
+      properties:
+        operations:
+          type: array
+          maxItems: 1000
+          description: Updated resource extents, trajectory, and imbalance details for each operational intent requiring an update, keyed by operational intent ID.
+          items:
+            $ref: '#/components/schemas/ExtentUpdateOperation'
+      description: >- 
+        Request from DCB to OIM indicating that the resource extents and trajectory previously shared with
+        the DSS and other OIMs for one or more flight instances are out of date.  This can happen if a new resource is added to the system or
+        an existing resource is modified in a way which would cause updates to how an existing trajectory is interacting with
+        the resource (ex. change to physical definition including altitude, location, or size or shape changes).
+    ExtentUpdateOperation:
+      type: object
+      required: 
+        - is_dcb_compliant
         - trajectory
         - resource_extents
         - resource_imbalances
-        - is_dcb_compliant
       properties: 
-        operational_intent_id:
-          description: The ID of the operational intent (as shared with the DSS and other entities)
-            which must be updated. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         is_dcb_compliant:
           type: boolean
           description: Returns true if the trajectory is DCB compliant (no imbalances). 
@@ -830,11 +841,6 @@ components:
           items:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
           default: []
-      description: >- 
-        Request from DCB to OIM indicating that the resource extents and trajectory previously shared with
-        the DSS and other OIMs for this flight instance is out of date.  This can happen if a new resource is added to the system or
-        an existing resource is modified in a way which would cause updates to how an existing trajectory is interacting with
-        the resource (ex. change to physical definition including altitude, location, or size or shape changes).
     IntentBasedImbalanceResponse:
       type: object
       required:
