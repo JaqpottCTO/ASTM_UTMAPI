@@ -993,16 +993,16 @@ components:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
     ContributingOperation:
       type: object
-      description: Basic details of an operation contributing to demand or imbalance. 
+      description: Basic details of an operation contributing to demand or imbalance.
       required:
-        - operational_intent_id
+        - operational_intent
         - resource_temporal_usage
         - priority_rank
         - is_dcb_compliant
       properties:
-        operational_intent_id:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-          description: Operational intent ID of the operation
+        operational_intent:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
+          description: Reference and versioning information for the operational intent (includes managing PSU base URL if retrieval is needed).
         resource_temporal_usage:
           description: |-
             Duration of time for a volume based resource, or crossing Time
@@ -1027,8 +1027,8 @@ components:
     DemandCapacityImbalanceInterval:
       type: object
       description: >-
-        Returns a time range, imbalance status for the range, and all operation OVNs contributing to 
-        demand within that time range.
+        Returns a time range, imbalance status for the range, and information about all operations
+        contributing to demand within that time range.
       required:
         - time_start
         - time_end
@@ -1069,13 +1069,14 @@ components:
       description: >-
         a set of properties describing a resource imbalance status that includes a resource reference from the adaptation data, 
         the start and end time of the time bin used for demand-capacity imbalance computation, the magnitude of the imbalance, 
-        the imbalance status, and a potentially empty set of OVNs for all operations contributing to the reported demand at this resource at this time bin
+        the imbalance status, and a potentially empty set of operations contributing to the reported demand at this resource at this time bin
       required:
-        - resource_id
+        - resource
         - resource_imbalances
       properties:
-        resource_id:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
+        resource:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
+          description: Reference and versioning information for the resource (includes managing PSU base URL if retrieval is needed).
         resource_imbalances:
           type: array
           items:
@@ -1097,11 +1098,12 @@ components:
         the demand is under the capacity of the resource.  
       type: object
       required:
-        - resource_id
+        - resource
         - available_intervals
       properties:
-        resource_id:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
+        resource:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
+          description: Reference and versioning information for the resource (includes managing PSU base URL if retrieval is needed).
         available_intervals:
           type: array
           items:
