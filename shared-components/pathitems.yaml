@@ -4,13 +4,93 @@
 # To use a pathItem from this file, reference it from your main OpenAPI file using $ref, for example:
 # 
 #   /dss/v1/reports:
-#     $ref: '../shared_components/pathitems.yaml#/components/pathItems/path_ErrorReport'
+#     $ref: '../shared_components/pathitems.yaml#/components/pathItems/path_ErrorReports'
 #
-# The actual security requirements should be specified per-operation in the main document if they differ.
+# ============================================================================
+# PATH ITEM VARIANTS FOR OPERATIONAL INTENT ENDPOINTS
+# ============================================================================
+# /{service}/v1/operational_intents/{entityid} supports different operations based on service role:
+#   - OIM: GET (clients query OIM for details) + PUT (OIM receives notifications from peers)
+#   - DCB/potential subscribers: PUT only (receive notifications from peer PSUs via DSS subscriptions)
+#
+# Per OpenAPI 3.1.1 section 4.8.9, Reference Objects cannot have sibling properties.
+# This file defines separate path item variants with YAML anchors for operation reuse.
+# ============================================================================
+
+# YAML anchors for reusable operation definitions
+x-operation-definitions:
+  put-operational-intent-notification: &put-operational-intent-notification
+    tags:
+    - Operational intent details
+    - p2p_uam
+    summary: Update the specified operational intent details for another PSU.
+    description: |-
+      The PSU managing an operation uses this endpoint to updates the details (and reference) of an
+      operational intent it manages with the PSU that hosts the endpoint, typically in response to a 
+      subscription in the DSS.
+    operationId: notifyOperationalIntentDetailsChanged
+    parameters:
+    - name: entityid
+      in: path
+      description: EntityID for this operational intent.
+      required: true
+      style: simple
+      explode: false
+      schema:
+        $ref: './schemas.yaml#/components/schemas/EntityID'
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/PutOperationalIntentDetailsParameters'
+      required: true
+    responses:
+      "204":
+        description: New or updated full operational intent information received successfully.
+      "400":
+        description: |-
+          * One or more parameters were missing or invalid.
+          * The Entity could not be parsed, or contains illegal data.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+      "401":
+        description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+      "403":
+        description: |-
+          * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+      "409":
+        description: |-
+          The Entity version specified in this message is lower than
+          a previously-received notification, or identical to a previously-received
+          notification and the Entity is different.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+      "429":
+        description: The client issued too many requests in a short period of time.
+        content:
+          application/json:
+            schema:
+              $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+    security:
+    - Authority:
+      - utm.strategic_coordination
   
 components:
   pathItems:
-    path_ErrorReport:
+    path_ErrorReports:
       summary: Error reports of issues communicating with a peer PSU.
       post:
         tags:
@@ -55,3 +135,269 @@ components:
               application/json:
                 schema:
                   $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+
+    path_OperationalIntentNotifications_Create:
+      summary: A PSU OIM's representation of detailed information about new operational intents.
+      post:
+        tags:
+        - Operational intent details
+        - p2p_uam
+        summary: Notify a peer PSU of new operational intent details.
+        description: Notify a peer PSU directly of new operational intent details (usually as a requirement of previous interactions with the DSS).
+        operationId: notifyOperationalIntentDetails
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yaml#/components/schemas/PutOperationalIntentDetailsParameters'
+          required: true
+        responses:
+          "204":
+            description: New or updated full operational intent information received successfully.
+          "400":
+            description: |-
+              * One or more parameters were missing or invalid.
+              * The Entity could not be parsed, or contains illegal data.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "401":
+            description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "403":
+            description: |-
+              * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+              * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "409":
+            description: |-
+              The Entity version specified in this message is lower than
+              a previously-received notification, or identical to a previously-received
+              notification and the Entity is different.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "429":
+            description: The client issued too many requests in a short period of time.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+        security:
+        - Authority:
+          - utm.strategic_coordination
+
+    path_OperationalIntentNotifications_Update:
+      summary: Receive detailed information of an operational intent from a PSU OIM role because of a subscription with the DSS.
+      put: *put-operational-intent-notification
+
+
+    path_OperationalIntentNotifications_GetAndUpdate:
+      summary: Retrieve or update operational intent details from a PSU OIM.
+      put: *put-operational-intent-notification
+      get:
+        tags:
+        - Operational intent details
+        - p2p_uam
+        summary: Retrieve the specified operational intent details from a PSU.
+        description: |-
+          The PSU hosting this endpoint returns the details (and reference) of an
+          operational intent it manages.  While the PSU has a pending request to change the
+          operational intent in the DSS, the PSU should report the most recent version the
+          PSU knows was accepted by the DSS.  So, before a PSU receives a response
+          to create an operational intent reference in the DSS, it should return 404 if
+          queried for that operational intent at this endpoint.
+        operationId: getOperationalIntentDetails
+        parameters:
+        - name: entityid
+          in: path
+          description: EntityID for this operational intent.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            $ref: './schemas.yaml#/components/schemas/EntityID'
+        responses:
+          "200":
+            description: Operational intent details were retrieved successfully.
+            content:
+              application/json:
+                schema:
+                  $ref: '../OIM/astm-uam-psu-oim-0.0.0.yaml#/components/schemas/GetOperationalIntentDetailsResponse'
+          "400":
+            description: One or more input parameters were missing or invalid.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "401":
+            description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "403":
+            description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "404":
+            description: The requested Entity could not be found.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "429":
+            description: The client issued too many requests in a short period of time.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+        security:
+        - Authority:
+          - utm.strategic_coordination
+        - Authority:
+          - utm.resource_management
+          
+    path_ResourceNotifications_Create:  
+      summary: RIS shares detailed information about a resource. 
+      post:
+        tags:
+        - Resource references
+        - Resource capacities
+        - Resource definition
+        - Resource status
+        - p2p_uam
+        summary: Notify a peer PSU of changed resource details.
+        description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
+        operationId: notifyResourceDetails
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yaml#/components/schemas/PutResourceDetails'
+          required: true
+        responses:
+          "204":
+            description: New or updated full resource information received successfully.
+          "400":
+            description: |-
+              * One or more parameters were missing or invalid.
+              * The Entity could not be parsed, or contains illegal data.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "401":
+            description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "403":
+            description: |-
+              * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+              * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "409":
+            description: |-
+              The Entity version specified in this message is lower than
+              a previously-received notification, or identical to a previously-received
+              notification and the Entity is different.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "429":
+            description: The client issued too many requests in a short period of time.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+        security:
+        - Authority:
+          - utm.resource_management
+
+    path_ResourceNotifications_Update:          
+      summary: |-
+        Endpoint hosted by a peer PSU to allow RIS to share detailed information about a resource in response to a subscription that the PSU has with the DSS. 
+      put:
+        tags:
+        - Resource references
+        - Resource capacities
+        - Resource definition
+        - Resource status
+        - p2p_uam
+        summary: Notify a peer PSU of changed resource details.
+        description: Notify a peer PSU directly of changed resource details (usually as a requirement of previous interactions with the DSS).
+        operationId: notifyResourceDetailsChanged
+        parameters:
+        - name: entityid
+          in: path
+          description: EntityID for this resource.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            $ref: './schemas.yaml#/components/schemas/EntityID'
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yaml#/components/schemas/PutResourceDetails'
+          required: true
+        responses:
+          "204":
+            description: New or updated full resource information received successfully.
+          "400":
+            description: |-
+              * One or more parameters were missing or invalid.
+              * The Entity could not be parsed, or contains illegal data.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "401":
+            description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "403":
+            description: |-
+              * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+              * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "409":
+            description: |-
+              The Entity version specified in this message is lower than
+              a previously-received notification, or identical to a previously-received
+              notification and the Entity is different.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          "429":
+            description: The client issued too many requests in a short period of time.
+            content:
+              application/json:
+                schema:
+                  $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+        security:
+        - Authority:
+          - utm.resource_management
