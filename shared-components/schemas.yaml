@@ -59,6 +59,9 @@ components:
           enum:
           - Client
           - Server
+        request_source:
+          type: string
+          description: Identifier of the entity that originated the request, typically the client ID from the access token 'sub' claim.
         request_time:
           description: The time at which the request was sent/received.
           $ref: '#/components/schemas/Time'
