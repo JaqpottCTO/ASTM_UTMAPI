@@ -22,7 +22,7 @@ tags:
   description: Endpoints exposed by the PSUs for reporting peer PSU issues.
 
 paths:
-  /cm/v1/operational_intents:
+  /cm/v1/conformance_intents:
     summary: A PSU OIM's representation of detailed information about operational intents to the CM.
     post:
       tags:
@@ -80,7 +80,7 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
-  /cm/v1/operational_intents/{entityid}:
+  /cm/v1/conformance_intents/{entityid}:
     summary: An PSU OIM's representation of detailed information about operational intents to the CM.  
     put:
       tags:
@@ -147,7 +147,7 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
-  /cm/v1/operational_intents/{entityid}/telemetry:
+  /cm/v1/conformance_intents/{entityid}/telemetry:
     summary: Detailed information on the aircraft position associated with an operational intent.
     get:
       tags:

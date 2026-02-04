@@ -873,11 +873,11 @@ components:
         'Activated': Operational intent is in active use; see standard text for more details.
           The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
         'Nonconforming': UA is temporarily outside its volumes, but the situation is expected to be recoverable; see standard text for more details.
-          In this state, the `/cm/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+          In this state, the `/cm/v1/conformance_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
         'DCB-Noncompliant': Operational intent conforms to its trajectory but does not meet DCB constraints due to replanning or capacity changes.  
           Remaining in this state may require approval from the competent authority.
         'Contingent': UA is considered unrecoverably unable to conform with its coordinate operational intent; see standard text for more details.
-          This state must transition to Ended.  In this state, the `/cm/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+          This state must transition to Ended.  In this state, the `/cm/v1/conformance_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
         'Completed': Operation has landed and is no longer using the operational intent; see standard text for more details.  
           Details may still be communicated between PSUs as these operations may affect demand models.         
         'Canceled': Operation never transitioned to Activated and will not use the operational intent; see standard text for more details.  

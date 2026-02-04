@@ -132,7 +132,7 @@ CM -> DSS: PUT /dss/v1/subscriptions/
 CM <-- DSS: resource references
 CM -> RIS: GET /ris/v1/resources/{resource-id} (includes OVN)
 CM <-- RIS: resource details (everything)
-OIM -> CM: POST /cm/v1/operational_intents
+OIM -> CM: POST /cm/v1/conformance_intents
 
 op -> OIM: Operation ready to activate
 note over OIM: OIM does a DCB check
@@ -248,7 +248,7 @@ end
 
 ==Position Sharing==
 loop 
-    CM2 -> CM: GET /cm/v1/operational_intents/{entityid}/telemetry
+    CM2 -> CM: GET /cm/v1/conformance_intents/{entityid}/telemetry
     CM2 <-- CM: Tracking info for CM
 end
 @enduml
