@@ -59,6 +59,9 @@ components:
           enum:
           - Client
           - Server
+        request_source:
+          type: string
+          description: Identifier of the entity that originated the request, typically the client ID from the access token 'sub' claim.
         request_time:
           description: The time at which the request was sent/received.
           $ref: '#/components/schemas/Time'
@@ -976,6 +979,18 @@ components:
           default: []
         priority:
           $ref: '#/components/schemas/Priority'
+        departure_reference:
+          type: object
+          description: |-
+            Original proposed departure time and associated OVN, which may be used if an operation 
+            must return to the Proposed state or this time is needed to determine priority.
+          properties:
+            departure_reference_time:
+              description: Original proposed departure time
+              $ref: '#/components/schemas/Time'
+            departure_reference_ovn:
+              description: OVN associated with original proposed operational intent
+              $ref: '#/components/schemas/EntityOVN'
       description: Details of a UAM operational intent. Note that this data is not stored in the DSS; only with the clients.
   
     OperationalIntent:
