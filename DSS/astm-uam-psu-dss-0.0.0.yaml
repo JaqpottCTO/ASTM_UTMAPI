@@ -541,7 +541,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PostResourceReferenceParameters'
+              $ref: '#/components/schemas/PutResourceReferenceParameters'
         required: true
       responses:
         "201":
@@ -1565,41 +1565,9 @@ components:
             $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
           default: []
       description: Response to DSS query for OperationalIntentReferences in an area of interest.
-    PostResourceReferenceParameters:
-      required:
-      - extents
-      - ris_base_url
-      - time_start
-      type: object
-      properties:
-        extents:
-          minItems: 1
-          type: array
-          description: |-
-            Spacetime extents that bound this resource.
-            The end time may not be in the past.
-            All volumes of the resource must be encompassed in these extents. However, these extents do not need to match the precise volumes of the resource; a single bounding extent may be provided instead, for instance.
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
-        ris_base_url:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceUssBaseURL'
-        subscription_id:
-          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        new_subscription:
-          description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
-          $ref: '#/components/schemas/ImplicitSubscriptionParameters'
-        time_start:
-          description: "Date/time when the resource should begin being considered for DCB."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        time_end:
-          description: "Ending time of the Resource, if applicable. Indefinite if not set."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        bin_duration:
-          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/BinDurationSeconds'
-      description: Parameters for a request to create a ResourceReference in the DSS.
     PutResourceReferenceParameters:
+      - extents
+      - ris_base_url    
       type: object
       properties:
         extents:
@@ -1629,7 +1597,7 @@ components:
           - CAPACITY
           - STATUS
           - DEFINITION 
-      description: Parameters for a request to update an existing ResourceReference in the DSS.
+      description: Parameters for a request to create or update a ResourceReference in the DSS.
     GetResourceReferenceResponse:
       required:
       - resource_reference
