@@ -1007,8 +1007,9 @@ components:
         - is_dcb_compliant
       properties:
         operational_intent:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
-          description: Reference and versioning information for the operational intent (includes managing PSU base URL if retrieval is needed).
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfoReqOVN'
+          description: >-
+            Reference and versioning information for the operational intent (includes managing PSU base URL if retrieval is needed).
         resource_temporal_usage:
           description: |-
             Duration of time for a volume based resource, or crossing Time
@@ -1081,7 +1082,7 @@ components:
         - resource_imbalances
       properties:
         resource:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfoReqOVN'
           description: Reference and versioning information for the resource (includes managing PSU base URL if retrieval is needed).
         resource_imbalances:
           type: array
@@ -1108,7 +1109,7 @@ components:
         - available_intervals
       properties:
         resource:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfoReqOVN'
           description: Reference and versioning information for the resource (includes managing PSU base URL if retrieval is needed).
         available_intervals:
           type: array
@@ -1139,7 +1140,7 @@ components:
         are not already cached or are outdated, DCB must retrieve their details from the
         managing PSU in its OIM role using the provided access information.
       items:
-        $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'     
+        $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfoReqOVN'     
     RequiredAdditionalResources:
       type: array
       description: >
@@ -1152,5 +1153,5 @@ components:
         resources are not already cached or are outdated, the DCB must retrieve their
         details from the managing PSU in its RIS role using the provided access information.
       items:
-        $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'            
+        $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfoReqOVN'            
                

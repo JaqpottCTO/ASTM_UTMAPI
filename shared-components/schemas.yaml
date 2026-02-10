@@ -477,6 +477,14 @@ components:
             at the time this information was generated. Used to determine whether the current
             data is up-to-date or whether a fresh copy must be retrieved from the managing PSU.   
 
+    EntityAccessInfoReqOVN:
+      allOf:
+        - $ref: '#/components/schemas/EntityAccessInfo'
+        - required:
+            - ovn
+      description: >
+        Entity access information where OVN must be present for strict version matching.
+
     EntityOVN:
       title: EntityOVN
       maxLength: 128
@@ -745,7 +753,7 @@ components:
           description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USS to reject resource update notifications originating from a USS that does not manage the resource.
           example: uss1
         access_info:
-          $ref: '#/components/schemas/EntityAccessInfo'          
+          $ref: '#/components/schemas/EntityAccessInfoReqOVN'          
         ris_availability:
           $ref: '#/components/schemas/UssAvailabilityState'
         # Start/end time for resource
