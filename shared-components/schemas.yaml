@@ -776,9 +776,8 @@ components:
       properties:
         reference:
           description: |-
-            Full information about the resource reference.  If this field is omitted,
-            the resource was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
+            Full information about the resource reference.
+            The `ovn` field in this reference must be populated.
           $ref: '#/components/schemas/ResourceReference'
         details:
           $ref: '#/components/schemas/ResourceDetails'
@@ -788,7 +787,6 @@ components:
       required:
         - resource_id
         - subscriptions
-        - resource
       type: object
       properties:
         resource_id:
@@ -801,6 +799,10 @@ components:
           items:
             $ref: '#/components/schemas/SubscriptionState'
         resource:
+          description: |-
+            Full information about the resource that has changed. If this field is omitted,
+            the resource was deleted. If this field is present, the `ovn` field in the nested
+            `reference` must be populated.
           $ref: '#/components/schemas/Resource'
           
     ResourceUsage:
@@ -1016,7 +1018,6 @@ components:
     PutOperationalIntentDetailsParameters:
       required:
       - operational_intent_id
-      - operational_intent
       - subscriptions
       type: object
       properties:
@@ -1025,9 +1026,9 @@ components:
           $ref: '#/components/schemas/EntityID'
         operational_intent:
           description: |-
-            Full information about the operational intent that has changed.  If this field is omitted,
-            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
+            Full information about the operational intent that has changed. If this field is omitted,
+            the operational intent was deleted. If this field is present, the `ovn` field in the nested
+            `reference` must be populated.
           $ref: '#/components/schemas/OperationalIntent'
         subscriptions:
           minItems: 1

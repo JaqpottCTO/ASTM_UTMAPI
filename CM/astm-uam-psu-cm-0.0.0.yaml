@@ -235,7 +235,6 @@ components:
     PutOperationalIntentDetails:
       required:
       - operational_intent_id
-      - operational_intent
       type: object
       properties:
         operational_intent_id:
@@ -243,9 +242,9 @@ components:
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         operational_intent:
           description: |-
-            Full information about the operational intent that has changed.  If this field is omitted,
-            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
+            Full information about the operational intent that has changed. If this field is omitted,
+            the operational intent was deleted. If this field is present, the `ovn` field in the nested
+            `reference` must be populated.
           $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntent'
       description: |-
         Parameters of a message informing of detailed information for an operational intent that requirements conformance monitoring.
