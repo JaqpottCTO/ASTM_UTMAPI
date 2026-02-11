@@ -104,7 +104,7 @@ loop For each operation reference received
 end
 DCB2 -> DCB2: Adjust demand/capacity values
 
-==OIM does DCB check and transitions operation to Accepted state (OVNs required)==
+==OIM does DCB check (if desired) and transitions operation to Accepted state (OVNs required)==
 OIM -> DCB: POST /dcb/v1/imbalance/recheck
 OIM <-- DCB: Yes/no, OVNs for all resources, if no, available windows
 

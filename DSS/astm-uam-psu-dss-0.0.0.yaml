@@ -1250,31 +1250,6 @@ components:
       items:
         $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
       default: []
-    ResourceOccupation:
-      required:
-        - resource_id
-        - resource_ovn
-        - operation_ovns
-      type: object
-      properties:
-        resource_id:
-          description: |-
-            The ID of a resources being occupied or crossed by the operational intent. 
-            Details of the crossing times and durations are also shared peer-to-peer when the
-            operational intent trajectory is shared. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        resource_ovn:
-          description: |-
-            The OVN of the resource being occupied or crossed by the operational intent. 
-            This proves the operation considers the latest status and capacity of the resource. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
-        operation_ovns:
-          description: |-
-            The OVNs of all operations contributing to demand at this resource during the
-            relevant times based upon resource demand & capacity requirements. 
-          type: array
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
     Volume4DExtent:
       required:
       - volume4D
@@ -1286,7 +1261,7 @@ components:
         occupied_resources:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceOccupation'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceOccupation'
           description: List of resources which will be fully occupied during the duration of the volume.  
       description: |-
         A 4D volume which includes a list of resources which will be fully occupied 
@@ -1711,12 +1686,12 @@ components:
             are required for each volume. The end time may not be in the past. 
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
-    PastResourceExtent:
-      description: Describes a resource crossing or occupation which has occurred
-        in the past for this flight.  The operation and resource OVNs do not need
-        to be shared because the operation has already (and is no longer) utilizing
-        these resources. The intent of this schema is to allow the DSS to maintain
-        past occupation to support DCB. 
+    PastResourceOccupation:
+      description: Describes a resource crossing or occupation window which has 
+        occurred in the past for this flight.  The operation and resource OVNs 
+        do not need to be shared because the operation has already (and is no 
+        longer) utilizing these resources. The intent of this schema is to 
+        allow the DSS to maintain past occupation to support DCB. 
       required:
         - resource_id
         - resource_temporal_usage
@@ -1728,7 +1703,7 @@ components:
             for a waypoint based resource. 
           oneOf:
             - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing"
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindow"  
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 
@@ -1756,11 +1731,11 @@ components:
           minItems: 1
           type: array
           description: |-
-            List of resources and crossing OR entry/exit times when the resource
+            List of resources and crossing OR window times when the resource
             will be occupied by the Flight Intent. These extents are intended to be
             shared with the DSS when the Operation Intent is submitted/updated. 
           items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceOccupation'
     PastResourceExtents:
       required:
         - past_extents
@@ -1769,10 +1744,10 @@ components:
         past_extents:
           type: array
           description: |-
-            List of resources and OR entry/exit times when the resource was occupied
+            List of resources and OR window times when the resource was occupied
             by the Flight Intent. 
           items:
-            $ref: '#/components/schemas/PastResourceExtent'
+            $ref: '#/components/schemas/PastResourceOccupation'
     OperationalExtents:
       type: object
       required:

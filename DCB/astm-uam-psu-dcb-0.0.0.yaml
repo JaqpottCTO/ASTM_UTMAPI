@@ -791,7 +791,9 @@ components:
           description: Returns true if the trajectory is DCB compliant (no imbalances). 
             Returns false if any imbalances exist (trajectory non-DCB compliant). 
         resource_extents:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
+          type: array
+          items:
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
     ExtentUpdateRequest:
       type: object
       required: 
@@ -835,7 +837,9 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
+          type: array
+          items:
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
         resource_imbalances:
           type: array
           items:
@@ -867,7 +871,9 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
+          type: array
+          items:
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
         resource_imbalances:
           type: array
           items:
