@@ -1566,6 +1566,7 @@ components:
           default: []
       description: Response to DSS query for OperationalIntentReferences in an area of interest.
     PutResourceReferenceParameters:
+      required:    
       - extents
       - ris_base_url    
       type: object
