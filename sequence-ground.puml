@@ -287,6 +287,6 @@ else If no imbalance detected
         DCB2 -> DCB2: Adjust demand values
         DCB -> DCB: Adjust demand values
     end
-    OIM -> op: Op can activate
+    OIM -> op: Op can take off
 end 
 
