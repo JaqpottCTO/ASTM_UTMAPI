@@ -840,6 +840,16 @@ components:
         end_time:
           $ref: '#/components/schemas/Time'
 
+    ResourceOccupationWindows:
+      required:
+       - windows
+      type: object
+      properties:
+        windows:
+          type: array
+          itmes:
+            $ref: '#/components/schemas/ResourceOccupationWindow'
+
     ResourceCrossing:
       required:
        - crossing_time
@@ -892,12 +902,13 @@ components:
       properties:
         resource_temporal_usage:
           description: |-
-            For FLOW_RATE_FIXED_BIN resources, this is the start and end times 
-            of the time window in which the resource is occupied. For resources 
-            with INSTANTANEOUS capacity, it is the crossing time.  
+            For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
+            is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
+            capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).  
           oneOf:
-            - $ref: "#/components/schemas/ResourceOccupationWindow"  
-            - $ref: "#/components/schemas/ResourceCrossing"  
+            - $ref: "#/components/schemas/ResourceOccupationWindows"  
+            - $ref: "#/components/schemas/ResourceCrossing" 
+            - $ref: "#/components/schemas/ResourceDuration"  
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 

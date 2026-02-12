@@ -1699,11 +1699,13 @@ components:
       properties:
         resource_temporal_usage:
           description: |-
-            Duration of time for a volume based resource, or crossing Time
-            for a waypoint based resource. 
+            For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
+            is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
+            capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).   
           oneOf:
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing"
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindow"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindows"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing" 
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceDuration"  
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 

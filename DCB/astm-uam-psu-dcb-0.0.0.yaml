@@ -337,7 +337,8 @@ paths:
           in: query
           required: false
           description: If imbalances are detected with the trajectory, return a list
-            of availability blocks for each of the resources. 
+            of availability blocks for each of the resources used by the operation in question. 
+            These availabilities are operation specific. 
           schema:
             type: boolean
             default: false
