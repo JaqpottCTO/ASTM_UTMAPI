@@ -1010,7 +1010,6 @@ components:
       required:
         - operational_intent
         - resource_temporal_usage
-        - priority_rank
         - is_dcb_compliant
       properties:
         operational_intent:
