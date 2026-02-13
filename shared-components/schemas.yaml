@@ -847,8 +847,9 @@ components:
       properties:
         windows:
           type: array
-          itmes:
+          items:
             $ref: '#/components/schemas/ResourceOccupationWindow'
+          minItems: 1
 
     ResourceCrossing:
       required:
@@ -908,7 +909,7 @@ components:
           oneOf:
             - $ref: "#/components/schemas/ResourceOccupationWindows"  
             - $ref: "#/components/schemas/ResourceCrossing" 
-            - $ref: "#/components/schemas/ResourceDuration"  
+            - $ref: "#/components/schemas/ResourceOccupationDuration"  
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 

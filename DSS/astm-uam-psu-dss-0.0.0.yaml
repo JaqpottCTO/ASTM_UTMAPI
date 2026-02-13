@@ -1705,7 +1705,7 @@ components:
           oneOf:
             - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindows"  
             - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing" 
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceDuration"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"  
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 
