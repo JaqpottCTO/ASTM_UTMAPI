@@ -1322,6 +1322,12 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
           default: []
+        dependent_resources:
+          type: array
+          description: List of IDs for resources that are dependent on this subscription.
+          items:
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
+          default: []          
       description: "Specification of a geographic area that a client is interested in on an ongoing basis (e.g., \"planning area\")."
     QuerySubscriptionParameters:
       type: object
@@ -1558,10 +1564,10 @@ components:
         ris_base_url:
           $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceUssBaseURL'
         subscription_id:
-          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
+          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided then the `new_subscription` field must be provided in order to provide notification capability for the resource.  The subscription specified by this ID must cover at least the area over which this resource is located, and it must provide notifications for resources."
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         new_subscription:
-          description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
+          description: "If an existing subscription is not specified in `subscription_id` and this field is populated, an implicit subscription will be created and associated with this resource, and will generally be deleted automatically upon the deletion of this resource."
           $ref: '#/components/schemas/ImplicitSubscriptionParameters'
         bin_duration:
           description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
