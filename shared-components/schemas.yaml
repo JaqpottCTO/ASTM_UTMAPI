@@ -1029,9 +1029,7 @@ components:
             description: See FIXM 4.2.0 for further information.
             url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftOperatorType.html#Link1E3
         intent:
-          oneOf:
-            - $ref: "#/components/schemas/Trajectory"
-            - $ref: "#/components/schemas/Volumes"
+          $ref: "#/components/schemas/Trajectory"
         off_nominal_volumes:
           type: array
           description: |-
