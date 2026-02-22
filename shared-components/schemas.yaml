@@ -869,40 +869,6 @@ components:
       properties:
         resource_temporal_usage:
           description: |-
-            Duration of time for a volume based resource, or crossing Time
-            for a waypoint based resource. 
-          oneOf:
-            - $ref: "#/components/schemas/ResourceCrossing"
-            - $ref: "#/components/schemas/ResourceOccupationDuration"  
-        resource_id:
-          description: |-
-            The ID of a resources being occupied or crossed by the operational intent. 
-            Details of the crossing times and durations are also shared peer-to-peer when the
-            operational intent trajectory is shared. 
-          $ref: '#/components/schemas/EntityID'
-        resource_ovn:
-          description: |-
-            The OVN of the resource being occupied or crossed by the operational intent. 
-            This proves the operation considers the latest status and capacity of the resource. 
-          $ref: '#/components/schemas/EntityOVN'
-        operation_ovns:
-          description: |-
-            The OVNs of all operations contributing to demand at this resource during the
-            relevant times based upon resource demand & capacity requirements. 
-          type: array
-          items:
-            $ref: '#/components/schemas/EntityOVN'
-    
-    ResourceOccupation:
-      required:
-        - resource_id
-        - resource_temporal_usage
-        - resource_ovn
-        - operation_ovns
-      type: object
-      properties:
-        resource_temporal_usage:
-          description: |-
             For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
             is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
             capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).  
@@ -998,7 +964,7 @@ components:
         occupied_resources:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceOccupation'
+            $ref: '#/components/schemas/ResourceExtent'
           description: List of resources which will be fully occupied during the duration of the intent. 
       description: "The high-level information of a planned or active operational intent with the URL of a USS to query for details.  Note: 'ovn' is returned ONLY to the USS that created the operational intent but NEVER to other USS instances."      
       

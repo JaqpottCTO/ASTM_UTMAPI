@@ -1261,7 +1261,7 @@ components:
         occupied_resources:
           type: array
           items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceOccupation'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
           description: List of resources which will be fully occupied during the duration of the volume.  
       description: |-
         A 4D volume which includes a list of resources which will be fully occupied 
@@ -1743,7 +1743,7 @@ components:
             will be occupied by the Flight Intent. These extents are intended to be
             shared with the DSS when the Operation Intent is submitted/updated. 
           items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceOccupation'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
     PastResourceExtents:
       required:
         - past_extents
