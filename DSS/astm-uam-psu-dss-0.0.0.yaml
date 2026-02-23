@@ -1692,7 +1692,7 @@ components:
             are required for each volume. The end time may not be in the past. 
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
-    PastResourceOccupation:
+    PastResourceExtent:
       description: Describes a resource crossing or occupation window which has 
         occurred in the past for this flight.  The operation and resource OVNs 
         do not need to be shared because the operation has already (and is no 
@@ -1755,7 +1755,7 @@ components:
             List of resources and OR window times when the resource was occupied
             by the Flight Intent. 
           items:
-            $ref: '#/components/schemas/PastResourceOccupation'
+            $ref: '#/components/schemas/PastResourceExtent'
     OperationalExtents:
       type: object
       required:
