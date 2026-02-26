@@ -190,8 +190,9 @@ components:
           description: |-
             The list of TrajectoryPoints for this operation.  This list must contain 
             all significant TrajectoryPoints per the CBRs. Pre-flight, this list must 
-            contain all trajectory flights.  If updated during the flight, only the 
-            current trajectory point to the destination should be included. 
+            contain all trajectory points.  If updated during the flight, all trajectory
+            points should also be shared (including past points), but past points shall 
+            not be updated to actual crossing times. 
             For additional insight on points to be included, see the enumeration of 
             property types in the TrajectoryPoint4D model.
           items:
@@ -324,9 +325,11 @@ components:
             Describes any applicable properties of the trajectory point.
             May include multiple properties per point. FIXM allows up to 2000 properties per trajectory point.
             Pre-flight, the entire trajectory should be provided. If the trajectory is updated
-            during flight, only the current & future trajectory points should be provided. 
-            The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
-            The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
+            during flight, the entire trajectory should also be provided (including past points), but past points shall 
+            not be updated to actual crossing times.
+            The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF.
+            The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON.
+            The time and location of the aircraft at the update can be included with the property: POINT_OF_INTENT_UPDATE.
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
