@@ -361,7 +361,7 @@ components:
           type: string
           description: |
             Provides the type of trajectory point property. Enum list is based on the FIXM definition
-            of TrajectoryPointPropertyType.
+            of TrajectoryPointPropertyType, but with some additions (i.e., POINT_OF_INTENT_UPDATE)
           externalDocs:
             description: FIXM definition of TrajectoryPointPropertyType
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPointPropertyType.html#Link2B0
@@ -374,6 +374,7 @@ components:
           - WHEELS_OFF
           - WHEELS_ON
           - AIRPORT_REFERENCE_LOCATION
+          - POINT_OF_INTENT_UPDATE
       description: Describes any applicable properties of the trajectory point.
 
     Radius:
