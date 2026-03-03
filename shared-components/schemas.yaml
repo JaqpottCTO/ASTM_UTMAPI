@@ -190,8 +190,9 @@ components:
           description: |-
             The list of TrajectoryPoints for this operation.  This list must contain 
             all significant TrajectoryPoints per the CBRs. Pre-flight, this list must 
-            contain all trajectory flights.  If updated during the flight, only the 
-            current trajectory point to the destination should be included. 
+            contain all trajectory points.  If updated during the flight, all trajectory
+            points should also be shared (including past points), but past points shall 
+            not be updated to actual crossing times. 
             For additional insight on points to be included, see the enumeration of 
             property types in the TrajectoryPoint4D model.
           items:
@@ -324,9 +325,11 @@ components:
             Describes any applicable properties of the trajectory point.
             May include multiple properties per point. FIXM allows up to 2000 properties per trajectory point.
             Pre-flight, the entire trajectory should be provided. If the trajectory is updated
-            during flight, only the current & future trajectory points should be provided. 
-            The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
-            The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
+            during flight, the entire trajectory should also be provided (including past points), but past points shall 
+            not be updated to actual crossing times.
+            The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF.
+            The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON.
+            The time and location of the aircraft at the update can be included with the property: POINT_OF_INTENT_UPDATE.
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
@@ -358,7 +361,7 @@ components:
           type: string
           description: |
             Provides the type of trajectory point property. Enum list is based on the FIXM definition
-            of TrajectoryPointPropertyType.
+            of TrajectoryPointPropertyType, but with some additions (i.e., POINT_OF_INTENT_UPDATE)
           externalDocs:
             description: FIXM definition of TrajectoryPointPropertyType
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPointPropertyType.html#Link2B0
@@ -371,6 +374,7 @@ components:
           - WHEELS_OFF
           - WHEELS_ON
           - AIRPORT_REFERENCE_LOCATION
+          - POINT_OF_INTENT_UPDATE
       description: Describes any applicable properties of the trajectory point.
 
     Radius:
@@ -476,6 +480,14 @@ components:
             Numeric version of the referenced operational intent or resource, reflecting the known state
             at the time this information was generated. Used to determine whether the current
             data is up-to-date or whether a fresh copy must be retrieved from the managing PSU.   
+
+    EntityAccessInfoReqOVN:
+      allOf:
+        - $ref: '#/components/schemas/EntityAccessInfo'
+        - required:
+            - ovn
+      description: >
+        Entity access information where OVN must be present for strict version matching.
 
     EntityOVN:
       title: EntityOVN
@@ -745,7 +757,7 @@ components:
           description: Created by the DSS based on creating client's ID (via access token).  Used internal to the DSS for restricting mutation and deletion operations to manager.  Used by USS to reject resource update notifications originating from a USS that does not manage the resource.
           example: uss1
         access_info:
-          $ref: '#/components/schemas/EntityAccessInfo'          
+          $ref: '#/components/schemas/EntityAccessInfoReqOVN'          
         ris_availability:
           $ref: '#/components/schemas/UssAvailabilityState'
         # Start/end time for resource
@@ -755,9 +767,6 @@ components:
         time_end:
           description: "Ending time of the Resource, if applicable. Indefinite if not set."
           $ref: '#/components/schemas/Time'
-        bin_duration:
-          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
-          $ref: '#/components/schemas/BinDurationSeconds'
       description: "A ResourceReference (area in which a resource is present, along with other high-level information, but no details).  The DSS reports only these references and clients must exchange details and additional information peer-to-peer."
       
     Resource:
@@ -768,9 +777,8 @@ components:
       properties:
         reference:
           description: |-
-            Full information about the resource reference.  If this field is omitted,
-            the resource was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
+            Full information about the resource reference.
+            The `ovn` field in this reference must be populated.
           $ref: '#/components/schemas/ResourceReference'
         details:
           $ref: '#/components/schemas/ResourceDetails'
@@ -780,7 +788,6 @@ components:
       required:
         - resource_id
         - subscriptions
-        - resource
       type: object
       properties:
         resource_id:
@@ -793,6 +800,10 @@ components:
           items:
             $ref: '#/components/schemas/SubscriptionState'
         resource:
+          description: |-
+            Full information about the resource that has changed. If this field is omitted,
+            the resource was deleted. If this field is present, the `ovn` field in the nested
+            `reference` must be populated.
           $ref: '#/components/schemas/Resource'
           
     ResourceUsage:
@@ -822,6 +833,28 @@ components:
         exit_time:
           $ref: '#/components/schemas/Time'
 
+    ResourceOccupationWindow:
+      required:
+       - start_time
+       - end_time
+      type: object
+      properties:
+        start_time:
+          $ref: '#/components/schemas/Time'
+        end_time:
+          $ref: '#/components/schemas/Time'
+
+    ResourceOccupationWindows:
+      required:
+       - windows
+      type: object
+      properties:
+        windows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceOccupationWindow'
+          minItems: 1
+
     ResourceCrossing:
       required:
        - crossing_time
@@ -840,10 +873,12 @@ components:
       properties:
         resource_temporal_usage:
           description: |-
-            Duration of time for a volume based resource, or crossing Time
-            for a waypoint based resource. 
+            For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
+            is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
+            capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).  
           oneOf:
-            - $ref: "#/components/schemas/ResourceCrossing"
+            - $ref: "#/components/schemas/ResourceOccupationWindows"  
+            - $ref: "#/components/schemas/ResourceCrossing" 
             - $ref: "#/components/schemas/ResourceOccupationDuration"  
         resource_id:
           description: |-
@@ -876,11 +911,11 @@ components:
         'Activated': Operational intent is in active use; see standard text for more details.
           The create or update request for this operational intent reference must include a Key containing all OVNs for all relevant Entities.
         'Nonconforming': UA is temporarily outside its volumes, but the situation is expected to be recoverable; see standard text for more details.
-          In this state, the `/cm/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+          In this state, the `/cm/v1/conformance_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
         'DCB-Noncompliant': Operational intent conforms to its trajectory but does not meet DCB constraints due to replanning or capacity changes.  
           Remaining in this state may require approval from the competent authority.
         'Contingent': UA is considered unrecoverably unable to conform with its coordinate operational intent; see standard text for more details.
-          This state must transition to Ended.  In this state, the `/cm/v1/operational_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
+          This state must transition to Ended.  In this state, the `/cm/v1/conformance_intents/{entityid}/telemetry` USS-USS endpoint should respond, if available, to queries from USS peers.  The create or update request for this operational intent may omit a Key in this case because the operational intent is being adjusted as flown and cannot necessarily deconflict.
         'Completed': Operation has landed and is no longer using the operational intent; see standard text for more details.  
           Details may still be communicated between PSUs as these operations may affect demand models.         
         'Canceled': Operation never transitioned to Activated and will not use the operational intent; see standard text for more details.  
@@ -964,9 +999,7 @@ components:
             description: See FIXM 4.2.0 for further information.
             url: https://www.fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_AircraftOperatorType.html#Link1E3
         intent:
-          oneOf:
-            - $ref: "#/components/schemas/Trajectory"
-            - $ref: "#/components/schemas/Volumes"
+          $ref: "#/components/schemas/Trajectory"
         off_nominal_volumes:
           type: array
           description: |-
@@ -1008,7 +1041,6 @@ components:
     PutOperationalIntentDetailsParameters:
       required:
       - operational_intent_id
-      - operational_intent
       - subscriptions
       type: object
       properties:
@@ -1017,9 +1049,9 @@ components:
           $ref: '#/components/schemas/EntityID'
         operational_intent:
           description: |-
-            Full information about the operational intent that has changed.  If this field is omitted,
-            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
+            Full information about the operational intent that has changed. If this field is omitted,
+            the operational intent was deleted. If this field is present, the `ovn` field in the nested
+            `reference` must be populated.
           $ref: '#/components/schemas/OperationalIntent'
         subscriptions:
           minItems: 1

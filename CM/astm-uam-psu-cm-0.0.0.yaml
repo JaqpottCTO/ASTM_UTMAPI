@@ -22,7 +22,7 @@ tags:
   description: Endpoints exposed by the PSUs for reporting peer PSU issues.
 
 paths:
-  /cm/v1/operational_intents:
+  /cm/v1/conformance_intents:
     summary: A PSU OIM's representation of detailed information about operational intents to the CM.
     post:
       tags:
@@ -80,7 +80,7 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
-  /cm/v1/operational_intents/{entityid}:
+  /cm/v1/conformance_intents/{entityid}:
     summary: An PSU OIM's representation of detailed information about operational intents to the CM.  
     put:
       tags:
@@ -147,7 +147,7 @@ paths:
       security:
       - Authority:
         - utm.strategic_coordination
-  /cm/v1/operational_intents/{entityid}/telemetry:
+  /cm/v1/conformance_intents/{entityid}/telemetry:
     summary: Detailed information on the aircraft position associated with an operational intent.
     get:
       tags:
@@ -235,7 +235,6 @@ components:
     PutOperationalIntentDetails:
       required:
       - operational_intent_id
-      - operational_intent
       type: object
       properties:
         operational_intent_id:
@@ -243,9 +242,9 @@ components:
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         operational_intent:
           description: |-
-            Full information about the operational intent that has changed.  If this field is omitted,
-            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
+            Full information about the operational intent that has changed. If this field is omitted,
+            the operational intent was deleted. If this field is present, the `ovn` field in the nested
+            `reference` must be populated.
           $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntent'
       description: |-
         Parameters of a message informing of detailed information for an operational intent that requirements conformance monitoring.

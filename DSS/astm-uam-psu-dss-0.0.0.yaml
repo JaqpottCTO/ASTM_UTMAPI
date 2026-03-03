@@ -4,7 +4,7 @@ info:
   title: ASTM UAM PSU DSS API
   description: |-
     Interface definitions for communication between a UAS Service Supplier (USS) and a Discovery and Synchronization Service (DSS), as well as for communication between two USSs.
-    DSS functionality includes identification of peer UTM USS instances (managing flight operational intents and constraints). USS functionality includes sharing details of flight operational intents and constraints.
+    DSS functionality includes identification of peer UTM USS instances (managing flight operational intents and resources). USS functionality includes sharing details of flight operational intents and resources.
     Note: Unless otherwise specified, fields specified in a message but not declared in the API must be ignored.
     Whenever a object-type field may be omitted, it may also be set to null for the same effect.
   version: 0.0.0
@@ -541,7 +541,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PostResourceReferenceParameters'
+              $ref: '#/components/schemas/PutResourceReferenceParameters'
         required: true
       responses:
         "201":
@@ -703,7 +703,7 @@ paths:
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       - name: ovn
         in: path
-        description: Opaque version number of the existing operational intent reference.
+        description: Opaque version number of the existing resource reference.
         required: true
         style: simple
         explode: false
@@ -1250,31 +1250,6 @@ components:
       items:
         $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
       default: []
-    ResourceOccupation:
-      required:
-        - resource_id
-        - resource_ovn
-        - operation_ovns
-      type: object
-      properties:
-        resource_id:
-          description: |-
-            The ID of a resources being occupied or crossed by the operational intent. 
-            Details of the crossing times and durations are also shared peer-to-peer when the
-            operational intent trajectory is shared. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        resource_ovn:
-          description: |-
-            The OVN of the resource being occupied or crossed by the operational intent. 
-            This proves the operation considers the latest status and capacity of the resource. 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
-        operation_ovns:
-          description: |-
-            The OVNs of all operations contributing to demand at this resource during the
-            relevant times based upon resource demand & capacity requirements. 
-          type: array
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
     Volume4DExtent:
       required:
       - volume4D
@@ -1286,7 +1261,7 @@ components:
         occupied_resources:
           type: array
           items:
-            $ref: '#/components/schemas/ResourceOccupation'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
           description: List of resources which will be fully occupied during the duration of the volume.  
       description: |-
         A 4D volume which includes a list of resources which will be fully occupied 
@@ -1335,7 +1310,7 @@ components:
           default: false
         notify_for_resources:
           type: boolean
-          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
+          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.resource_processing is required to set this flag true."
           default: false
         implicit_subscription:
           type: boolean
@@ -1347,6 +1322,12 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
           default: []
+        dependent_resources:
+          type: array
+          description: List of IDs for resources that are dependent on this subscription.
+          items:
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
+          default: []          
       description: "Specification of a geographic area that a client is interested in on an ongoing basis (e.g., \"planning area\")."
     QuerySubscriptionParameters:
       type: object
@@ -1407,7 +1388,7 @@ components:
           default: false
         notify_for_resources:
           type: boolean
-          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
+          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.resource_processing is required to set this flag true."
           default: false
       description: Parameters for a request to create/update a subscription in the DSS.  At least one form of notifications must be requested.
         At least one of the volume_of_interest or resource_ids must be provided. A combination of volume and resource ids may be provided. 
@@ -1502,7 +1483,7 @@ components:
           default: false
         notify_for_resources:
           type: boolean
-          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.constraint_processing is required to set this flag true."
+          description: "If true, trigger notifications when resources are created, updated, or deleted.  Otherwise, changes in resources should not trigger notifications.  The scope utm.resource_processing is required to set this flag true."
           default: false  
       description: Information necessary to create a subscription to serve a single operational intent's notification needs.
     GetOperationalIntentReferenceResponse:
@@ -1565,11 +1546,10 @@ components:
             $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
           default: []
       description: Response to DSS query for OperationalIntentReferences in an area of interest.
-    PostResourceReferenceParameters:
+    PutResourceReferenceParameters:
       required:
       - extents
-      - ris_base_url
-      - time_start
+      - ris_base_url    
       type: object
       properties:
         extents:
@@ -1584,40 +1564,10 @@ components:
         ris_base_url:
           $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceUssBaseURL'
         subscription_id:
-          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
+          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided then the `new_subscription` field must be provided in order to provide notification capability for the resource.  The subscription specified by this ID must cover at least the area over which this resource is located, and it must provide notifications for resources."
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         new_subscription:
-          description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
-          $ref: '#/components/schemas/ImplicitSubscriptionParameters'
-        time_start:
-          description: "Date/time when the resource should begin being considered for DCB."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        time_end:
-          description: "Ending time of the Resource, if applicable. Indefinite if not set."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
-        bin_duration:
-          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/BinDurationSeconds'
-      description: Parameters for a request to create a ResourceReference in the DSS.
-    PutResourceReferenceParameters:
-      type: object
-      properties:
-        extents:
-          minItems: 1
-          type: array
-          description: |-
-            Spacetime extents that bound this resource.
-            The end time may not be in the past.
-            All volumes of the resource must be encompassed in these extents. However, these extents do not need to match the precise volumes of the resource; a single bounding extent may be provided instead, for instance.
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
-        ris_base_url:
-          $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceUssBaseURL'
-        subscription_id:
-          description: "The ID of an existing subscription that the USS will use to keep the operator informed about updates to relevant airspace information. If this field is not provided when the operational intent is in the Activated, Nonconforming, or Contingent state, then the `new_subscription` field must be provided in order to provide notification capability for the operational intent.  The subscription specified by this ID must cover at least the area over which this operational intent is conducted, and it must provide notifications for operational intents."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        new_subscription:
-          description: "If an existing subscription is not specified in `subscription_id`, and the operational intent is in the Activated, Nonconforming, or Contingent state, then this field must be populated.  When this field is populated, an implicit subscription will be created and associated with this operational intent, and will generally be deleted automatically upon the deletion of this operational intent."
+          description: "If an existing subscription is not specified in `subscription_id` and this field is populated, an implicit subscription will be created and associated with this resource, and will generally be deleted automatically upon the deletion of this resource."
           $ref: '#/components/schemas/ImplicitSubscriptionParameters'
         bin_duration:
           description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
@@ -1629,7 +1579,7 @@ components:
           - CAPACITY
           - STATUS
           - DEFINITION 
-      description: Parameters for a request to update an existing ResourceReference in the DSS.
+      description: Parameters for a request to create or update a ResourceReference in the DSS.
     GetResourceReferenceResponse:
       required:
       - resource_reference
@@ -1743,11 +1693,11 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
     PastResourceExtent:
-      description: Describes a resource crossing or occupation which has occurred
-        in the past for this flight.  The operation and resource OVNs do not need
-        to be shared because the operation has already (and is no longer) utilizing
-        these resources. The intent of this schema is to allow the DSS to maintain
-        past occupation to support DCB. 
+      description: Describes a resource crossing or occupation window which has 
+        occurred in the past for this flight.  The operation and resource OVNs 
+        do not need to be shared because the operation has already (and is no 
+        longer) utilizing these resources. The intent of this schema is to 
+        allow the DSS to maintain past occupation to support DCB. 
       required:
         - resource_id
         - resource_temporal_usage
@@ -1755,10 +1705,12 @@ components:
       properties:
         resource_temporal_usage:
           description: |-
-            Duration of time for a volume based resource, or crossing Time
-            for a waypoint based resource. 
+            For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
+            is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
+            capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).   
           oneOf:
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing"
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindows"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing" 
             - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"  
         resource_id:
           description: |-
@@ -1787,7 +1739,7 @@ components:
           minItems: 1
           type: array
           description: |-
-            List of resources and crossing OR entry/exit times when the resource
+            List of resources and crossing OR window times when the resource
             will be occupied by the Flight Intent. These extents are intended to be
             shared with the DSS when the Operation Intent is submitted/updated. 
           items:
@@ -1800,7 +1752,7 @@ components:
         past_extents:
           type: array
           description: |-
-            List of resources and OR entry/exit times when the resource was occupied
+            List of resources and OR window times when the resource was occupied
             by the Flight Intent. 
           items:
             $ref: '#/components/schemas/PastResourceExtent'
