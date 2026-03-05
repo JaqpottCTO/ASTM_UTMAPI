@@ -803,7 +803,7 @@ components:
         operations:
           type: array
           maxItems: 1000
-          description: Updated resource extents, trajectory, and imbalance details for each operational intent requiring an update, keyed by operational intent ID.
+          description: Updated resource extents, trajectory, and imbalance details for each operational intent requiring an update. Each entry is identified by operational_intent_id.
           items:
             $ref: '#/components/schemas/ExtentUpdateOperation'
       description: >- 
@@ -814,11 +814,16 @@ components:
     ExtentUpdateOperation:
       type: object
       required: 
+        - operational_intent_id
         - is_dcb_compliant
         - trajectory
         - resource_extents
         - resource_imbalances
       properties: 
+        operational_intent_id:
+          description: The ID of the operational intent (as shared with the DSS and other entities)
+            which must be updated.
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         is_dcb_compliant:
           type: boolean
           description: Returns true if the trajectory is DCB compliant (no imbalances). 

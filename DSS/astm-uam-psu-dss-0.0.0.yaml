@@ -618,7 +618,7 @@ paths:
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       - name: ovn
         in: path
-        description: Opaque version number of the existing operational intent reference.
+        description: Opaque version number of the existing resource reference.
         required: true
         style: simple
         explode: false
@@ -1569,9 +1569,6 @@ components:
         new_subscription:
           description: "If an existing subscription is not specified in `subscription_id` and this field is populated, an implicit subscription will be created and associated with this resource, and will generally be deleted automatically upon the deletion of this resource."
           $ref: '#/components/schemas/ImplicitSubscriptionParameters'
-        bin_duration:
-          description: "Fixed bin duration for resources with FLOW_RATE_FIXED_BIN capacities. Not specified for resources without FLOW_RATE_FIXED_BIN capacities."
-          $ref: '../shared-components/schemas.yaml#/components/schemas/BinDurationSeconds'         
         update_type:
           type: string
           description: The change that warrants notification of peers for the resource. 
@@ -1752,7 +1749,7 @@ components:
         past_extents:
           type: array
           description: |-
-            List of resources and OR window times when the resource was occupied
+            List of resources and crossing OR window times when the resource was occupied
             by the Flight Intent. 
           items:
             $ref: '#/components/schemas/PastResourceExtent'

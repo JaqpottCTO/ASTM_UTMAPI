@@ -200,23 +200,6 @@ components:
       required:
         - trajectory
 
-    Volumes:
-      type: object
-      description: Wrapper object for volume definitions of this operational intent.
-      properties:
-        volumes:
-          type: array
-          description: |-
-            Volumes that wholly contain the operational intent while being as small as 
-            practical. Start and end times, as well as lower and upper altitudes, are 
-            required for each volume. The end time may not be in the past.
-            May not contain any items when the operational intent is Contingent.
-          items:
-            $ref: '#/components/schemas/Volume4D'
-          default: []
-      required:
-        - volumes
-
     Latitude:
       maximum: 90
       minimum: -90
