@@ -791,7 +791,9 @@ components:
           description: Returns true if the trajectory is DCB compliant (no imbalances). 
             Returns false if any imbalances exist (trajectory non-DCB compliant). 
         resource_extents:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
+          type: array
+          items:
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
     ExtentUpdateRequest:
       type: object
       required: 
@@ -824,13 +826,15 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
+          type: array
+          items:
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
         resource_imbalances:
           type: array
           items:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
           default: []
-      description: >- 
+      description: >-
         Request from DCB to OIM indicating that the resource extents and trajectory previously shared with
         the DSS and other OIMs for this flight instance is out of date.  This can happen if a new resource is added to the system or
         an existing resource is modified in a way which would cause updates to how an existing trajectory is interacting with
@@ -861,7 +865,9 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/ResourceExtents'
+          type: array
+          items:
+            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
         resource_imbalances:
           type: array
           items:
@@ -887,7 +893,7 @@ components:
       properties:
         uss_base_url:
           description: "The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications that the operational intent must be aware of.  This includes, at least, notifications for relevant changes in operational intents."
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionUssBaseURL'
         add_operational_intents:
           type: array
           description: Operational intents to add for monitoring. 
@@ -921,7 +927,7 @@ components:
           $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionID'
           description: ID of the DCB monitoring subscription. 
         uss_base_url:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/SubscriptionUssBaseURL'
           description: Base URL which will be called when a DCB imbalance is detected for one 
             of the operational intents monitored by this subscription. 
         operational_intents_monitored:
