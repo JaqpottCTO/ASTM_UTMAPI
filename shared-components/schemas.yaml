@@ -495,15 +495,6 @@ components:
         - RESOURCE_EXIT
         - RESOURCE_CROSSING
         
-    BinDurationSeconds:
-      type: integer
-      format: int32
-      minimum: 1
-      description: |-
-        Duration of a fixed capacity time bin, in seconds. For FLOW_RATE_FIXED_BIN capacities the
-        bin should start at top-of-the-hour and evenly divide up an hour.
-      example: 60
-
     FlowRateFixedBinResourceCapacity:
       type: object
       description: |-
@@ -519,7 +510,16 @@ components:
           description: |-
             The maximum number of operations allowed within each fixed time bin.
         bin_duration:
-          $ref: '#/components/schemas/BinDurationSeconds'
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 3600
+          multipleOf: 60
+          description: |-
+            Duration, in seconds, of the fixed time bin used for FLOW_RATE_FIXED_BIN capacities.
+            The fixed time bin shall start at the top of the hour, and this value shall represent
+            a whole number of minutes that evenly divides 3600 seconds.
+          example: 720
 
     InstantaneousResourceCapacity:
       type: object
