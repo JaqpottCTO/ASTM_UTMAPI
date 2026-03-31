@@ -681,7 +681,7 @@ components:
         name:
             description: Name of the resource
             example: CHIPR
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/TextShortType'
+            $ref: '#/components/schemas/TextShortType'
         shape:
           $ref: '#/components/schemas/ResourceShape'
         altitude_lower:
@@ -1042,10 +1042,101 @@ components:
     OperationalIntentUssBaseURL:
       description: >-
         The base URL of a USS implementation that implements the parts of the USS-USS API necessary
-        for providing the details of this operational intent, and telemetry during non-conformance 
+        for providing the details of this operational intent, and telemetry during non-conformance
         or contingency, if applicable.
         The base URL path pattern is '/{psu_role}/v1', and clients retrieve operational intent
         details by appending the path postfix '/operational_intents' to this base URL.
       type: string
       format: uri
-      example: https://uss.example.com/oim/v1   
+      example: https://uss.example.com/oim/v1
+
+    # Schemas below were originally defined in the DSS (interuss v0.19.0) spec and are
+    # duplicated here so that new-spec files (OIM, DCB, RIS, CM) never $ref into the DSS,
+    # avoiding duplicate type generation by datamodel-codegen.
+
+    TextShortType:
+      type: string
+      maxLength: 200
+      description: A free text with a maximum length of 200 characters
+
+    SubscriptionUssBaseURL:
+      description: >-
+        The base URL of a USS implementation of the parts of the USS-USS API
+        necessary for receiving the notifications requested by this
+        subscription.
+      type: string
+      format: uri
+      example: https://uss.example.com/utm
+
+    PositionAccuracyVertical:
+      description: >-
+        Vertical error that is likely to be present in this reported position.
+        This is the GVA enumeration from ADS-B, plus some finer values for UAS.
+      type: string
+      enum:
+      - VAUnknown
+      - VA150mPlus
+      - VA150m
+      - VA45m
+      - VA25m
+      - VA10m
+      - VA3m
+      - VA1m
+
+    PositionAccuracyHorizontal:
+      description: >-
+        Horizontal error that is likely to be present in this reported position.
+        This is the NACp enumeration from ADS-B, plus 1m for a more complete
+        range for UAS.
+      type: string
+      enum:
+      - HAUnknown
+      - HA10NMPlus
+      - HA10NM
+      - HA4NM
+      - HA2NM
+      - HA1NM
+      - HA05NM
+      - HA03NM
+      - HA01NM
+      - HA005NM
+      - HA30m
+      - HA10m
+      - HA3m
+      - HA1m
+
+    Position:
+      description: >-
+        Location of the vehicle (UAS) as reported for UTM. Note: 'accuracy'
+        values are required when extrapolated field is true.
+      type: object
+      properties:
+        longitude:
+          $ref: '#/components/schemas/Longitude'
+        latitude:
+          $ref: '#/components/schemas/Latitude'
+        accuracy_h:
+          $ref: '#/components/schemas/PositionAccuracyHorizontal'
+        accuracy_v:
+          $ref: '#/components/schemas/PositionAccuracyVertical'
+        extrapolated:
+          description: >-
+            True if this position was generated primarily by computation rather
+            than primarily from a direct instrument measurement.
+          type: boolean
+          default: false
+        altitude:
+          $ref: '#/components/schemas/Altitude'
+
+    VehicleTelemetry:
+      description: Vehicle position, altitude, and velocity.
+      required:
+      - time_measured
+      type: object
+      properties:
+        time_measured:
+          $ref: '#/components/schemas/Time'
+        position:
+          $ref: '#/components/schemas/Position'
+        velocity:
+          $ref: '#/components/schemas/Velocity'

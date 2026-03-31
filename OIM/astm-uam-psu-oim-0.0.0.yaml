@@ -292,7 +292,7 @@ components:
           description: ID of the operational intent which the vehicle reporting telemetry is flying.
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
         telemetry:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/VehicleTelemetry'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/VehicleTelemetry'
         next_telemetry_opportunity:
           description: |-
             The next telemetry similar to this telemetry is not expected to be
@@ -387,7 +387,7 @@ components:
           description: Time that this position data was received by the USS
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         telemetry:
-          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/VehicleTelemetry'
+          $ref: '../shared-components/schemas.yaml#/components/schemas/VehicleTelemetry'
       description: A record of vehicle telemetry information received by this USS (typically for conformance monitoring).
     OperationalIntentPositions:
       required:
