@@ -367,6 +367,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/IntentBasedImbalanceRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -456,7 +457,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IntentBasedImbalanceRecheckRequest'            
+              $ref: '#/components/schemas/IntentBasedImbalanceRecheckRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -535,6 +537,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AreaOrResourceBasedImbalanceRequest'
+        required: true
       responses:
         '200':
           description: >-
