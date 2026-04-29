@@ -612,12 +612,14 @@ paths:
         - name: time_start
           in: query
           required: true
+          explode: false
           description: Parameter defining the start time for querying resource availability
           schema:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         - name: time_end
           in: query
           required: true
+          explode: false
           description: Parameter defining the end time for querying resource availability
           schema:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
