@@ -704,7 +704,6 @@ components:
         - lat_lng_point
         - speed
         - time
-        - trajectory_point_property_array
       properties:
         resource_id:
           description: Identifier for the resource associated with this trajectory point.
@@ -735,6 +734,7 @@ components:
             trajectory point. For X4 we are allowing up to 4.
             The first point of initial plan must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
             The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
+            This array may be omitted when no listed property applies to the point.
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
