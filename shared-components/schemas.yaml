@@ -280,12 +280,11 @@ components:
       - lat_lng_point
       - speed
       - time
-      - trajectory_point_property_array
       - resource_usage
       type: object
-      properties:  
+      properties:
         point_designator:
-          $ref: '#/components/schemas/PointDesignator'        
+          $ref: '#/components/schemas/PointDesignator'
         lat_lng_point:
           description: "Latitude and Longitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
           $ref: '#/components/schemas/LatLngPoint'
@@ -313,6 +312,7 @@ components:
             The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF.
             The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON.
             The time and location of the aircraft at the update can be included with the property: POINT_OF_INTENT_UPDATE.
+            This array may be omitted when no listed property applies to the point.
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
@@ -344,7 +344,8 @@ components:
           type: string
           description: |
             Provides the type of trajectory point property. Enum list is based on the FIXM definition
-            of TrajectoryPointPropertyType, but with some additions (i.e., POINT_OF_INTENT_UPDATE)
+            of TrajectoryPointPropertyType, but with some additions (i.e., POINT_OF_INTENT_UPDATE,
+            RESOURCE_INTERSECTION)
           externalDocs:
             description: FIXM definition of TrajectoryPointPropertyType
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPointPropertyType.html#Link2B0
@@ -358,6 +359,7 @@ components:
           - WHEELS_ON
           - AIRPORT_REFERENCE_LOCATION
           - POINT_OF_INTENT_UPDATE
+          - RESOURCE_INTERSECTION
       description: Describes any applicable properties of the trajectory point.
 
     Radius:
@@ -796,9 +798,9 @@ components:
       properties:
         resource_id:
           description: |-
-            The ID of the resource being referenced by the trajectory property array.
-            Required when crossing a waypoint-based resource or entering/exiting a 
-            volume-based resource. 
+            The ID of the resource associated with this trajectory point.
+            Required when crossing a waypoint-based resource or entering/exiting a
+            volume-based resource.
           $ref: '#/components/schemas/EntityID'
         resource_event:
           description: Describes if the trajectory point is a resource crossing or the beginning or end
