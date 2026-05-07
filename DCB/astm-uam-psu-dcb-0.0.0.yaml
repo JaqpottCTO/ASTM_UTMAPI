@@ -367,6 +367,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/IntentBasedImbalanceRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -456,7 +457,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IntentBasedImbalanceRecheckRequest'            
+              $ref: '#/components/schemas/IntentBasedImbalanceRecheckRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -535,6 +537,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AreaOrResourceBasedImbalanceRequest'
+        required: true
       responses:
         '200':
           description: >-
@@ -612,12 +615,14 @@ paths:
         - name: time_start
           in: query
           required: true
+          explode: false
           description: Parameter defining the start time for querying resource availability
           schema:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         - name: time_end
           in: query
           required: true
+          explode: false
           description: Parameter defining the end time for querying resource availability
           schema:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
@@ -704,7 +709,6 @@ components:
         - lat_lng_point
         - speed
         - time
-        - trajectory_point_property_array
       properties:
         resource_id:
           description: Identifier for the resource associated with this trajectory point.
@@ -735,6 +739,7 @@ components:
             trajectory point. For X4 we are allowing up to 4.
             The first point of initial plan must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF
             The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON
+            This array may be omitted when no listed property applies to the point.
           externalDocs:
             url: https://fixm.aero/releases/FIXM-4.2.0/doc/schema_documentation/Fixm_TrajectoryPoint4DType.html#Link2AC
           items:
