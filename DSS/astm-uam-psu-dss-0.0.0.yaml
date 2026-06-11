@@ -1571,12 +1571,15 @@ components:
           description: "If an existing subscription is not specified in `subscription_id` and this field is populated, an implicit subscription will be created and associated with this resource, and will generally be deleted automatically upon the deletion of this resource."
           $ref: '#/components/schemas/ImplicitSubscriptionParameters'
         update_type:
-          type: string
-          description: The change that warrants notification of peers for the resource. 
-          enum:
-          - CAPACITY
-          - STATUS
-          - DEFINITION 
+          type: array
+          minItems: 1
+          description: One or more changes that warrant notification of peers for the resource.
+          items:
+            type: string
+            enum:
+            - CAPACITY
+            - STATUS
+            - DEFINITION
       description: Parameters for a request to create or update a ResourceReference in the DSS.
     GetResourceReferenceResponse:
       required:
