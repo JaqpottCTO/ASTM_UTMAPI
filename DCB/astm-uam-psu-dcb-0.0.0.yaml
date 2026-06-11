@@ -906,6 +906,7 @@ components:
     CreateImbalanceSubscriptionParameters:
       required:
       - uss_base_url
+      - add_operational_intents
       type: object
       properties:
         uss_base_url:
@@ -913,10 +914,10 @@ components:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
         add_operational_intents:
           type: array
+          minItems: 1
           description: Operational intents to add for monitoring. 
           items:
             $ref: '#/components/schemas/OperationalIntentForMonitoring'
-          default: []
     OperationalIntentForMonitoring:
       required:
         - operational_intent_id
