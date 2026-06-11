@@ -1396,8 +1396,9 @@ components:
       description: >-
         The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving 
         the notifications requested by this subscription. The base URL path pattern is '/{psu_role}/v1'.
-        The USS identified by this base URL must implement notification endpoints at `/resources` and
-        `/operational_intents` relative to this base URL. Notification senders construct the full
+        The USS identified by this base URL must implement the notification endpoints required by the
+        subscription type, such as `/resources`, `/operational_intents`, `/imbalance`, or
+        `/uss_availability` relative to this base URL. Notification senders construct the full
         notification URL by appending the appropriate path suffix to this base URL.
       type: string
       format: uri      
