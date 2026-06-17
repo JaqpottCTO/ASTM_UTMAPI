@@ -672,6 +672,13 @@ components:
           - WAYPOINT
           - VOLUME
 
+    ResourceDesignator:
+      maxLength: 30
+      minLength: 2
+      type: string
+      description: Short, stable, canonical designator/code used to identify a resource in operational communications, debugging, and review.
+      example: CHIPR
+
     ResourcePhysicalDefinition:
       required:
         - name
@@ -679,9 +686,11 @@ components:
         - type
       properties:
         name:
-            description: Name of the resource
-            example: CHIPR
-            $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/TextShortType'
+          description: Short, stable, canonical designator/code for the resource.
+          $ref: '#/components/schemas/ResourceDesignator'
+        description:
+          description: Free-text description of the resource.
+          $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/TextShortType'
         shape:
           $ref: '#/components/schemas/ResourceShape'
         altitude_lower:

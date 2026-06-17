@@ -906,17 +906,18 @@ components:
     CreateImbalanceSubscriptionParameters:
       required:
       - uss_base_url
+      - add_operational_intents
       type: object
       properties:
         uss_base_url:
-          description: "The base URL of a USS implementation of the parts of the USS-USS API necessary for receiving the notifications that the operational intent must be aware of.  This includes, at least, notifications for relevant changes in operational intents."
+          description: "The base URL of the OIM callback interface used by DCB to notify demand-capacity imbalances for monitored operational intents. DCB sends imbalance notifications by calling POST at `{uss_base_url}/imbalance`."
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
         add_operational_intents:
           type: array
+          minItems: 1
           description: Operational intents to add for monitoring. 
           items:
             $ref: '#/components/schemas/OperationalIntentForMonitoring'
-          default: []
     OperationalIntentForMonitoring:
       required:
         - operational_intent_id
@@ -945,8 +946,9 @@ components:
           description: ID of the DCB monitoring subscription. 
         uss_base_url:
           $ref: '../DSS/astm-uam-psu-dss-0.0.0.yaml#/components/schemas/SubscriptionUssBaseURL'
-          description: Base URL which will be called when a DCB imbalance is detected for one 
-            of the operational intents monitored by this subscription. 
+          description: Base URL of the OIM callback interface which will be called at
+            `{uss_base_url}/imbalance` when a DCB imbalance is detected for one of the
+            operational intents monitored by this subscription.
         operational_intents_monitored:
           type: array
           description: List of IDs for operational intents that are monitored as part of this DCB. 
