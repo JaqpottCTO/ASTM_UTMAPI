@@ -850,8 +850,10 @@ components:
           $ref: '#/components/schemas/EntityID'
         resource_ovn:
           description: |-
-            The OVN of the resource being occupied or crossed by the operational intent. 
-            This proves the operation considers the latest status and capacity of the resource. 
+            The OVN of the resource being occupied or crossed by the operational intent.
+            This proves the operation considers the latest status and capacity of the resource.
+            NOTE: An OVN value will be provided but should be ignored for interactions with
+            the DSS, as the current DSS does not support resource references.
           $ref: '#/components/schemas/EntityOVN'
         operation_ovns:
           description: |-
@@ -1005,7 +1007,6 @@ components:
     PutOperationalIntentDetailsParameters:
       required:
       - operational_intent_id
-      - operational_intent
       - subscriptions
       type: object
       properties:
@@ -1014,9 +1015,9 @@ components:
           $ref: '#/components/schemas/EntityID'
         operational_intent:
           description: |-
-            Full information about the operational intent that has changed.  If this field is omitted,
-            the operational intent was deleted.  The `ovn` field in the nested `reference` must be
-            populated.
+            Full information about the operational intent that has changed.  When omitted,
+            the operational intent's lifecycle has concluded.  The `ovn` field in the nested
+            `reference` must be populated when present.
           $ref: '#/components/schemas/OperationalIntent'
         subscriptions:
           minItems: 1

@@ -1026,8 +1026,11 @@ components:
         is_dcb_compliant:
           description: |-
             True if this flight is DCB compliant.  False if this flight is DCB non-compliant within
-            this time bin or within the applicable time range of this bin.  Used to indicate which flights 
-            should be changed and which flights can remain. 
+            this time bin or within the applicable time range of this bin.  Used to indicate which flights
+            should be changed and which flights can remain.
+            NOTE: This field will always be true for this implementation. Conformance monitoring
+            is not a mandatory service for this effort and there is no authoritative way to
+            populate this field given CSE constraints on PSU-domain conformance monitoring.
           type: boolean
           default: true
     DemandCapacityImbalanceInterval:
