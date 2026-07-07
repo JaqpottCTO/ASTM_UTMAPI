@@ -22,7 +22,7 @@ A sequence diagram showing an example of the API endpoint usage is provided by .
 
 ## Contact Information
 For more information or to report issues, please contact the project team:
-Steven C. Philpott Sr. steven.philpott@evertisky.com 
+Steven C. Philpott Sr. steven@nelcielomo.com 
 Antony Evans tony.evans@airbus-sv.com
 David Murphy dmurphy@flyanra.com
 
