@@ -36,7 +36,7 @@ else If operation not in conformance
         CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Reconforming)
         alt If demand or capacity has changed
             note over OIM: OIM does a DCB check
-            OIM -> DCB: POST /dcb/v1/imbalance/intent
+            OIM -> DCB: POST /dcb/v1/imbalance/intent?returnAvailability=true
             OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
             alt If imbalance detected
                 OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
@@ -71,7 +71,7 @@ else If operation not in conformance
         op -> op: Replan intent
         op -> OIM: Updated op request
         note over OIM: OIM does a DCB check
-        OIM -> DCB: POST /dcb/v1/imbalance/intent
+        OIM -> DCB: POST /dcb/v1/imbalance/intent?returnAvailability=true
         OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
         alt If imbalance detected
             OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
@@ -145,7 +145,7 @@ loop For each resource subscriber
             op -> op: Replan intent
             op -> OIM: Updated op request
             note over OIM: OIM does a DCB check
-            OIM -> DCB: POST /dcb/v1/imbalance/intent
+            OIM -> DCB: POST /dcb/v1/imbalance/intent?returnAvailability=true
             OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
 
             alt If imbalance detected

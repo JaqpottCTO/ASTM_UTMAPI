@@ -333,35 +333,9 @@ paths:
             consider the trajectory provided in the body. 
           schema:
             $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        - name: returnAvailability
-          in: query
-          required: false
-          description: If imbalances are detected with the trajectory, return a list
-            of availability blocks for each of the resources used by the operation in question. 
-            These availabilities are operation specific. 
-          schema:
-            type: boolean
-            default: false
-        - name: timeBufferBefore
-          in: query
-          required: false
-          description: Parameter defining a time buffer in minutes before the resource ETA
-            for which availability time ranges are requested. 
-          schema:
-            type: integer
-            minimum: 0
-            maximum: 120
-            default: 0
-        - name: timeBufferAfter
-          in: query
-          required: false
-          description: Parameter defining a time buffer in minutes after the resource ETA
-            for which availability time ranges are requested. 
-          schema:
-            type: integer
-            minimum: 0
-            maximum: 120
-            default: 0
+        - $ref: '#/components/parameters/ReturnAvailability'
+        - $ref: '#/components/parameters/TimeBufferBefore'
+        - $ref: '#/components/parameters/TimeBufferAfter'
       requestBody:
         content:
           application/json:
@@ -453,6 +427,9 @@ paths:
             be included within an existing imbalance subscription with this DCB. 
           schema:
             $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
+        - $ref: '#/components/parameters/ReturnAvailability'
+        - $ref: '#/components/parameters/TimeBufferBefore'
+        - $ref: '#/components/parameters/TimeBufferAfter'
       requestBody:
         content:
           application/json:
@@ -697,6 +674,41 @@ paths:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReports' 
 
 components:
+  parameters:
+    ReturnAvailability:
+      name: returnAvailability
+      in: query
+      required: false
+      description: >-
+        If returnAvailability is true and imbalances are detected, return
+        operation-specific availability windows for each resource used
+        by the operation.
+      schema:
+        type: boolean
+        default: false
+    TimeBufferBefore:
+      name: timeBufferBefore
+      in: query
+      required: false
+      description: Parameter defining a time buffer in minutes before the resource ETA
+        for which availability time ranges are requested.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 120
+        default: 0
+    TimeBufferAfter:
+      name: timeBufferAfter
+      in: query
+      required: false
+      description: Parameter defining a time buffer in minutes after the resource ETA
+        for which availability time ranges are requested.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 120
+        default: 0
+
   securitySchemes:
     Authority:
       $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
@@ -800,6 +812,21 @@ components:
           type: array
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
+        resource_imbalances:
+          description: Returned whenever imbalances are detected, regardless of whether
+            availability was requested.
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
+          default: []
+        availability:
+          description: Returned only when returnAvailability is true and is_dcb_compliant
+            is false. Lists operation-specific time ranges when each utilized resource
+            is below capacity. The caller may use these ranges to replan and submit an
+            updated trajectory for assessment.
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceAvailability'
     ExtentUpdateRequest:
       type: object
       required: 
