@@ -497,10 +497,10 @@ components:
         - RESOURCE_EXIT
         - RESOURCE_CROSSING
         
-    FlowRateFixedBinResourceCapacity:
+    ResourceCapacity:
       type: object
       description: |-
-        Capacity requirements for FLOW_RATE_FIXED_BIN resources.
+        Capacity requirements for resources using fixed time bins.
       required:
       - operations_per_bin
       - bin_duration
@@ -518,32 +518,10 @@ components:
           maximum: 3600
           multipleOf: 60
           description: |-
-            Duration, in seconds, of the fixed time bin used for FLOW_RATE_FIXED_BIN capacities.
+            Duration, in seconds, of the fixed time bin used for capacity assessment.
             The fixed time bin shall start at the top of the hour, and this value shall represent
             a whole number of minutes that evenly divides 3600 seconds.
           example: 720
-
-    InstantaneousResourceCapacity:
-      type: object
-      description: |-
-        Capacity requirements for INSTANTANEOUS resources.
-      required:
-      - instantaneous_limit
-      properties:
-        instantaneous_limit:
-          type: integer
-          format: int32
-          minimum: 0
-          description: |-
-            The maximum number of operations permitted to occupy the resource at any time.
-
-    ResourceCapacity:
-      description: |-
-        Capacity requirements defined for a resource. The capacity type is inferred by which
-        properties are present.
-      oneOf:
-      - $ref: '#/components/schemas/FlowRateFixedBinResourceCapacity'
-      - $ref: '#/components/schemas/InstantaneousResourceCapacity'
 
     TemporaryResourceCapacity:
       required: 
@@ -828,17 +806,24 @@ components:
           $ref: '#/components/schemas/Time'
 
     ResourceOccupationWindow:
+      description: |-
+        A time window used to identify other operational intents that may contribute
+        demand to the same resource. The start and end times need not align with
+        capacity-bin boundaries, but the window should fully cover the relevant capacity bin.
       required:
        - start_time
        - end_time
       type: object
       properties:
         start_time:
+          description: Start of the resource occupation window.
           $ref: '#/components/schemas/Time'
         end_time:
+          description: End of the resource occupation window. Must be after start_time.
           $ref: '#/components/schemas/Time'
 
     ResourceOccupationWindows:
+      description: Time windows used to determine the operation's demand contribution to the resource.
       required:
        - windows
       type: object
@@ -867,12 +852,11 @@ components:
       properties:
         resource_temporal_usage:
           description: |-
-            For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
-            is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
-            capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).  
+            Timing information used to determine the operation's demand contribution
+            to the resource. Specify one or more occupation windows or, for a volume
+            resource, entry and exit times.
           oneOf:
             - $ref: "#/components/schemas/ResourceOccupationWindows"  
-            - $ref: "#/components/schemas/ResourceCrossing" 
             - $ref: "#/components/schemas/ResourceOccupationDuration"  
         resource_id:
           description: |-

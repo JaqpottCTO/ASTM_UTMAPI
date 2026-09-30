@@ -1694,11 +1694,9 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
     PastResourceExtent:
-      description: Describes a resource crossing or occupation window which has 
-        occurred in the past for this flight.  The operation and resource OVNs 
-        do not need to be shared because the operation has already (and is no 
-        longer) utilizing these resources. The intent of this schema is to 
-        allow the DSS to maintain past occupation to support DCB. 
+      description: Describes past resource occupation for this flight. The operation
+        and resource OVNs do not need to be shared. The intent of this schema is to
+        allow the DSS to maintain past occupation to support DCB.
       required:
         - resource_id
         - resource_temporal_usage
@@ -1706,12 +1704,11 @@ components:
       properties:
         resource_temporal_usage:
           description: |-
-            For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
-            is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
-            capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).   
+            Timing information used to determine the operation's demand contribution
+            to the resource. Specify one or more occupation windows or, for a volume
+            resource, entry and exit times.
           oneOf:
             - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindows"  
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing" 
             - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"  
         resource_id:
           description: |-
@@ -1740,7 +1737,7 @@ components:
           minItems: 1
           type: array
           description: |-
-            List of resources and crossing OR window times when the resource
+            List of resources and time intervals when each resource
             will be occupied by the Flight Intent. These extents are intended to be
             shared with the DSS when the Operation Intent is submitted/updated. 
           items:
@@ -1753,7 +1750,7 @@ components:
         past_extents:
           type: array
           description: |-
-            List of resources and crossing OR window times when the resource was occupied
+            List of resources and time intervals when each resource was occupied
             by the Flight Intent. 
           items:
             $ref: '#/components/schemas/PastResourceExtent'
@@ -1768,11 +1765,10 @@ components:
           - $ref: "#/components/schemas/VolumeExtents"
           - $ref: "#/components/schemas/OffNominalVolumeExtents"
         past_extents:
-          description: Describes a resource crossing or occupation which has occurred
-            in the past for this flight. Required for resources with FLOW_RATE_FIXED_BIN 
-            capacity type, but only for currently active time bins. Not required for 
-            time bins that have already completed. Not required for resources with 
-            INSTANTEOUS capacity type. The intent of this schema is to allow the DSS to 
+          description: Describes resource occupation which has occurred
+            in the past for this flight. Required for resources using fixed-bin capacity,
+            but only for currently active time bins. Not required for
+            time bins that have already completed. The intent of this schema is to allow the DSS to
             maintain past occupation to support DCB. 
           $ref: "#/components/schemas/PastResourceExtents"
     VehicleTelemetry:

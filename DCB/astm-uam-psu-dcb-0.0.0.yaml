@@ -1077,12 +1077,14 @@ components:
         - operations
       properties:
         time_start:
-          description: Beginning time of the time bin for computing this demand capacity imbalance status. If the capacity requirements
-            are based on rate or an instantaneous limit, this value will be the time when that capacity rule began. Must be before time_end.
+          description: Beginning of the fixed time bin evaluated for this demand-capacity
+            imbalance. This is an aligned bin boundary, not the start of the capacity
+            rule's effective period. Must be before time_end.
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         time_end:
-          description: End time of the time bin for computing this demand capacity imbalance status. Can be empty if the capacity rule
-            in place is an instantaneous or rate limit.  If included, must be after time_start.
+          description: End of the fixed time bin evaluated for this demand-capacity
+            imbalance. This is an aligned bin boundary, not the end of the capacity
+            rule's effective period. Must be after time_start.
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'     
         imbalance_magnitude:
           type: number
