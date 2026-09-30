@@ -942,24 +942,10 @@ components:
         add_operational_intents:
           type: array
           minItems: 1
-          description: Operational intents to add for monitoring. 
+          description: Operational-intent IDs and access information for intents to add
+            for monitoring. DCB can retrieve their details from the managing OIM when needed.
           items:
-            $ref: '#/components/schemas/OperationalIntentForMonitoring'
-    OperationalIntentForMonitoring:
-      required:
-        - operational_intent_id
-        - operational_intent_reference
-      type: object
-      properties:
-        operational_intent_id:
-          description: The ID of the operational intent (as shared with the DSS and other entities). 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        operational_intent_reference:
-          description: The operational intent reference (as shared with the DSS and other entities)
-          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
-        operational_intent_details:
-          description: The operational intent details shared with other stakeholders.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentDetails'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
     ImbalanceSubscription:
       required:
       - subscription_id
@@ -995,9 +981,11 @@ components:
       properties:
         update_operational_intents:
           type: array
-          description: Operational intents either to add for monitoring or for which the operational intent is being updated. 
+          description: Operational-intent IDs and access information for intents to add
+            for monitoring or whose monitored version is being updated. DCB can retrieve
+            their details from the managing OIM when needed.
           items:
-            $ref: '#/components/schemas/OperationalIntentForMonitoring'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
           default: []
         remove_operational_intents:
           type: array
