@@ -57,6 +57,7 @@ else If operation not in conformance
                     DCB -> DCB: Adjust demand values
                 end
                 OIM -> op: Op re-activated
+            end
         else If demand or capacity has not changed
             OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Activated)
             OIM <-- DSS: operation intent reference with subscribers
@@ -67,6 +68,7 @@ else If operation not in conformance
                 DCB -> DCB: Adjust demand values
             end
             OIM -> op: Op re-activated
+        end
     else If operator can replan intent
         op -> op: Replan intent
         op -> OIM: Updated op request
