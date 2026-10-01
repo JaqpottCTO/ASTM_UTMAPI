@@ -181,7 +181,7 @@ components:
       
     Trajectory:
       type: object
-      description: Wrapper object for trajectory points of this operational intent.
+      description: Wrapper object for the entire four-dimensional trajectory of this operational intent.
       properties:
         trajectory:
           type: array
@@ -191,8 +191,10 @@ components:
             The list of TrajectoryPoints for this operation.  This list must contain 
             all significant TrajectoryPoints per the CBRs. Pre-flight, this list must 
             contain all trajectory points.  If updated during the flight, all trajectory
-            points should also be shared (including past points), but past points shall 
-            not be updated to actual crossing times. 
+            points from the previous operational intent whose planned timestamps precede
+            the update time shall be retained unchanged. They shall be combined with the
+            replanned portion, and the entire four-dimensional trajectory shall be shared.
+            Retained planned timestamps shall not be replaced with actual crossing times.
             For additional insight on points to be included, see the enumeration of 
             property types in the TrajectoryPoint4D model.
           items:
@@ -292,7 +294,11 @@ components:
           description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
           $ref: '#/components/schemas/Altitude'
         time:
-          description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
+          description: |-
+            Planned time when the vehicle will be at the location of the TrajectoryPoint.
+            When this planned timestamp precedes an in-flight update time, the point shall
+            be retained unchanged from the previous operational intent, including its
+            planned timestamp; it shall not be replaced with the actual crossing time.
           $ref: '#/components/schemas/Time'
         speed:
           description: |-
@@ -306,9 +312,6 @@ components:
           description: |-
             Describes any applicable properties of the trajectory point.
             May include multiple properties per point. FIXM allows up to 2000 properties per trajectory point.
-            Pre-flight, the entire trajectory should be provided. If the trajectory is updated
-            during flight, the entire trajectory should also be provided (including past points), but past points shall 
-            not be updated to actual crossing times.
             The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF.
             The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON.
             The time and location of the aircraft at the update can be included with the property: POINT_OF_INTENT_UPDATE.
