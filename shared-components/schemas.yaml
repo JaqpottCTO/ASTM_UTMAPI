@@ -687,6 +687,7 @@ components:
       required:
       - physical_definition
       - default_capacity
+      - performance_bound
       type: object
       properties:
         physical_definition:
