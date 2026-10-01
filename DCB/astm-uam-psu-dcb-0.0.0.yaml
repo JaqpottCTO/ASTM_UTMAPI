@@ -813,8 +813,8 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
         resource_imbalances:
-          description: Returned whenever imbalances are detected, regardless of whether
-            availability was requested.
+          description: Returned whenever is_dcb_compliant is false, regardless of
+            whether availability was requested.
           type: array
           items:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
