@@ -849,19 +849,25 @@ components:
     ResourceExtent:
       required:
         - resource_id
+        - resource_temporal_usage_windows        
         - resource_temporal_usage
         - resource_ovn
         - operation_ovns
       type: object
       properties:
-        resource_temporal_usage:
+        resource_temporal_usage_windows:
           description: |-
             Timing information used to determine the operation's demand contribution
-            to the resource. Specify one or more occupation windows or, for a volume
-            resource, entry and exit times.
+            to the resource according to this resource time bins. Includes one or more occupation windows each defining a separate time bin.
+          $ref: "#/components/schemas/ResourceOccupationWindows"                      
+        resource_temporal_usage:
+          description: |-
+            Timing information used to determine the operation's expected usage
+            for the resource. For point based resources it is resource crossing, whereas 
+            for volume resources it is entry and exit times.
           oneOf:
-            - $ref: "#/components/schemas/ResourceOccupationWindows"  
-            - $ref: "#/components/schemas/ResourceOccupationDuration"  
+            - $ref: "#/components/schemas/ResourceCrossing"  
+            - $ref: "#/components/schemas/ResourceOccupationDuration" 
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 
