@@ -853,7 +853,7 @@ components:
             of the last time bin requested by the operation for this resource.
             In most of the instances (e.g., point based resource crossings) 
             this occupation window will equal to the start and end times of the 
-            time bin that includes the crossign time. However, for volume-based
+            time bin that includes the crossing time. However, for volume-based
             resources, the entry and exit times may span multiple time bins
             and this occupation window will be defined from the start time of the 
             first time bin to the end time of the last time bin.

@@ -1784,6 +1784,8 @@ components:
       description: Describes past resource occupation for this flight. The operation
         and resource OVNs do not need to be shared. The intent of this schema is to
         allow the DSS to maintain past occupation to support DCB.
+        Crossing, entry, and exit times are the planned times from the previous
+        operational intent, not actual times.
       required:
         - resource_id
         - resource_temporal_usage_window        
@@ -1800,7 +1802,7 @@ components:
             of the last time bin requested by the operation for this resource.
             In most of the instances (e.g., point based resource crossings) 
             this occupation window will equal to the start and end times of the 
-            time bin that includes the crossign time. However, for volume-based
+            time bin that includes the crossing time. However, for volume-based
             resources, the entry and exit times may span multiple time bins
             and this occupation window will be defined from the start time of the 
             first time bin to the end time of the last time bin.
@@ -1853,8 +1855,9 @@ components:
         past_extents:
           type: array
           description: |-
-            List of resources and time intervals when each resource was occupied
-            by the Flight Intent. 
+            List of past resource extents derived from planned crossing or entry and
+            exit times in the retained past portion of the operational intent. Include
+            only extents for capacity bins that contain the operational intent update time.
           items:
             $ref: '#/components/schemas/PastResourceExtent'
     OperationalExtents:
@@ -1868,11 +1871,13 @@ components:
           - $ref: "#/components/schemas/VolumeExtents"
           - $ref: "#/components/schemas/OffNominalVolumeExtents"
         past_extents:
-          description: Describes resource occupation which has occurred
-            in the past for this flight. Required for resources using fixed-bin capacity,
-            but only for currently active time bins. Not required for
-            time bins that have already completed. The intent of this schema is to allow the DSS to
-            maintain past occupation to support DCB. 
+          description: |-
+            Describes planned resource occupation from the retained past portion of this
+            flight's previous operational intent. Past resource extents are required only
+            for capacity bins that contain the operational intent update time. Extents
+            for completed time bins are not required.
+            This allows the DSS to maintain past planned demand contributions to support
+            DCB; it does not represent actual resource crossings.
           $ref: "#/components/schemas/PastResourceExtents"
     VehicleTelemetry:
       required:
