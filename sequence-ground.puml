@@ -82,8 +82,11 @@ loop For all subscribers
     OIM -> DCB: POST /dcb/v1/operational_intents (includes OVN)
     DCB -> DCB: Adjust demand/capacity values
 end
-note over OIM: create subscription with DCB
-OIM -> DCB: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}
+alt No suitable existing imbalance subscription
+    OIM -> DCB: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}\n(uss_base_url; add_operational_intents includes new intent)
+else Reuse suitable existing imbalance subscription
+    OIM -> DCB: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}/{version}\n(body: version; update_operational_intents includes new intent)
+end
 
 ==A new subscriber joins== 
 DCB2 -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
