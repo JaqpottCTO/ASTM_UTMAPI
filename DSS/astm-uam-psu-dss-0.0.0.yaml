@@ -236,7 +236,7 @@ paths:
       - Authority:
         - utm.strategic_coordination
   /dss/v1/operational_intent_references/{entityid}/{ovn}:
-    summary: Update endpoint for a specified operational intent reference in the DSS.
+    summary: Update/delete endpoint for a specified operational intent reference in the DSS.
     put:
       tags:
       - Operational intent references
@@ -369,6 +369,93 @@ paths:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: The requested Entity could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * The provided `ovn` does not match the current version of the existing operational intent.
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "412":
+          description: The client attempted to delete the operational intent while marked as Down in the DSS.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+  /dss/v1/operational_intent_references/{entityid}/{ovn}/cancel:
+    summary: Cancel and delete an operational intent reference in the DSS.
+    delete:
+      tags:
+      - Operational intent references
+      - dss
+      summary: Cancel the specified operation and remove its operational intent reference from the DSS.
+      description: |-
+        Cancel and delete a Proposed or Accepted operation that has never been Activated.
+        Only the managing PSU may call this endpoint, using the operation's current OVN;
+        no OVNs for other entities are required. Do not first PUT the state to Canceled.
+      operationId: cancelOperationalIntentReference
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the operational intent.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
+      - name: ovn
+        in: path
+        description: Opaque version number of the existing operational intent reference.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
+      responses:
+        "200":
+          description: The operation was canceled and its reference removed. The returned reference has state Canceled, and subscribers must be notified of cancellation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeOperationalIntentReferenceResponse'
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the operational intent in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client is not the manager of this operational intent.
           content:
             application/json:
               schema:

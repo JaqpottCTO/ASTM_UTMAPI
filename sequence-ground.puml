@@ -136,14 +136,18 @@ alt If imbalance detected
     else If operator cannot replan into available windows
         note over op: Cancel operation
         op -> OIM: Cancel operation
-        OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Cancelled)
-        DSS -> DSS: Confirms OVNs are correct
-        OIM <-- DSS: operation intent reference with subscribers
+        note over OIM,DSS
+        Only the canceled operation's current OVN is required.
+        No OVNs for other operations or resources are required.
+        end note
+        OIM -> DSS: DELETE /dss/v1/operational_intent_references/{entityId}/{ovn}/cancel
+        DSS -> DSS: Validate current intent OVN and cancellation eligibility\nRemove reference and all operational extents
+        OIM <-- DSS: Canceled reference and subscribers to notify
         loop For all subscribers
-            OIM -> DCB2: POST /dcb/v1/operational_intents
-            OIM -> DCB: POST /dcb/v1/operational_intents
-            DCB2 -> DCB2: Adjust demand values
-            DCB -> DCB: Adjust demand values
+            OIM -> DCB2: POST /dcb/v1/operational_intents\n(is_canceled = true; operational_intent omitted)
+            OIM -> DCB: POST /dcb/v1/operational_intents\n(is_canceled = true; operational_intent omitted)
+            DCB2 -> DCB2: Remove all demand contributions of canceled operation
+            DCB -> DCB: Remove all demand contributions of canceled operation
         end
     end
 else If no imbalance detected
@@ -267,14 +271,18 @@ alt If imbalance detected
     else If operator cannot replan into available windows
         note over op: Cancel operation
         op -> OIM: Cancel operation
-        OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Cancelled)
-        DSS -> DSS: Confirms OVNs are correct
-        OIM <-- DSS: operation intent reference with subscribers
+        note over OIM,DSS
+        Only the canceled operation's current OVN is required.
+        No OVNs for other operations or resources are required.
+        end note
+        OIM -> DSS: DELETE /dss/v1/operational_intent_references/{entityId}/{ovn}/cancel
+        DSS -> DSS: Validate current intent OVN and cancellation eligibility\nRemove reference and all operational extents
+        OIM <-- DSS: Canceled reference and subscribers to notify
         loop For all subscribers
-            OIM -> DCB2: POST /dcb/v1/operational_intents
-            OIM -> DCB: POST /dcb/v1/operational_intents
-            DCB2 -> DCB2: Adjust demand values
-            DCB -> DCB: Adjust demand values
+            OIM -> DCB2: POST /dcb/v1/operational_intents\n(is_canceled = true; operational_intent omitted)
+            OIM -> DCB: POST /dcb/v1/operational_intents\n(is_canceled = true; operational_intent omitted)
+            DCB2 -> DCB2: Remove all demand contributions of canceled operation
+            DCB -> DCB: Remove all demand contributions of canceled operation
         end
     end
 else If no imbalance detected
@@ -288,5 +296,6 @@ else If no imbalance detected
         DCB -> DCB: Adjust demand values
     end
     OIM -> op: Op can take off
-end 
+end
 
+@enduml

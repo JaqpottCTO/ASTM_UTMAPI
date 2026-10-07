@@ -905,7 +905,9 @@ components:
         'Completed': Operation has landed and is no longer using the operational intent; see standard text for more details.  
           Details may still be communicated between PSUs as these operations may affect demand models.         
         'Canceled': Operation never transitioned to Activated and will not use the operational intent; see standard text for more details.  
-          The PSU OIM role must delete the operational intent from the network. Details in this state are not shared between PSUs.          
+          The PSU OIM role must use DELETE /dss/v1/operational_intent_references/{entityid}/{ovn}/cancel
+          to cancel and delete the operational intent in one step, and notify subscribers with is_canceled set to true.
+          Full operational intent details in this state are not shared between PSUs.
       enum:
       - Proposed
       - Accepted
@@ -1035,10 +1037,22 @@ components:
           $ref: '#/components/schemas/EntityID'
         operational_intent:
           description: |-
-            Full information about the operational intent that has changed. If this field is omitted,
-            the operational intent was deleted. If this field is present, the `ovn` field in the nested
-            `reference` must be populated.
-          $ref: '#/components/schemas/OperationalIntent'
+            Full information about the operational intent that has changed. If this field is omitted
+            or null, the operational intent was deleted. If full information is present, the `ovn`
+            field in the nested `reference` must be populated. Cancellation notifications must not
+            include full operational intent information; set is_canceled to true instead.
+          oneOf:
+          - $ref: '#/components/schemas/OperationalIntent'
+          - type: 'null'
+        is_canceled:
+          type: boolean
+          default: false
+          description: |-
+            Set to true when notifying subscribers after successful cancellation using
+            DELETE /dss/v1/operational_intent_references/{entityid}/{ovn}/cancel.
+            The operational_intent field must be omitted or null. DCB recipients shall remove
+            all demand contributions from the canceled operation. A false or omitted value
+            does not assert cancellation and does not imply that the operation completed.
         subscriptions:
           minItems: 1
           type: array
