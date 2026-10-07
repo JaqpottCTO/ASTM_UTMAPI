@@ -1799,7 +1799,6 @@ components:
       required:
         - resource_id
         - resource_temporal_usage_window        
-        - resource_temporal_usage
       type: object
       properties:
         resource_temporal_usage_window:
