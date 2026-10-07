@@ -1699,17 +1699,33 @@ components:
         allow the DSS to maintain past occupation to support DCB.
       required:
         - resource_id
+        - resource_temporal_usage_window        
         - resource_temporal_usage
       type: object
       properties:
-        resource_temporal_usage:
+        resource_temporal_usage_window:
           description: |-
             Timing information used to determine the operation's demand contribution
-            to the resource. Specify one or more occupation windows or, for a volume
-            resource, entry and exit times.
+            to the resource spanning this resource time bins requested by the operation. 
+            It is defined by an occupation window with the start time
+            equal to the start time of the first time bin requested by the 
+            operation for this resource and end time equal to the end time 
+            of the last time bin requested by the operation for this resource.
+            In most of the instances (e.g., point based resource crossings) 
+            this occupation window will equal to the start and end times of the 
+            time bin that includes the crossign time. However, for volume-based
+            resources, the entry and exit times may span multiple time bins
+            and this occupation window will be defined from the start time of the 
+            first time bin to the end time of the last time bin.
+          $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindow"                      
+        resource_temporal_usage:
+          description: |-
+            Timing information used to determine the operation's expected usage
+            for the resource. For point based resources it is resource crossing, whereas 
+            for volume-based resources it is entry and exit times.
           oneOf:
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindows"  
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"        
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 

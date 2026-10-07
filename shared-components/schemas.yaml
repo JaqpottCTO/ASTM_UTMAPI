@@ -812,8 +812,8 @@ components:
     ResourceOccupationWindow:
       description: |-
         A time window used to identify other operational intents that may contribute
-        demand to the same resource. The start and end times need not align with
-        capacity-bin boundaries, but the window should fully cover the relevant capacity bin.
+        demand to the same resource. The start and end times should align with
+        time bin boundaries and fully cover the relevant time bins.
       required:
        - start_time
        - end_time
@@ -826,18 +826,6 @@ components:
           description: End of the resource occupation window. Must be after start_time.
           $ref: '#/components/schemas/Time'
 
-    ResourceOccupationWindows:
-      description: Time windows used to determine the operation's demand contribution to the resource.
-      required:
-       - windows
-      type: object
-      properties:
-        windows:
-          type: array
-          items:
-            $ref: '#/components/schemas/ResourceOccupationWindow'
-          minItems: 1
-
     ResourceCrossing:
       required:
        - crossing_time
@@ -849,22 +837,32 @@ components:
     ResourceExtent:
       required:
         - resource_id
-        - resource_temporal_usage_windows        
+        - resource_temporal_usage_window        
         - resource_temporal_usage
         - resource_ovn
         - operation_ovns
       type: object
       properties:
-        resource_temporal_usage_windows:
+        resource_temporal_usage_window:
           description: |-
             Timing information used to determine the operation's demand contribution
-            to the resource according to this resource time bins. Includes one or more occupation windows each defining a separate time bin.
-          $ref: "#/components/schemas/ResourceOccupationWindows"                      
+            to the resource spanning this resource time bins requested by the operation. 
+            It is defined by an occupation window with the start time
+            equal to the start time of the first time bin requested by the 
+            operation for this resource and end time equal to the end time 
+            of the last time bin requested by the operation for this resource.
+            In most of the instances (e.g., point based resource crossings) 
+            this occupation window will equal to the start and end times of the 
+            time bin that includes the crossign time. However, for volume-based
+            resources, the entry and exit times may span multiple time bins
+            and this occupation window will be defined from the start time of the 
+            first time bin to the end time of the last time bin.
+          $ref: "#/components/schemas/ResourceOccupationWindow"                      
         resource_temporal_usage:
           description: |-
             Timing information used to determine the operation's expected usage
             for the resource. For point based resources it is resource crossing, whereas 
-            for volume resources it is entry and exit times.
+            for volume-based resources it is entry and exit times.
           oneOf:
             - $ref: "#/components/schemas/ResourceCrossing"  
             - $ref: "#/components/schemas/ResourceOccupationDuration" 
