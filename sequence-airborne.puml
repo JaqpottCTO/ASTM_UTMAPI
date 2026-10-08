@@ -19,7 +19,7 @@ CM -> CM: Conformance monitoring
 alt If operation in conformance
     note over CM: Do nothing
 else If operation not in conformance
-    CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Nonconforming)
+    CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}\n(Nonconforming)
     OIM -> OIM: Define off-nominal volumes
     OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Nonconforming; extent = Off-nominal volumes)
     OIM <-- DSS: operation intent reference with subscribers
@@ -33,7 +33,7 @@ else If operation not in conformance
     alt If operator can return to conformance
         op -> CM: Tracking info for CM conformant
         CM -> CM: Conformance monitoring
-        CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}/\n(Reconforming)
+        CM -> OIM: PUT /oim/v1/conformance_alert/{entityId}\n(Reconforming)
         alt If demand or capacity has changed
             note over OIM: OIM does a DCB check
             OIM -> DCB: POST /dcb/v1/imbalance/intent?returnAvailability=true
@@ -122,18 +122,16 @@ else If definition change
 end
 RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
-    RIS -> DCB: PUT /dcb/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
+    RIS -> DCB: PUT /dcb/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     DCB -> DCB: Adjust capacity/status/definition values
     RIS -> OIM: PUT /oim/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     alt If resource definition change
         loop For each operation impacted
-            OIM -> OIM: Updates op intent with resource intersections
+            OIM -> OIM: Update operational intent with resource intersections
         end
     end
     alt If imbalance detected
-        alt If extent not already updated for this operation
-            DCB -> OIM: POST /oim/v1/imbalance
-        end
+        DCB -> OIM: POST /oim/v1/imbalance
         loop For each impacted (conforming) operation
             OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = DCB-Noncompliant)
             OIM <-- DSS: operation intent reference with subscribers
@@ -174,9 +172,9 @@ loop For each resource subscriber
         DCB -> OIM: POST /oim/v1/imbalance
         note over DCB: Send updated resource OVNs
     end
-    RIS -> DCB2: PUT /dcb/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
+    RIS -> DCB2: PUT /dcb/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     DCB2 -> DCB2: Adjust capacity values
-    RIS -> CM: PUT /cm/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
+    RIS -> CM: PUT /cm/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
 end
 
 ==Position Sharing==

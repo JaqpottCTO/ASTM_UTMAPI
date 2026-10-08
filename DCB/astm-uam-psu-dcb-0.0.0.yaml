@@ -3,7 +3,7 @@ info:
   description: >-
     Interface definitions for the Demand Capacity Balancing function within the Providers of Services to UAM (PSU)
     interoperability network. Functionality includes sharing demand capacity balancing information and receiving 
-    operation intent details from other PSU OIM functions.
+    operational intent details from other PSU OIM functions.
   version: 0.0.0
   title: ASTM UAM PSU DCB API
 servers:
@@ -91,7 +91,7 @@ paths:
     put:
       tags:
       - Imbalance monitoring 
-      summary: Create the specified imbalance subscription in the DSS.
+      summary: Create the specified imbalance subscription in the DCB.
       description: |-
         Create a subscription.
       operationId: createImbalanceSubscription
@@ -310,8 +310,7 @@ paths:
         operational intent are below, at, or above available capacity. The returned 
         demand-capacity imbalance responses do NOT include contributions from the
         operational intent being evaluated but only consider demand-contributing operational intents known to DSS. This endpoint
-        is intended to return details sufficient for submitting the operational intent
-        to the DSS and other OIMs with ONLY the returned information. 
+        returns assessment results and resource extents for the trajectory supplied by OIM.
       tags:
         - Imbalance checks
       summary: Detect resource demand-capacity imbalances for a planned trajectory.
@@ -320,7 +319,7 @@ paths:
         - name: existingOperationalIntentId
           in: query
           required: false
-          description: If this call is testing an different trajectory for an existing
+          description: If this call is testing a different trajectory for an existing
             flight instance, the existing flight instance id must be provided.  The DCB 
             will need to ignore the existing resource usage for this flight intent and only
             consider the trajectory provided in the body. 
@@ -398,8 +397,7 @@ paths:
         DCB and provided the latest operational intent trajectory for this operation.  The returned 
         demand-capacity imbalance responses do NOT include contributions from the
         operational intent being evaluated but only consider demand-contributing operational intents known to DSS. This endpoint
-        is intended to return details sufficient for submitting the operational intent
-        to the DSS and other OIMs with ONLY the returned information. 
+        returns assessment results and resource extents for the trajectory supplied by OIM.
       tags:
         - Imbalance checks
       summary: Recheck demand-capacity imbalances for an operational intent in an existing DCB imbalance subscription.
@@ -702,7 +700,9 @@ components:
         - time
       properties:
         resource_id:
-          description: Identifier for the resource associated with this trajectory point.
+          description: >-
+            Optional identifier for the resource associated with this trajectory point,
+            as identified by OIM using resource information from RIS.
           $ref: '../shared-components/schemas.yaml#/components/schemas/UUIDv4Format'
         point_designator:
           $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'
@@ -753,10 +753,10 @@ components:
         intent_trajectory:
           $ref: '#/components/schemas/IntentTrajectory'
           description: >-
-            Operational intent that is being planned and for which resource demand capacity 
-            imbalances need to be checked. The 'ovn' attribute in the operational intent reference 
-            is not required/processed since it is assumed that this DCB endpoint is checked first 
-            before communicating with DSS.
+            Planned trajectory supplied by OIM for a demand-capacity imbalance check.
+            OIM constructs the trajectory and may include resource identifiers on its points.
+            DCB assesses this trajectory without changing its points. OIM is responsible for
+            any revisions and for submitting a revised trajectory for assessment.
         required_additional_operations:
           $ref: '#/components/schemas/RequiredAdditionalOperations'
         required_additional_resources:
@@ -806,66 +806,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ResourceAvailability'
-    ExtentUpdateRequest:
-      type: object
-      required: 
-        - operations
-      properties:
-        operations:
-          type: array
-          maxItems: 1000
-          description: Updated resource extents, trajectory, and imbalance details for each operational intent requiring an update. Each entry is identified by operational_intent_id.
-          items:
-            $ref: '#/components/schemas/ExtentUpdateOperation'
-      description: >- 
-        Request from DCB to OIM indicating that the resource extents and trajectory previously shared with
-        the DSS and other OIMs for one or more flight instances are out of date.  This can happen if a new resource is added to the system or
-        an existing resource is modified in a way which would cause updates to how an existing trajectory is interacting with
-        the resource (ex. change to physical definition including altitude, location, or size or shape changes).
-    ExtentUpdateOperation:
-      type: object
-      required: 
-        - operational_intent_id
-        - is_dcb_compliant
-        - trajectory
-        - resource_extents
-        - resource_imbalances
-      properties: 
-        operational_intent_id:
-          description: The ID of the operational intent (as shared with the DSS and other entities)
-            which must be updated.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        is_dcb_compliant:
-          type: boolean
-          description: Returns true if the trajectory is DCB compliant (no imbalances). 
-            Returns false if any imbalances exist (trajectory non-DCB compliant). 
-        trajectory:
-          maxItems: 1000
-          minItems: 2
-          type: array
-          description: The list of TrajectoryPoints for this operation which are to be shared
-            with other stakeholders as part of the OperationalIntentDetails.  
-            This list must contain all significant TrajectoryPoints per the CBRs. Interpolation may be 
-            needed to identify these points. For additional insight on points to be included, see the 
-            enumeration of property types in the TrajectoryPoint4D model. In addition, each trajectory 
-            point includes details of any resource(s) which are being utilized by the trajectory and 
-            an indication if this is a crossing for waypoint-based resources or an entry/exit for 
-            volume-based resources.
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
-        resource_extents:
-          type: array
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
-        resource_imbalances:
-          type: array
-          items:
-            $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
-          default: []
     IntentBasedImbalanceResponse:
       type: object
       required:
-        - trajectory
         - resource_extents
         - resource_imbalances
         - is_dcb_compliant
@@ -874,19 +817,6 @@ components:
           type: boolean
           description: Returns true if the trajectory is DCB compliant (no imbalances). 
             Returns false if any imbalances exist (trajectory non-DCB compliant). 
-        trajectory:
-          maxItems: 1000
-          minItems: 2
-          type: array
-          description: The list of TrajectoryPoints for this operation which are to be shared
-            with other stakeholders as part of the OperationalIntentDetails.  
-            This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on 
-            points to be included, see the enumeration of property types in the TrajectoryPoint4D model.
-            In addition, each trajectory point includes details of any resource(s) which are being utilized
-            by the trajectory and an indication if this is a crossing for waypoint-based resources or an 
-            entry/exit for volume-based resources. 
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
           type: array
           items:
@@ -904,11 +834,10 @@ components:
           type: array
           items: 
             $ref: '#/components/schemas/ResourceAvailability'
-      description: >- 
-            Response to an intent based imbalance request. Returns the original trajectory
-            (may be truncated to remove unimportant points) along with resource ids and crossing times
-            and trajectory properties.  Ideally this response could be plugged into the OperationalIntentDetails
-            shared with PSUs and OperationalIntentReference shared with the DSS.  
+      description: >-
+        Assessment results for the trajectory supplied by OIM, including compliance,
+        resource extents, and imbalance information. OIM uses these results with its own
+        trajectory when publishing the operational intent.
     CreateImbalanceSubscriptionParameters:
       required:
       - uss_base_url
@@ -949,7 +878,7 @@ components:
           default: []
         version:
           type: string
-          description: Version of the subscription that the DCB changes every time a OIM changes the subscription.  
+          description: Version of the subscription that the DCB changes every time an OIM changes the subscription.
             The DCB incrementing the notification_index does not constitute a change that triggers a new version.  
             A USS must specify this version when modifying an existing subscription to ensure consistency in read-modify-write operations and distributed systems.
       description: Subscription details, callback URL, and list of operational intents monitored by this DCB. 
@@ -974,7 +903,7 @@ components:
           default: []
         version:
           type: string
-          description: Version of the subscription that the DCB changes every time a OIM changes the subscription.  
+          description: Version of the subscription that the DCB changes every time an OIM changes the subscription.
             The DCB incrementing the notification_index does not constitute a change that triggers a new version.  
             A USS must specify this version when modifying an existing subscription to ensure consistency in read-modify-write operations and distributed systems.
     AreaOrResourceBasedImbalanceRequest:

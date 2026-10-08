@@ -454,7 +454,7 @@ components:
           format: uri
           description: |-
             Base URL of the PSU managing the referenced entity.
-            The base URL path pattern is '/{psu_role}/v1'. Clients retrieve entity details by appending '/resources' (resources) or '/operational_intents' (operational intents) to this base URL.
+            The base URL path pattern is '/{psu_role}/v1'. Clients retrieve entity details by appending '/resources/{entityid}' (resources) or '/operational_intents/{entityid}' (operational intents) to this base URL, replacing '{entityid}' with the referenced entity's id.
         ovn:
           $ref: '#/components/schemas/EntityOVN'
           description: >
