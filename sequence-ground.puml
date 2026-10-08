@@ -80,7 +80,8 @@ end note
 OIM <-- DSS: subscribers to notify
 loop For all subscribers
     OIM -> DCB: POST /dcb/v1/operational_intents (includes OVN)
-    DCB -> DCB: Adjust demand/capacity values
+    DCB -> DCB: Store Proposed intent; exclude it from demand
+    note over DCB: Initial Proposed publication does not require an immediate imbalance check
 end
 alt No suitable existing imbalance subscription
     OIM -> DCB: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}\n(uss_base_url; add_operational_intents includes new intent)
@@ -105,9 +106,9 @@ loop For each operation reference received
     DCB2 -> OIM: GET /oim/v1/operational_intents/{operation-id} (includes OVN)
     DCB2 <-- OIM: operation details (everything)
 end
-DCB2 -> DCB2: Adjust demand/capacity values
+DCB2 -> DCB2: Adjust demand/capacity values (excluding Proposed operations)
 
-==OIM does DCB check (if desired) and transitions operation to Accepted state (OVNs required)==
+==OIM does DCB check and transitions operation to Accepted state (OVNs required)==
 OIM -> DCB: POST /dcb/v1/imbalance/recheck?returnAvailability=true
 OIM <-- DCB: Yes/no, OVNs for all resources, if no, available windows
 

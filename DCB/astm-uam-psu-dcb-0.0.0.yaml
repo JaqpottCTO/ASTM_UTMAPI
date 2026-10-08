@@ -308,20 +308,13 @@ paths:
         Demand-capacity imbalance detection endpoint that requires users to submit 
         a planned trajectory to detect whether the resources included in this 
         operational intent are below, at, or above available capacity. The returned 
-        demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS. This endpoint
+        demand-capacity imbalance responses do NOT include contributions from the
+        operational intent being evaluated but only consider demand-contributing operational intents known to DSS. This endpoint
         is intended to return details sufficient for submitting the operational intent
         to the DSS and other OIMs with ONLY the returned information. 
       tags:
         - Imbalance checks
-      summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit 
-        a planned trajectory to detect whether the resources included in this 
-        operational intent are below, at, or above available capacity. The returned 
-        demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS. This endpoint
-        is intended to return details sufficient for submitting the operational intent
-        to the DSS and other OIMs with ONLY the returned information. 
+      summary: Detect resource demand-capacity imbalances for a planned trajectory.
       operationId: postImbalanceIntent
       parameters:
         - name: existingOperationalIntentId
@@ -403,21 +396,13 @@ paths:
         detect whether the resources intersected by this operational intent are below, at, or 
         above available capacity. The OIM must already have subscribed to the
         DCB and provided the latest operational intent trajectory for this operation.  The returned 
-        demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS. This endpoint
+        demand-capacity imbalance responses do NOT include contributions from the
+        operational intent being evaluated but only consider demand-contributing operational intents known to DSS. This endpoint
         is intended to return details sufficient for submitting the operational intent
         to the DSS and other OIMs with ONLY the returned information. 
       tags:
         - Imbalance checks
-      summary: >-
-        Demand-capacity imbalance detection recheck endpoint that allows users to 
-        detect whether the resources intersected by this operational intent are below, at, or 
-        above available capacity. The OIM must already have subscribed to the
-        DCB and provided the latest operational intent trajectory for this operation.  The returned 
-        demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS. This endpoint
-        is intended to return details sufficient for submitting the operational intent
-        to the DSS and other OIMs with ONLY the returned information. 
+      summary: Recheck demand-capacity imbalances for an operational intent in an existing DCB imbalance subscription.
       operationId: postImbalanceRecheck
       parameters:
         - name: existingOperationalIntentId
@@ -501,13 +486,7 @@ paths:
         be left to the caller to build this information before submitting to the DSS and other OIMs. 
       tags:
         - Imbalance checks
-      summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a 
-        specification of area of interest defined as volume or a list of resources 
-        to detect whether the resources included in this query are under, at, or over available capacity. 
-        This endpoint returns resource and operation details sufficient for submitting an operation
-        to the DSS, but does not include operational intent extent and resource crossing details. It will
-        be left to the caller to build this information before submitting to the DSS and other OIMs. 
+      summary: Detect resource demand-capacity imbalances for an area or a list of resources.
       operationId: queryImbalanceAreaOrResources
       requestBody:
         content:
@@ -1033,7 +1012,9 @@ components:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
     ContributingOperation:
       type: object
-      description: Basic details of an operation contributing to demand or imbalance.
+      description: |-
+        Basic details of an operation contributing to demand or imbalance.
+        Operations in the Proposed state do not contribute to demand and are not included.
       required:
         - operational_intent
         - resource_temporal_usage
@@ -1167,8 +1148,10 @@ components:
       type: array
       description: >
         Operational intents that must be evaluated by DCB for potential relevance.
-        If they intersect relevant resources and time windows, DCB must include them
-        in the demand-capacity check.
+        If they intersect relevant resources and time windows, DCB must evaluate their
+        current state when performing the demand-capacity check. Operations in the
+        Proposed state do not contribute to resource demand, even when supplied in this list.
+        Relevant operations in demand-contributing states must be included in the check.
 
         These operations may originate from DSS (e.g., following a rejection due to missing
         dependencies) or other coordination mechanisms. If any of the referenced operations

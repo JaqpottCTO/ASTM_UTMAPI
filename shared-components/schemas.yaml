@@ -890,6 +890,8 @@ components:
       description: |-
         State of an operational intent.
         'Proposed': Operational intent is created and made available to other PSUs, but the operation is not yet strategically coordinated or approved for takeoff. See standard text for more details.
+          Operations in this state do not contribute to resource demand, regardless of their assigned priority.
+          Initial publication does not require a DCB check before or immediately after publication; subscriber notifications are still required.
           The create or update request for this operational intent reference may omit the Key containing OVNs of relevant resources and operations.
           Updating an existing reference still requires that operational intent's current OVN in the endpoint path.
         'Accepted': Operational intent is strategically coordinated with an assigned departure time.  
