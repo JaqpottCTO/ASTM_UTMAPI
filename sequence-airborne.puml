@@ -124,9 +124,10 @@ RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
     RIS -> DCB: PUT /dcb/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
     DCB -> DCB: Adjust capacity/status/definition values
+    RIS -> OIM: PUT /oim/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     alt If resource definition change
         loop For each operation impacted
-            DCB -> OIM: POST /oim/v1/extent_update
+            OIM -> OIM: Updates op intent with resource intersections
         end
     end
     alt If imbalance detected
