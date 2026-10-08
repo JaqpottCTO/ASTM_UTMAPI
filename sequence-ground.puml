@@ -11,8 +11,9 @@ participant "DCB2" as DCB2
 participant "Operational Intent\nManagement (OIM)" as OIM
 participant "Conformance\nMonitoring (CM)" as CM
 
-==DCB subscribe to resources==
+==DCB & OIM subscribe to resources==
 DCB -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
+OIM -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
 note over DSS
     Subscription request includes
     indication of which data triggers
@@ -20,6 +21,7 @@ note over DSS
     operations, constraints, and resources. 
 end note
 DCB <-- DSS: operational intent references & resource references
+OIM <-- DSS: operational intent references & resource references
 
 note over DCB
 No resources or operational 
@@ -42,6 +44,7 @@ end note
 DSS --> RIS: subscribers, resource-reference including subscription id & ovn
 loop For each resource subscriber
     DCB <-- RIS: POST /dcb/v1/resources\n(includes reference, definition, capacity and status)
+    OIM <-- RIS: POST /oim/v1/resources\n(includes reference, definition, capacity and status)
 end
 note over DCB
 Assumption: ResourceDetails contains definition, status and capacity. 
@@ -54,6 +57,7 @@ RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
     RIS -> DCB: PUT /dcb/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     DCB -> DCB: Adjust capacity values
+    RIS -> OIM: PUT /oim/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
 end
 
 RO -> RIS: Update resource status or current capacity
@@ -61,18 +65,22 @@ RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=STATUS)
 RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
     RIS -> DCB: PUT /dcb/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
+    DCB -> DCB: Adjust status/current capacity values
+    RIS -> OIM: PUT /oim/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
 end
 
 RO -> RIS: Update resource definition or default capacity
 RIS -> DSS: PUT /dss/v1/resource_references/{entityid}/{ovn} (updateType=DEFINITION)
 RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
-    RIS -> DCB: PUT /dcb/v1/resources/{resource-id}\n(includes resource reference, definition, capacity and status)
+    RIS -> DCB: PUT /dcb/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     DCB -> DCB: Adjust demand/capacity values
+    RIS -> OIM: PUT /oim/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
 end
 
 ==OIM receives request from operator and submits an operation to the DSS in proposed state== 
 op -> OIM: Op Request
+OIM -> OIM: Update operational intent with resource intersections
 OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}  (Proposed state)
 note over DSS
 Does not check any OVNs here. All operation intents accepted.
@@ -80,10 +88,14 @@ end note
 OIM <-- DSS: subscribers to notify
 loop For all subscribers
     OIM -> DCB: POST /dcb/v1/operational_intents (includes OVN)
-    DCB -> DCB: Adjust demand/capacity values
+    DCB -> DCB: Store Proposed intent; exclude it from demand
+    note over DCB: Initial Proposed publication does not require an immediate imbalance check
 end
-note over OIM: create subscription with DCB
-OIM -> DCB: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}
+alt No suitable existing imbalance subscription
+    OIM -> DCB: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}\n(uss_base_url; add_operational_intents includes new intent)
+else Reuse suitable existing imbalance subscription
+    OIM -> DCB: PUT /dcb/v1/imbalance_subscriptions/{subscriptionid}/{version}\n(body: version; update_operational_intents includes new intent)
+end
 
 ==A new subscriber joins== 
 DCB2 -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
@@ -99,13 +111,13 @@ loop For each operation reference received
     note over DCB2
     Get all operation details.
     end note
-    DCB2 -> OIM: GET /oim/v1/operational_intents/{operation-id} (includes OVN)
+    DCB2 -> OIM: GET /oim/v1/operational_intents/{entityid} (includes OVN)
     DCB2 <-- OIM: operation details (everything)
 end
-DCB2 -> DCB2: Adjust demand/capacity values
+DCB2 -> DCB2: Adjust demand/capacity values (excluding Proposed operations)
 
-==OIM does DCB check (if desired) and transitions operation to Accepted state (OVNs required)==
-OIM -> DCB: POST /dcb/v1/imbalance/recheck
+==OIM does DCB check and transitions operation to Accepted state (OVNs required)==
+OIM -> DCB: POST /dcb/v1/imbalance/recheck?returnAvailability=true
 OIM <-- DCB: Yes/no, OVNs for all resources, if no, available windows
 
 alt If imbalance detected
@@ -115,7 +127,7 @@ alt If imbalance detected
         op -> op: Replan intent
         op -> OIM: Updated op request
         note over OIM: OIM does a DCB check
-        OIM -> DCB: POST /dcb/v1/imbalance/intent
+        OIM -> DCB: POST /dcb/v1/imbalance/intent?returnAvailability=true
         OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
         alt If imbalance detected
             note over OIM: Do not transition operation to Accepted state
@@ -136,14 +148,18 @@ alt If imbalance detected
     else If operator cannot replan into available windows
         note over op: Cancel operation
         op -> OIM: Cancel operation
-        OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Cancelled)
-        DSS -> DSS: Confirms OVNs are correct
-        OIM <-- DSS: operation intent reference with subscribers
+        note over OIM,DSS
+        Only the canceled operation's current OVN is required.
+        No OVNs for other operations or resources are required.
+        end note
+        OIM -> DSS: DELETE /dss/v1/operational_intent_references/{entityId}/{ovn}/cancel
+        DSS -> DSS: Validate current intent OVN and cancellation eligibility\nRemove reference and all operational extents
+        OIM <-- DSS: Canceled reference and subscribers to notify
         loop For all subscribers
-            OIM -> DCB2: POST /dcb/v1/operational_intents
-            OIM -> DCB: POST /dcb/v1/operational_intents
-            DCB2 -> DCB2: Adjust demand values
-            DCB -> DCB: Adjust demand values
+            OIM -> DCB2: POST /dcb/v1/operational_intents\n(is_canceled = true; operational_intent omitted)
+            OIM -> DCB: POST /dcb/v1/operational_intents\n(is_canceled = true; operational_intent omitted)
+            DCB2 -> DCB2: Remove all demand contributions of canceled operation
+            DCB -> DCB: Remove all demand contributions of canceled operation
         end
     end
 else If no imbalance detected
@@ -171,17 +187,16 @@ else If definition change
 end
 RIS <-- DSS: subscribers, resource-reference including updated ovn
 loop For each resource subscriber
-    RIS -> DCB: PUT /dcb/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
+    RIS -> DCB: PUT /dcb/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     DCB -> DCB: Adjust capacity/status/definition values
+    RIS -> OIM: PUT /oim/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     alt If resource definition change
         loop For each operation impacted
-            DCB -> OIM: POST /oim/v1/extent_update
+            OIM -> OIM: Update operational intent with resource intersections
         end
     end
     alt If imbalance detected
-        alt If extent not already updated for this operation
-            DCB -> OIM: POST /oim/v1/imbalance
-        end
+        DCB -> OIM: POST /oim/v1/imbalance
         loop For each impacted operation
             OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Proposed)
             OIM <-- DSS: operation intent reference with subscribers
@@ -196,7 +211,7 @@ loop For each resource subscriber
             op -> op: Replan intent
             op -> OIM: Updated op request
             note over OIM: OIM does a DCB check
-            OIM -> DCB: POST /dcb/v1/imbalance/intent
+            OIM -> DCB: POST /dcb/v1/imbalance/intent?returnAvailability=true
             OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
 
             alt If imbalance detected
@@ -213,7 +228,7 @@ loop For each resource subscriber
                     DCB2 -> DCB2: Adjust demand values
                     DCB -> DCB: Adjust demand values
                 end
-                OIM -> op: Op activated
+                OIM -> op: Op accepted
             end 
         else If op cannot replan intent to be DCB-compliant
             note over op: do nothing\nOperation remains in Proposed state
@@ -222,22 +237,22 @@ loop For each resource subscriber
         DCB -> OIM: POST /oim/v1/imbalance
         note over DCB: Send updated resource OVNs
     end
-    RIS -> DCB2: PUT /dcb/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
+    RIS -> DCB2: PUT /dcb/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
     DCB2 -> DCB2: Adjust capacity values
-    RIS -> CM: PUT /cm/v1/resource_details/{entityid}\n(includes resource reference, definition, capacity and status)
+    RIS -> CM: PUT /cm/v1/resources/{entityid}\n(includes resource reference, definition, capacity and status)
 end
 
 ==OIM does DCB check and transitions operation to Activated state (OVNs required)==
-CM -> DSS: PUT /dss/v1/subscriptions/
+CM -> DSS: PUT /dss/v1/subscriptions/{subscriptionid}
 CM <-- DSS: resource references
-CM -> RIS: GET /ris/v1/resources/{resource-id} (includes OVN)
+CM -> RIS: GET /ris/v1/resources/{entityid} (includes OVN)
 CM <-- RIS: resource details (everything)
 OIM -> CM: POST /cm/v1/conformance_intents
 
 op -> OIM: Operation ready to activate
 note over OIM: OIM does a DCB check
-OIM -> DCB: POST /dcb/v1/imbalance/recheck
-OIM <-- DCB: Yes/no, OVNs for all resources
+OIM -> DCB: POST /dcb/v1/imbalance/recheck?returnAvailability=true
+OIM <-- DCB: Yes/no, OVNs for all resources, if no, available windows
 
 alt If imbalance detected
     note over OIM: Do not update the operation
@@ -246,7 +261,7 @@ alt If imbalance detected
         op -> op: Replan intent
         op -> OIM: Updated op request
         note over OIM: OIM does a DCB check
-        OIM -> DCB: POST /dcb/v1/imbalance/intent
+        OIM -> DCB: POST /dcb/v1/imbalance/intent?returnAvailability=true
         OIM <-- DCB: Yes/no, OVNs for all resources, available time ranges
         alt If imbalance detected
             note over OIM: Do not update the operation
@@ -267,14 +282,18 @@ alt If imbalance detected
     else If operator cannot replan into available windows
         note over op: Cancel operation
         op -> OIM: Cancel operation
-        OIM -> DSS: PUT /dss/v1/operational_intent_references/{entityId}/{ovn}\n(state = Cancelled)
-        DSS -> DSS: Confirms OVNs are correct
-        OIM <-- DSS: operation intent reference with subscribers
+        note over OIM,DSS
+        Only the canceled operation's current OVN is required.
+        No OVNs for other operations or resources are required.
+        end note
+        OIM -> DSS: DELETE /dss/v1/operational_intent_references/{entityId}/{ovn}/cancel
+        DSS -> DSS: Validate current intent OVN and cancellation eligibility\nRemove reference and all operational extents
+        OIM <-- DSS: Canceled reference and subscribers to notify
         loop For all subscribers
-            OIM -> DCB2: POST /dcb/v1/operational_intents
-            OIM -> DCB: POST /dcb/v1/operational_intents
-            DCB2 -> DCB2: Adjust demand values
-            DCB -> DCB: Adjust demand values
+            OIM -> DCB2: POST /dcb/v1/operational_intents\n(is_canceled = true; operational_intent omitted)
+            OIM -> DCB: POST /dcb/v1/operational_intents\n(is_canceled = true; operational_intent omitted)
+            DCB2 -> DCB2: Remove all demand contributions of canceled operation
+            DCB -> DCB: Remove all demand contributions of canceled operation
         end
     end
 else If no imbalance detected
@@ -288,5 +307,6 @@ else If no imbalance detected
         DCB -> DCB: Adjust demand values
     end
     OIM -> op: Op can take off
-end 
+end
 
+@enduml

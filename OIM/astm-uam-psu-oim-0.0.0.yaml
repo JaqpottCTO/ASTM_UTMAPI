@@ -1,7 +1,10 @@
 openapi: 3.1.1
 info:
   title: ASTM UAM PSU OIM API
-  description: "Interface definitions for the Operational Intent Management function within the Providers of Services to UAM (PSU)\ninteroperability network. Functionality includes sharing details of flight operational intents.\n "
+  description: >-
+    Interface definitions for the Operational Intent Management function within the Providers
+    of Services to UAM (PSU) interoperability network. Functionality includes sharing details
+    of flight operational intents and receiving resource notifications from RIS.
   version: 0.0.0
 servers:
 - url: /
@@ -131,71 +134,6 @@ paths:
       responses:
         "204":
           description: DCB imbalance information received successfully.
-        "400":
-          description: |-
-            * One or more parameters were missing or invalid.
-            * The Entity could not be parsed, or contains illegal data.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "401":
-          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "403":
-          description: |-
-            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
-            * The client identified in the access token is not the manager of this Entity according to the receiving client's records.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "409":
-          description: |-
-            The Entity version specified in this message is lower than
-            a previously-received notification, or identical to a previously-received
-            notification and the Entity is different.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "429":
-          description: The client issued too many requests in a short period of time.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-      security:
-      - Authority:
-        - utm.strategic_coordination
-  /oim/v1/extent_update:
-    summary: Submit updated resource extents and trajectory back to OIM from DCB. This endpoint
-      will be called in the case where a new resource is created or the physical definition
-      of a resource is updated causing one or more flights' shared resource extents and trajectory to 
-      be out of date.  This endpoint provides the same data as would be provided by the DCB in response to an imbalance intent request 
-      by the OIM.  It indicates if each flight is DCB compliant or not (after the change), 
-      provides details about imbalances, and also provides the updated resource extents and
-      supplemental trajectory for updates to the DSS and other OIMs. 
-    post:
-      tags:
-      - Imbalance monitoring 
-      summary: Notify an OIM that the resource interaction of one or more operational intents
-        is out of date and must be updated. 
-      description: Notify an OIM that the resource interaction of one or more operational intents
-        is out of date and must be updated. 
-      operationId: notifyExtentsRequireUpdate
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '../DCB/astm-uam-psu-dcb-0.0.0.yaml#/components/schemas/ExtentUpdateRequest'
-        required: true
-      responses:
-        "204":
-          description: Extent update information received successfully.
         "400":
           description: |-
             * One or more parameters were missing or invalid.

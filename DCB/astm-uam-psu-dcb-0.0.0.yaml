@@ -3,7 +3,7 @@ info:
   description: >-
     Interface definitions for the Demand Capacity Balancing function within the Providers of Services to UAM (PSU)
     interoperability network. Functionality includes sharing demand capacity balancing information and receiving 
-    operation intent details from other PSU OIM functions.
+    operational intent details from other PSU OIM functions.
   version: 0.0.0
   title: ASTM UAM PSU DCB API
 servers:
@@ -91,7 +91,7 @@ paths:
     put:
       tags:
       - Imbalance monitoring 
-      summary: Create the specified imbalance subscription in the DSS.
+      summary: Create the specified imbalance subscription in the DCB.
       description: |-
         Create a subscription.
       operationId: createImbalanceSubscription
@@ -308,60 +308,26 @@ paths:
         Demand-capacity imbalance detection endpoint that requires users to submit 
         a planned trajectory to detect whether the resources included in this 
         operational intent are below, at, or above available capacity. The returned 
-        demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS. This endpoint
-        is intended to return details sufficient for submitting the operational intent
-        to the DSS and other OIMs with ONLY the returned information. 
+        demand-capacity imbalance responses do NOT include contributions from the
+        operational intent being evaluated but only consider demand-contributing operational intents known to DSS. This endpoint
+        returns assessment results and resource extents for the trajectory supplied by OIM.
       tags:
         - Imbalance checks
-      summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit 
-        a planned trajectory to detect whether the resources included in this 
-        operational intent are below, at, or above available capacity. The returned 
-        demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS. This endpoint
-        is intended to return details sufficient for submitting the operational intent
-        to the DSS and other OIMs with ONLY the returned information. 
+      summary: Detect resource demand-capacity imbalances for a planned trajectory.
       operationId: postImbalanceIntent
       parameters:
         - name: existingOperationalIntentId
           in: query
           required: false
-          description: If this call is testing an different trajectory for an existing
+          description: If this call is testing a different trajectory for an existing
             flight instance, the existing flight instance id must be provided.  The DCB 
             will need to ignore the existing resource usage for this flight intent and only
             consider the trajectory provided in the body. 
           schema:
             $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        - name: returnAvailability
-          in: query
-          required: false
-          description: If imbalances are detected with the trajectory, return a list
-            of availability blocks for each of the resources used by the operation in question. 
-            These availabilities are operation specific. 
-          schema:
-            type: boolean
-            default: false
-        - name: timeBufferBefore
-          in: query
-          required: false
-          description: Parameter defining a time buffer in minutes before the resource ETA
-            for which availability time ranges are requested. 
-          schema:
-            type: integer
-            minimum: 0
-            maximum: 120
-            default: 0
-        - name: timeBufferAfter
-          in: query
-          required: false
-          description: Parameter defining a time buffer in minutes after the resource ETA
-            for which availability time ranges are requested. 
-          schema:
-            type: integer
-            minimum: 0
-            maximum: 120
-            default: 0
+        - $ref: '#/components/parameters/ReturnAvailability'
+        - $ref: '#/components/parameters/TimeBufferBefore'
+        - $ref: '#/components/parameters/TimeBufferAfter'
       requestBody:
         content:
           application/json:
@@ -429,21 +395,12 @@ paths:
         detect whether the resources intersected by this operational intent are below, at, or 
         above available capacity. The OIM must already have subscribed to the
         DCB and provided the latest operational intent trajectory for this operation.  The returned 
-        demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS. This endpoint
-        is intended to return details sufficient for submitting the operational intent
-        to the DSS and other OIMs with ONLY the returned information. 
+        demand-capacity imbalance responses do NOT include contributions from the
+        operational intent being evaluated but only consider demand-contributing operational intents known to DSS. This endpoint
+        returns assessment results and resource extents for the trajectory supplied by OIM.
       tags:
         - Imbalance checks
-      summary: >-
-        Demand-capacity imbalance detection recheck endpoint that allows users to 
-        detect whether the resources intersected by this operational intent are below, at, or 
-        above available capacity. The OIM must already have subscribed to the
-        DCB and provided the latest operational intent trajectory for this operation.  The returned 
-        demand-capacity imbalance responses do NOT include contributions from the planned 
-        operational intent but only consider operational intents known to DSS. This endpoint
-        is intended to return details sufficient for submitting the operational intent
-        to the DSS and other OIMs with ONLY the returned information. 
+      summary: Recheck demand-capacity imbalances for an operational intent in an existing DCB imbalance subscription.
       operationId: postImbalanceRecheck
       parameters:
         - name: existingOperationalIntentId
@@ -453,6 +410,9 @@ paths:
             be included within an existing imbalance subscription with this DCB. 
           schema:
             $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
+        - $ref: '#/components/parameters/ReturnAvailability'
+        - $ref: '#/components/parameters/TimeBufferBefore'
+        - $ref: '#/components/parameters/TimeBufferAfter'
       requestBody:
         content:
           application/json:
@@ -524,13 +484,7 @@ paths:
         be left to the caller to build this information before submitting to the DSS and other OIMs. 
       tags:
         - Imbalance checks
-      summary: >-
-        Demand-capacity imbalance detection endpoint that requires users to submit a 
-        specification of area of interest defined as volume or a list of resources 
-        to detect whether the resources included in this query are under, at, or over available capacity. 
-        This endpoint returns resource and operation details sufficient for submitting an operation
-        to the DSS, but does not include operational intent extent and resource crossing details. It will
-        be left to the caller to build this information before submitting to the DSS and other OIMs. 
+      summary: Detect resource demand-capacity imbalances for an area or a list of resources.
       operationId: queryImbalanceAreaOrResources
       requestBody:
         content:
@@ -697,6 +651,41 @@ paths:
     $ref: '../shared-components/pathitems.yaml#/components/pathItems/path_ErrorReports' 
 
 components:
+  parameters:
+    ReturnAvailability:
+      name: returnAvailability
+      in: query
+      required: false
+      description: >-
+        If returnAvailability is true and imbalances are detected, return
+        operation-specific availability windows for each resource used
+        by the operation.
+      schema:
+        type: boolean
+        default: false
+    TimeBufferBefore:
+      name: timeBufferBefore
+      in: query
+      required: false
+      description: Parameter defining a time buffer in minutes before the resource ETA
+        for which availability time ranges are requested.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 120
+        default: 0
+    TimeBufferAfter:
+      name: timeBufferAfter
+      in: query
+      required: false
+      description: Parameter defining a time buffer in minutes after the resource ETA
+        for which availability time ranges are requested.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 120
+        default: 0
+
   securitySchemes:
     Authority:
       $ref: '../shared-components/security.yaml#/components/securitySchemes/Authority'
@@ -711,7 +700,9 @@ components:
         - time
       properties:
         resource_id:
-          description: Identifier for the resource associated with this trajectory point.
+          description: >-
+            Optional identifier for the resource associated with this trajectory point,
+            as identified by OIM using resource information from RIS.
           $ref: '../shared-components/schemas.yaml#/components/schemas/UUIDv4Format'
         point_designator:
           $ref: '../shared-components/schemas.yaml#/components/schemas/PointDesignator'
@@ -762,10 +753,10 @@ components:
         intent_trajectory:
           $ref: '#/components/schemas/IntentTrajectory'
           description: >-
-            Operational intent that is being planned and for which resource demand capacity 
-            imbalances need to be checked. The 'ovn' attribute in the operational intent reference 
-            is not required/processed since it is assumed that this DCB endpoint is checked first 
-            before communicating with DSS.
+            Planned trajectory supplied by OIM for a demand-capacity imbalance check.
+            OIM constructs the trajectory and may include resource identifiers on its points.
+            DCB assesses this trajectory without changing its points. OIM is responsible for
+            any revisions and for submitting a revised trajectory for assessment.
         required_additional_operations:
           $ref: '#/components/schemas/RequiredAdditionalOperations'
         required_additional_resources:
@@ -800,66 +791,24 @@ components:
           type: array
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
-    ExtentUpdateRequest:
-      type: object
-      required: 
-        - operations
-      properties:
-        operations:
-          type: array
-          maxItems: 1000
-          description: Updated resource extents, trajectory, and imbalance details for each operational intent requiring an update. Each entry is identified by operational_intent_id.
-          items:
-            $ref: '#/components/schemas/ExtentUpdateOperation'
-      description: >- 
-        Request from DCB to OIM indicating that the resource extents and trajectory previously shared with
-        the DSS and other OIMs for one or more flight instances are out of date.  This can happen if a new resource is added to the system or
-        an existing resource is modified in a way which would cause updates to how an existing trajectory is interacting with
-        the resource (ex. change to physical definition including altitude, location, or size or shape changes).
-    ExtentUpdateOperation:
-      type: object
-      required: 
-        - operational_intent_id
-        - is_dcb_compliant
-        - trajectory
-        - resource_extents
-        - resource_imbalances
-      properties: 
-        operational_intent_id:
-          description: The ID of the operational intent (as shared with the DSS and other entities)
-            which must be updated.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        is_dcb_compliant:
-          type: boolean
-          description: Returns true if the trajectory is DCB compliant (no imbalances). 
-            Returns false if any imbalances exist (trajectory non-DCB compliant). 
-        trajectory:
-          maxItems: 1000
-          minItems: 2
-          type: array
-          description: The list of TrajectoryPoints for this operation which are to be shared
-            with other stakeholders as part of the OperationalIntentDetails.  
-            This list must contain all significant TrajectoryPoints per the CBRs. Interpolation may be 
-            needed to identify these points. For additional insight on points to be included, see the 
-            enumeration of property types in the TrajectoryPoint4D model. In addition, each trajectory 
-            point includes details of any resource(s) which are being utilized by the trajectory and 
-            an indication if this is a crossing for waypoint-based resources or an entry/exit for 
-            volume-based resources.
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
-        resource_extents:
-          type: array
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/ResourceExtent'
         resource_imbalances:
+          description: Returned whenever is_dcb_compliant is false, regardless of
+            whether availability was requested.
           type: array
           items:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
           default: []
+        availability:
+          description: Returned only when returnAvailability is true and is_dcb_compliant
+            is false. Lists operation-specific time ranges when each utilized resource
+            is below capacity. The caller may use these ranges to replan and submit an
+            updated trajectory for assessment.
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceAvailability'
     IntentBasedImbalanceResponse:
       type: object
       required:
-        - trajectory
         - resource_extents
         - resource_imbalances
         - is_dcb_compliant
@@ -868,19 +817,6 @@ components:
           type: boolean
           description: Returns true if the trajectory is DCB compliant (no imbalances). 
             Returns false if any imbalances exist (trajectory non-DCB compliant). 
-        trajectory:
-          maxItems: 1000
-          minItems: 2
-          type: array
-          description: The list of TrajectoryPoints for this operation which are to be shared
-            with other stakeholders as part of the OperationalIntentDetails.  
-            This list must contain\nall significant TrajectoryPoints per the CBRs. For additional insight on 
-            points to be included, see the enumeration of property types in the TrajectoryPoint4D model.
-            In addition, each trajectory point includes details of any resource(s) which are being utilized
-            by the trajectory and an indication if this is a crossing for waypoint-based resources or an 
-            entry/exit for volume-based resources. 
-          items:
-            $ref: '../shared-components/schemas.yaml#/components/schemas/TrajectoryPoint4D'
         resource_extents:
           type: array
           items:
@@ -898,11 +834,10 @@ components:
           type: array
           items: 
             $ref: '#/components/schemas/ResourceAvailability'
-      description: >- 
-            Response to an intent based imbalance request. Returns the original trajectory
-            (may be truncated to remove unimportant points) along with resource ids and crossing times
-            and trajectory properties.  Ideally this response could be plugged into the OperationalIntentDetails
-            shared with PSUs and OperationalIntentReference shared with the DSS.  
+      description: >-
+        Assessment results for the trajectory supplied by OIM, including compliance,
+        resource extents, and imbalance information. OIM uses these results with its own
+        trajectory when publishing the operational intent.
     CreateImbalanceSubscriptionParameters:
       required:
       - uss_base_url
@@ -915,24 +850,10 @@ components:
         add_operational_intents:
           type: array
           minItems: 1
-          description: Operational intents to add for monitoring. 
+          description: Operational-intent IDs and access information for intents to add
+            for monitoring. DCB can retrieve their details from the managing OIM when needed.
           items:
-            $ref: '#/components/schemas/OperationalIntentForMonitoring'
-    OperationalIntentForMonitoring:
-      required:
-        - operational_intent_id
-        - operational_intent_reference
-      type: object
-      properties:
-        operational_intent_id:
-          description: The ID of the operational intent (as shared with the DSS and other entities). 
-          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
-        operational_intent_reference:
-          description: The operational intent reference (as shared with the DSS and other entities)
-          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentReference'
-        operational_intent_details:
-          description: The operational intent details shared with other stakeholders.
-          $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentDetails'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
     ImbalanceSubscription:
       required:
       - subscription_id
@@ -957,7 +878,7 @@ components:
           default: []
         version:
           type: string
-          description: Version of the subscription that the DCB changes every time a OIM changes the subscription.  
+          description: Version of the subscription that the DCB changes every time an OIM changes the subscription.
             The DCB incrementing the notification_index does not constitute a change that triggers a new version.  
             A USS must specify this version when modifying an existing subscription to ensure consistency in read-modify-write operations and distributed systems.
       description: Subscription details, callback URL, and list of operational intents monitored by this DCB. 
@@ -968,9 +889,11 @@ components:
       properties:
         update_operational_intents:
           type: array
-          description: Operational intents either to add for monitoring or for which the operational intent is being updated. 
+          description: Operational-intent IDs and access information for intents to add
+            for monitoring or whose monitored version is being updated. DCB can retrieve
+            their details from the managing OIM when needed.
           items:
-            $ref: '#/components/schemas/OperationalIntentForMonitoring'
+            $ref: '../shared-components/schemas.yaml#/components/schemas/EntityAccessInfo'
           default: []
         remove_operational_intents:
           type: array
@@ -980,7 +903,7 @@ components:
           default: []
         version:
           type: string
-          description: Version of the subscription that the DCB changes every time a OIM changes the subscription.  
+          description: Version of the subscription that the DCB changes every time an OIM changes the subscription.
             The DCB incrementing the notification_index does not constitute a change that triggers a new version.  
             A USS must specify this version when modifying an existing subscription to ensure consistency in read-modify-write operations and distributed systems.
     AreaOrResourceBasedImbalanceRequest:
@@ -1018,7 +941,9 @@ components:
             $ref: '#/components/schemas/ResourceDemandCapacityImbalances'
     ContributingOperation:
       type: object
-      description: Basic details of an operation contributing to demand or imbalance.
+      description: |-
+        Basic details of an operation contributing to demand or imbalance.
+        Operations in the Proposed state do not contribute to demand and are not included.
       required:
         - operational_intent
         - resource_temporal_usage
@@ -1062,12 +987,14 @@ components:
         - operations
       properties:
         time_start:
-          description: Beginning time of the time bin for computing this demand capacity imbalance status. If the capacity requirements
-            are based on rate or an instantaneous limit, this value will be the time when that capacity rule began. Must be before time_end.
+          description: Beginning of the fixed time bin evaluated for this demand-capacity
+            imbalance. This is an aligned bin boundary, not the start of the capacity
+            rule's effective period. Must be before time_end.
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'
         time_end:
-          description: End time of the time bin for computing this demand capacity imbalance status. Can be empty if the capacity rule
-            in place is an instantaneous or rate limit.  If included, must be after time_start.
+          description: End of the fixed time bin evaluated for this demand-capacity
+            imbalance. This is an aligned bin boundary, not the end of the capacity
+            rule's effective period. Must be after time_start.
           $ref: '../shared-components/schemas.yaml#/components/schemas/Time'     
         imbalance_magnitude:
           type: number
@@ -1150,8 +1077,10 @@ components:
       type: array
       description: >
         Operational intents that must be evaluated by DCB for potential relevance.
-        If they intersect relevant resources and time windows, DCB must include them
-        in the demand-capacity check.
+        If they intersect relevant resources and time windows, DCB must evaluate their
+        current state when performing the demand-capacity check. Operations in the
+        Proposed state do not contribute to resource demand, even when supplied in this list.
+        Relevant operations in demand-contributing states must be included in the check.
 
         These operations may originate from DSS (e.g., following a rejection due to missing
         dependencies) or other coordination mechanisms. If any of the referenced operations

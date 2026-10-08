@@ -236,7 +236,7 @@ paths:
       - Authority:
         - utm.strategic_coordination
   /dss/v1/operational_intent_references/{entityid}/{ovn}:
-    summary: Update endpoint for a specified operational intent reference in the DSS.
+    summary: Update/delete endpoint for a specified operational intent reference in the DSS.
     put:
       tags:
       - Operational intent references
@@ -369,6 +369,93 @@ paths:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
         "403":
           description: The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "404":
+          description: The requested Entity could not be found.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "409":
+          description: |-
+            * The provided `ovn` does not match the current version of the existing operational intent.
+            * Despite repeated attempts, the DSS was unable to complete the update because of other simultaneous changes.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "412":
+          description: The client attempted to delete the operational intent while marked as Down in the DSS.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "429":
+          description: The client issued too many requests in a short period of time.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+      security:
+      - Authority:
+        - utm.strategic_coordination
+  /dss/v1/operational_intent_references/{entityid}/{ovn}/cancel:
+    summary: Cancel and delete an operational intent reference in the DSS.
+    delete:
+      tags:
+      - Operational intent references
+      - dss
+      summary: Cancel the specified operation and remove its operational intent reference from the DSS.
+      description: |-
+        Cancel and delete a Proposed or Accepted operation that has never been Activated.
+        Only the managing PSU may call this endpoint, using the operation's current OVN;
+        no OVNs for other entities are required. Do not first PUT the state to Canceled.
+      operationId: cancelOperationalIntentReference
+      parameters:
+      - name: entityid
+        in: path
+        description: EntityID of the operational intent.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
+      - name: ovn
+        in: path
+        description: Opaque version number of the existing operational intent reference.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '../shared-components/schemas.yaml#/components/schemas/EntityOVN'
+      responses:
+        "200":
+          description: The operation was canceled and its reference removed. The returned reference has state Canceled, and subscribers must be notified of cancellation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeOperationalIntentReferenceResponse'
+        "400":
+          description: |-
+            * One or more input parameters were missing or invalid.
+            * The request attempted to mutate the operational intent in a disallowed way.
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "401":
+          description: "Bearer access token was not provided in Authorization header, token could not be decoded, or token was invalid."
+          content:
+            application/json:
+              schema:
+                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
+        "403":
+          description: |-
+            * The access token was decoded successfully but did not include a scope appropriate to this endpoint.
+            * The client is not the manager of this operational intent.
           content:
             application/json:
               schema:
@@ -590,12 +677,6 @@ paths:
             application/json:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "432":
-          description: The resource start and end times don't align with the bin boundaries.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'                    
       security:
       - Authority:
         - utm.resource_management
@@ -677,12 +758,6 @@ paths:
             application/json:
               schema:
                 $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'
-        "432":
-          description: The resource start and end times don't align with the bin boundaries.
-          content:
-            application/json:
-              schema:
-                $ref: '../shared-components/schemas.yaml#/components/schemas/ErrorResponse'                 
       security:
       - Authority:
         - utm.resource_management
@@ -1441,7 +1516,17 @@ components:
         operational_extents:
           $ref: "#/components/schemas/OperationalExtents"
         key:
-          description: "Proof that the USS creating or mutating this operational intent was aware of the current state of the airspace, with the expectation that this operational intent accounts for demand and capacity of all relevant resources. This field is not required when declaring an operational intent Nonconforming or Contingent, or when the operational intent does not intersect any capacity constrained resources, but is otherwise required. OVNs are required for intersected resources and all operations utilizing intersected resources. The key does not need to contain the OVN for the operational intent being updated."
+          description: |-
+            Proof that the USS creating or mutating this operational intent was aware of the
+            current state of the airspace, with the expectation that this operational intent
+            accounts for demand and capacity of all relevant resources. This field is not
+            required when declaring an operational intent Proposed, Nonconforming or
+            Contingent, or when the operational intent does not intersect any capacity
+            constrained resources, but is otherwise required. When this field is required,
+            OVNs are required for intersected resources and all operations utilizing
+            intersected resources. The key does not need to contain
+            the OVN for the operational intent being updated. These exemptions do not remove
+            the requirement to provide that intent's current OVN in the update endpoint path.
           $ref: '#/components/schemas/Key'
         state:
           $ref: '../shared-components/schemas.yaml#/components/schemas/OperationalIntentState'
@@ -1694,25 +1779,39 @@ components:
           items:
             $ref: '../shared-components/schemas.yaml#/components/schemas/Volume4D'
     PastResourceExtent:
-      description: Describes a resource crossing or occupation window which has 
-        occurred in the past for this flight.  The operation and resource OVNs 
-        do not need to be shared because the operation has already (and is no 
-        longer) utilizing these resources. The intent of this schema is to 
-        allow the DSS to maintain past occupation to support DCB. 
+      description: Describes past resource occupation for this flight. The operation
+        and resource OVNs do not need to be shared. The intent of this schema is to
+        allow the DSS to maintain past occupation to support DCB.
+        Crossing, entry, and exit times are the planned times from the previous
+        operational intent, not actual times.
       required:
         - resource_id
-        - resource_temporal_usage
+        - resource_temporal_usage_window        
       type: object
       properties:
+        resource_temporal_usage_window:
+          description: |-
+            Timing information used to determine the operation's demand contribution
+            to the resource spanning this resource time bins requested by the operation. 
+            It is defined by an occupation window with the start time
+            equal to the start time of the first time bin requested by the 
+            operation for this resource and end time equal to the end time 
+            of the last time bin requested by the operation for this resource.
+            In most of the instances (e.g., point based resource crossings) 
+            this occupation window will equal to the start and end times of the 
+            time bin that includes the crossing time. However, for volume-based
+            resources, the entry and exit times may span multiple time bins
+            and this occupation window will be defined from the start time of the 
+            first time bin to the end time of the last time bin.
+          $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindow"                      
         resource_temporal_usage:
           description: |-
-            For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
-            is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
-            capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).   
+            Timing information used to determine the operation's expected usage
+            for the resource. For point based resources it is resource crossing, whereas 
+            for volume-based resources it is entry and exit times.
           oneOf:
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationWindows"  
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing" 
-            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceCrossing"  
+            - $ref: "../shared-components/schemas.yaml#/components/schemas/ResourceOccupationDuration"        
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 
@@ -1740,7 +1839,7 @@ components:
           minItems: 1
           type: array
           description: |-
-            List of resources and crossing OR window times when the resource
+            List of resources and time intervals when each resource
             will be occupied by the Flight Intent. These extents are intended to be
             shared with the DSS when the Operation Intent is submitted/updated. 
           items:
@@ -1753,8 +1852,9 @@ components:
         past_extents:
           type: array
           description: |-
-            List of resources and crossing OR window times when the resource was occupied
-            by the Flight Intent. 
+            List of past resource extents derived from planned crossing or entry and
+            exit times in the retained past portion of the operational intent. Include
+            only extents for capacity bins that contain the operational intent update time.
           items:
             $ref: '#/components/schemas/PastResourceExtent'
     OperationalExtents:
@@ -1768,12 +1868,13 @@ components:
           - $ref: "#/components/schemas/VolumeExtents"
           - $ref: "#/components/schemas/OffNominalVolumeExtents"
         past_extents:
-          description: Describes a resource crossing or occupation which has occurred
-            in the past for this flight. Required for resources with FLOW_RATE_FIXED_BIN 
-            capacity type, but only for currently active time bins. Not required for 
-            time bins that have already completed. Not required for resources with 
-            INSTANTEOUS capacity type. The intent of this schema is to allow the DSS to 
-            maintain past occupation to support DCB. 
+          description: |-
+            Describes planned resource occupation from the retained past portion of this
+            flight's previous operational intent. Past resource extents are required only
+            for capacity bins that contain the operational intent update time. Extents
+            for completed time bins are not required.
+            This allows the DSS to maintain past planned demand contributions to support
+            DCB; it does not represent actual resource crossings.
           $ref: "#/components/schemas/PastResourceExtents"
     VehicleTelemetry:
       required:
