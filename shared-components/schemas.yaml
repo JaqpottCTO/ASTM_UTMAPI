@@ -181,7 +181,7 @@ components:
       
     Trajectory:
       type: object
-      description: Wrapper object for trajectory points of this operational intent.
+      description: Wrapper object for the entire four-dimensional trajectory of this operational intent.
       properties:
         trajectory:
           type: array
@@ -191,8 +191,10 @@ components:
             The list of TrajectoryPoints for this operation.  This list must contain 
             all significant TrajectoryPoints per the CBRs. Pre-flight, this list must 
             contain all trajectory points.  If updated during the flight, all trajectory
-            points should also be shared (including past points), but past points shall 
-            not be updated to actual crossing times. 
+            points from the previous operational intent whose planned timestamps precede
+            the update time shall be retained unchanged. They shall be combined with the
+            replanned portion, and the entire four-dimensional trajectory shall be shared.
+            Retained planned timestamps shall not be replaced with actual crossing times.
             For additional insight on points to be included, see the enumeration of 
             property types in the TrajectoryPoint4D model.
           items:
@@ -292,7 +294,11 @@ components:
           description: "Altitude of the point. If this is for a named airspace structure point from ASDS, it should be the same value as from ASDS."
           $ref: '#/components/schemas/Altitude'
         time:
-          description: Estimated time when the vehicle will be at the location of the TrajectoryPoint
+          description: |-
+            Planned time when the vehicle will be at the location of the TrajectoryPoint.
+            When this planned timestamp precedes an in-flight update time, the point shall
+            be retained unchanged from the previous operational intent, including its
+            planned timestamp; it shall not be replaced with the actual crossing time.
           $ref: '#/components/schemas/Time'
         speed:
           description: |-
@@ -306,9 +312,6 @@ components:
           description: |-
             Describes any applicable properties of the trajectory point.
             May include multiple properties per point. FIXM allows up to 2000 properties per trajectory point.
-            Pre-flight, the entire trajectory should be provided. If the trajectory is updated
-            during flight, the entire trajectory should also be provided (including past points), but past points shall 
-            not be updated to actual crossing times.
             The first point of a pre-flight trajectory must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_OFF.
             The last point must include at a minimum: AIRPORT_REFERENCE_LOCATION, WHEELS_ON.
             The time and location of the aircraft at the update can be included with the property: POINT_OF_INTENT_UPDATE.
@@ -451,7 +454,7 @@ components:
           format: uri
           description: |-
             Base URL of the PSU managing the referenced entity.
-            The base URL path pattern is '/{psu_role}/v1'. Clients retrieve entity details by appending '/resources' (resources) or '/operational_intents' (operational intents) to this base URL.
+            The base URL path pattern is '/{psu_role}/v1'. Clients retrieve entity details by appending '/resources/{entityid}' (resources) or '/operational_intents/{entityid}' (operational intents) to this base URL, replacing '{entityid}' with the referenced entity's id.
         ovn:
           $ref: '#/components/schemas/EntityOVN'
           description: >
@@ -497,10 +500,10 @@ components:
         - RESOURCE_EXIT
         - RESOURCE_CROSSING
         
-    FlowRateFixedBinResourceCapacity:
+    ResourceCapacity:
       type: object
       description: |-
-        Capacity requirements for FLOW_RATE_FIXED_BIN resources.
+        Capacity requirements for resources using fixed time bins.
       required:
       - operations_per_bin
       - bin_duration
@@ -518,32 +521,10 @@ components:
           maximum: 3600
           multipleOf: 60
           description: |-
-            Duration, in seconds, of the fixed time bin used for FLOW_RATE_FIXED_BIN capacities.
+            Duration, in seconds, of the fixed time bin used for capacity assessment.
             The fixed time bin shall start at the top of the hour, and this value shall represent
             a whole number of minutes that evenly divides 3600 seconds.
           example: 720
-
-    InstantaneousResourceCapacity:
-      type: object
-      description: |-
-        Capacity requirements for INSTANTANEOUS resources.
-      required:
-      - instantaneous_limit
-      properties:
-        instantaneous_limit:
-          type: integer
-          format: int32
-          minimum: 0
-          description: |-
-            The maximum number of operations permitted to occupy the resource at any time.
-
-    ResourceCapacity:
-      description: |-
-        Capacity requirements defined for a resource. The capacity type is inferred by which
-        properties are present.
-      oneOf:
-      - $ref: '#/components/schemas/FlowRateFixedBinResourceCapacity'
-      - $ref: '#/components/schemas/InstantaneousResourceCapacity'
 
     TemporaryResourceCapacity:
       required: 
@@ -706,6 +687,7 @@ components:
       required:
       - physical_definition
       - default_capacity
+      - performance_bound
       type: object
       properties:
         physical_definition:
@@ -828,26 +810,21 @@ components:
           $ref: '#/components/schemas/Time'
 
     ResourceOccupationWindow:
+      description: |-
+        A time window used to identify other operational intents that may contribute
+        demand to the same resource. The start and end times should align with
+        time bin boundaries and fully cover the relevant time bins.
       required:
        - start_time
        - end_time
       type: object
       properties:
         start_time:
+          description: Start of the resource occupation window.
           $ref: '#/components/schemas/Time'
         end_time:
+          description: End of the resource occupation window. Must be after start_time.
           $ref: '#/components/schemas/Time'
-
-    ResourceOccupationWindows:
-      required:
-       - windows
-      type: object
-      properties:
-        windows:
-          type: array
-          items:
-            $ref: '#/components/schemas/ResourceOccupationWindow'
-          minItems: 1
 
     ResourceCrossing:
       required:
@@ -860,20 +837,35 @@ components:
     ResourceExtent:
       required:
         - resource_id
+        - resource_temporal_usage_window        
         - resource_temporal_usage
         - resource_ovn
         - operation_ovns
       type: object
       properties:
+        resource_temporal_usage_window:
+          description: |-
+            Timing information used to determine the operation's demand contribution
+            to the resource spanning this resource time bins requested by the operation. 
+            It is defined by an occupation window with the start time
+            equal to the start time of the first time bin requested by the 
+            operation for this resource and end time equal to the end time 
+            of the last time bin requested by the operation for this resource.
+            In most of the instances (e.g., point based resource crossings) 
+            this occupation window will equal to the start and end times of the 
+            time bin that includes the crossing time. However, for volume-based
+            resources, the entry and exit times may span multiple time bins
+            and this occupation window will be defined from the start time of the 
+            first time bin to the end time of the last time bin.
+          $ref: "#/components/schemas/ResourceOccupationWindow"                      
         resource_temporal_usage:
           description: |-
-            For FLOW_RATE_FIXED_BIN resources, this is the start and end times of the time window(s) in which the resource 
-            is occupied. (Regardless of whether the resource is an area or point). For resources with INSTANTANEOUS 
-            capacity, it is the crossing time (for point resources) or entry and exit time (for area resources).  
+            Timing information used to determine the operation's expected usage
+            for the resource. For point based resources it is resource crossing, whereas 
+            for volume-based resources it is entry and exit times.
           oneOf:
-            - $ref: "#/components/schemas/ResourceOccupationWindows"  
-            - $ref: "#/components/schemas/ResourceCrossing" 
-            - $ref: "#/components/schemas/ResourceOccupationDuration"  
+            - $ref: "#/components/schemas/ResourceCrossing"  
+            - $ref: "#/components/schemas/ResourceOccupationDuration" 
         resource_id:
           description: |-
             The ID of a resources being occupied or crossed by the operational intent. 
@@ -898,6 +890,10 @@ components:
       description: |-
         State of an operational intent.
         'Proposed': Operational intent is created and made available to other PSUs, but the operation is not yet strategically coordinated or approved for takeoff. See standard text for more details.
+          Operations in this state do not contribute to resource demand, regardless of their assigned priority.
+          Initial publication does not require a DCB check before or immediately after publication; subscriber notifications are still required.
+          The create or update request for this operational intent reference may omit the Key containing OVNs of relevant resources and operations.
+          Updating an existing reference still requires that operational intent's current OVN in the endpoint path.
         'Accepted': Operational intent is strategically coordinated with an assigned departure time.  
           The PSU OIM must perform a DCB check before transitioning to this state.  
           Operations in this state are on the ground and must enter this state before activation.  
@@ -913,7 +909,9 @@ components:
         'Completed': Operation has landed and is no longer using the operational intent; see standard text for more details.  
           Details may still be communicated between PSUs as these operations may affect demand models.         
         'Canceled': Operation never transitioned to Activated and will not use the operational intent; see standard text for more details.  
-          The PSU OIM role must delete the operational intent from the network. Details in this state are not shared between PSUs.          
+          The PSU OIM role must use DELETE /dss/v1/operational_intent_references/{entityid}/{ovn}/cancel
+          to cancel and delete the operational intent in one step, and notify subscribers with is_canceled set to true.
+          Full operational intent details in this state are not shared between PSUs.
       enum:
       - Proposed
       - Accepted
@@ -1043,10 +1041,22 @@ components:
           $ref: '#/components/schemas/EntityID'
         operational_intent:
           description: |-
-            Full information about the operational intent that has changed. If this field is omitted,
-            the operational intent was deleted. If this field is present, the `ovn` field in the nested
-            `reference` must be populated.
-          $ref: '#/components/schemas/OperationalIntent'
+            Full information about the operational intent that has changed. If this field is omitted
+            or null, the operational intent was deleted. If full information is present, the `ovn`
+            field in the nested `reference` must be populated. Cancellation notifications must not
+            include full operational intent information; set is_canceled to true instead.
+          oneOf:
+          - $ref: '#/components/schemas/OperationalIntent'
+          - type: 'null'
+        is_canceled:
+          type: boolean
+          default: false
+          description: |-
+            Set to true when notifying subscribers after successful cancellation using
+            DELETE /dss/v1/operational_intent_references/{entityid}/{ovn}/cancel.
+            The operational_intent field must be omitted or null. DCB recipients shall remove
+            all demand contributions from the canceled operation. A false or omitted value
+            does not assert cancellation and does not imply that the operation completed.
         subscriptions:
           minItems: 1
           type: array

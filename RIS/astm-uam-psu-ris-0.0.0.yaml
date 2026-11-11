@@ -53,7 +53,7 @@ paths:
           $ref: '../shared-components/schemas.yaml#/components/schemas/EntityID'
       responses:
         "200":
-          description: Operational intent details were retrieved successfully.
+          description: Resource details were retrieved successfully.
           content:
             application/json:
               schema:
@@ -319,7 +319,7 @@ components:
         current_resource_status:
           $ref: "../shared-components/schemas.yaml#/components/schemas/CurrentResourceStatus"
     QueryFutureCapacitiesResponse:
-      description: Return a list temporary capacities for the future. 
+      description: Return a list of temporary capacities for the future.
       type: object
       required: 
         - future_capacities
